@@ -6,24 +6,24 @@ import (
 )
 
 var Brute = cli.Command{
-	Name: "Brute",
-	Action: Moudle.Brute,
+	Name:    "Brute",
+	Action:  Moudle.Brute,
 	Aliases: []string{"B"},
 	Flags: []cli.Flag{
-		StringFlag("username","u","",""),
-		StringFlag("password","p","",""),
-		SimpleStringFlag("ip","",""),
-		StringFlag("server","s","",""),
+		StringFlag("username", "u", "", ""),
+		StringFlag("password", "p", "", ""),
+		SimpleStringFlag("ip", "", ""),
+		StringFlag("server", "s", "", ""),
+		IntFlag("t", 2, ""),
 	},
 }
 
-
-func StringFlag(name,alases, value, usage string) *cli.StringFlag {
+func StringFlag(name, alases, value, usage string) *cli.StringFlag {
 	return &cli.StringFlag{
-		Name:  name,
+		Name:    name,
 		Aliases: []string{alases},
-		Value: value,
-		Usage: usage,
+		Value:   value,
+		Usage:   usage,
 	}
 }
 

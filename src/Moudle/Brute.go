@@ -4,8 +4,8 @@ import (
 	"Zombie/src/Core"
 	"Zombie/src/Utils"
 	"fmt"
-	"github.com/urfave/cli/v2"
 	"github.com/panjf2000/ants/v2"
+	"github.com/urfave/cli/v2"
 	"os"
 	"strconv"
 	"strings"
@@ -17,7 +17,6 @@ func Brute(ctx *cli.Context) (err error) {
 	var CurServer string
 	var UserList, PassList []string
 	var IpList []Utils.IpInfo
-
 
 	if !ctx.IsSet("ip") {
 		fmt.Println("Please check the address")
@@ -36,7 +35,7 @@ func Brute(ctx *cli.Context) (err error) {
 			os.Exit(0)
 		}
 
-	} else if strings.Contains(Ip, ":")  {
+	} else if strings.Contains(Ip, ":") {
 		Temp := strings.Split(Ip, ":")
 		Sport := Temp[1]
 		port, err := strconv.Atoi(Sport)
@@ -52,7 +51,7 @@ func Brute(ctx *cli.Context) (err error) {
 			fmt.Println("Please input the type of Server")
 			os.Exit(0)
 		}
-	}else {
+	} else {
 		fmt.Println("Please input the type of Server")
 		os.Exit(0)
 	}
@@ -69,35 +68,43 @@ func Brute(ctx *cli.Context) (err error) {
 		PassList = Core.GetPassList(password)
 	}
 
-	ExpireTime := GetExpireTime(len(IpList),len(UserList),len(PassList))
+	CurServer = strings.ToUpper(CurServer)
+
+	Utils.Timeout = time.Duration(ctx.Int("t")) * time.Second
+
+	if CurServer == "SSH" {
+		Utils.Timeout += 10 * time.Second
+	}
+
+	ExpireTime := GetExpireTime(len(IpList), len(UserList), len(PassList))
 
 	TaskList := Core.GenerateTask(UserList, PassList, IpList, CurServer)
 
 	wgs := &sync.WaitGroup{}
 
-	scanPool, _ := ants.NewPoolWithFunc(1000, func(i interface{}) {
+	scanPool, _ := ants.NewPoolWithFunc(500, func(i interface{}) {
 
 		tc := i.(Utils.ScanTask)
 		defaultScan(tc)
 		wgs.Done()
-	},ants.WithExpiryDuration(2 * time.Second))
+	}, ants.WithExpiryDuration(2*time.Second))
 	//,ants.WithExpiryDuration(2)
-
-
 
 	for task := range TaskList {
 		wgs.Add(1)
 		_ = scanPool.Invoke(task)
 	}
 
-	waitTimeout(wgs, time.Duration(ExpireTime*2) * time.Second)
+	waitTimeout(wgs, time.Duration(ExpireTime)*Utils.Timeout)
+
+	fmt.Printf("ScanSum is : %d\n", Core.ScanSum)
 
 	return err
 }
 
-func defaultScan(task Utils.ScanTask){
+func defaultScan(task Utils.ScanTask) {
 	err, result := Core.Dispatch(task)
-	if err == nil && result{
+	if err == nil && result {
 		fmt.Printf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\n", task.Info.Ip, task.Info.Port, task.Username, task.Password, task.Server)
 	}
 }
@@ -112,12 +119,14 @@ func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
 	case <-c:
 		return false // completed normally
 	case <-time.After(timeout):
+		fmt.Println("The program timeout ended,maybe the targets contains someone don't belongs to this server")
 		return true // timed out
 	}
 }
 
-func GetExpireTime(a int, b int, c int)(res int){
+func GetExpireTime(a int, b int, c int) (res int) {
 	summary := a * b * c
-	res = summary / 1000 + 1
+	res = summary/1000 + 1
+	fmt.Printf("The summary is: %d\n", summary)
 	return res
 }
