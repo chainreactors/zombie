@@ -14,7 +14,7 @@
 
 ## 基础用法
 
-1. Brute 模块
+###  Brute 模块
 > 即基础爆破模块
 
 * 参数
@@ -35,3 +35,20 @@
     * `Brute -u admin,admin321,admin888,root,postgres -p aaaa,bbbb,ccc,cccd,ddd,321 -ip 127.0.0.1:6379 -s redis`
     * `Brute -u admin,admin321,admin888,root,postgres -p aaaa,bbbb,ccc,cccd,ddd,321 -ip 127.0.0.1:6379 `
     * `Brute -u admin,admin321,admin888,root,postgres -p aaaa,bbbb,ccc,cccd,ddd,321 -ip 127.0.0.1 -s redis`
+
+
+### Exec 模块
+
+* 参数
+    * ip:
+        1. 例如:127.0.0.1:3306
+    
+    * username or u
+       
+    * password or p
+        
+    * server or s 
+        * 传入要执行命令的服务
+        
+*  example
+    Exec -u root -p test -ip 127.0.0.1:3306 -q "show tables"
