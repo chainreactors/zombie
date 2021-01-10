@@ -103,7 +103,7 @@ func Brute(ctx *cli.Context) (err error) {
 }
 
 func defaultScan(task Utils.ScanTask) {
-	err, result := Core.Dispatch(task)
+	err, result := Core.BruteDispatch(task)
 	if err == nil && result {
 		fmt.Printf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\n", task.Info.Ip, task.Info.Port, task.Username, task.Password, task.Server)
 	}

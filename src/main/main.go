@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func main(){
+func main() {
 	app := cli.NewApp()
 	app.Name = "Zombie"
 	app.Authors = []*cli.Author{
@@ -14,6 +14,6 @@ func main(){
 	}
 	app.Version = "0.0.1Beta"
 	app.Usage = "None"
-	app.Commands = []*cli.Command{&Cmd.Brute}
+	app.Commands = []*cli.Command{&Cmd.Brute, &Cmd.Exec}
 	app.Run(os.Args)
 }

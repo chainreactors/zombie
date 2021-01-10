@@ -18,6 +18,20 @@ var Brute = cli.Command{
 	},
 }
 
+var Exec = cli.Command{
+	Name:    "Exec",
+	Action:  Moudle.Exec,
+	Aliases: []string{"E"},
+	Flags: []cli.Flag{
+		StringFlag("username", "u", "", ""),
+		StringFlag("password", "p", "", ""),
+		SimpleStringFlag("ip", "", ""),
+		StringFlag("server", "s", "", ""),
+		StringFlag("query", "q", "", ""),
+		IntFlag("t", 2, ""),
+	},
+}
+
 func StringFlag(name, alases, value, usage string) *cli.StringFlag {
 	return &cli.StringFlag{
 		Name:    name,

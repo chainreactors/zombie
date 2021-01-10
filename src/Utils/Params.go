@@ -39,4 +39,16 @@ var (
 		"ELASTICSEARCH": 9200,
 		"MONGO":         27017,
 	}
+
+	ExecPort = map[string]int{
+		"MSSQL":      1433,
+		"MYSQL":      3306,
+		"POSTGRESQL": 5432,
+	}
+
+	ExecServer = map[int]string{
+		1433: "MSSQL",
+		3306: "MYSQL",
+		5432: "POSTGRE",
+	}
 )
