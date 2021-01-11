@@ -2,7 +2,7 @@ package Server
 
 import "database/sql"
 
-func DoRowsMapper(rows *sql.Rows) []map[string]string {
+func DoRowsMapper(rows *sql.Rows) ([]map[string]string, []string) {
 
 	var result []map[string]string
 	// 获取列名
@@ -44,5 +44,5 @@ func DoRowsMapper(rows *sql.Rows) []map[string]string {
 		result = append(result, rowMap)
 
 	}
-	return result
+	return result, columns
 }

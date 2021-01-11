@@ -79,15 +79,19 @@ func Exec(ctx *cli.Context) (err error) {
 		Server:   CurServer,
 	}
 
-	err, Qresult := Core.ExecDispatch(Curtask, ctx.String("query"))
+	err, Qresult, Columns := Core.ExecDispatch(Curtask, ctx.String("query"))
 
 	if err != nil {
 		fmt.Println("something wrong")
 		os.Exit(0)
 	} else {
+		for _, cname := range Columns {
+			fmt.Print(cname + "\t")
+		}
+		fmt.Print("\n")
 		for _, items := range Qresult {
-			for _, v := range items {
-				fmt.Print(v + "\t")
+			for _, cname := range Columns {
+				fmt.Print(items[cname] + "\t")
 			}
 			fmt.Print("\n")
 		}

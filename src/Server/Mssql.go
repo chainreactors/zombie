@@ -32,7 +32,7 @@ func MssqlConnectTest(User string, Password string, info Utils.IpInfo) (err erro
 	return err, result
 }
 
-func MssqlQuery(User string, Password string, info Utils.IpInfo, Query string) (err error, Qresult []map[string]string) {
+func MssqlQuery(User string, Password string, info Utils.IpInfo, Query string) (err error, Qresult []map[string]string, Columns []string) {
 	err, _, db := MssqlConnect(User, Password, info)
 	if err != nil {
 		fmt.Println("connect failed,please check your input.")
@@ -42,16 +42,16 @@ func MssqlQuery(User string, Password string, info Utils.IpInfo, Query string) (
 		if err == nil {
 			rows, err := db.Query(Query)
 			if err == nil {
-				Qresult = DoRowsMapper(rows)
+				Qresult, Columns = DoRowsMapper(rows)
 
 			} else {
 				fmt.Println("please check your query.")
-				return err, Qresult
+				return err, Qresult, Columns
 			}
 		} else {
 			fmt.Println("connect failed,please check your input.")
-			return err, Qresult
+			return err, Qresult, Columns
 		}
 	}
-	return err, Qresult
+	return err, Qresult, Columns
 }

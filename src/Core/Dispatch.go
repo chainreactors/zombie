@@ -21,6 +21,9 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result bool) {
 		err, result = Server.MongoConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "MSSQL":
 		err, result = Server.MssqlConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+	case "VNC":
+		err, result = Server.VNCConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+
 	default:
 		fmt.Println("The Server isn't supported")
 	}
@@ -30,17 +33,17 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result bool) {
 	return err, result
 }
 
-func ExecDispatch(CurTask Utils.ScanTask, Query string) (err error, Qresult []map[string]string) {
+func ExecDispatch(CurTask Utils.ScanTask, Query string) (err error, Qresult []map[string]string, Columns []string) {
 	switch CurTask.Server {
 	case "MYSQL":
-		err, Qresult = Server.MysqlQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
+		err, Qresult, Columns = Server.MysqlQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
 	case "POSTGRESQL":
-		err, Qresult = Server.PostgresQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
+		err, Qresult, Columns = Server.PostgresQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
 	case "MSSQL":
-		err, Qresult = Server.MssqlQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
+		err, Qresult, Columns = Server.MssqlQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
 	default:
 		fmt.Println("The Server isn't supported")
 	}
 
-	return err, Qresult
+	return err, Qresult, Columns
 }

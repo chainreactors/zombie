@@ -27,6 +27,7 @@ var (
 		6379:  "REDIS",
 		9200:  "ELASTICSEARCH",
 		27017: "MONGO",
+		5900:  "VNC",
 	}
 	ServerPort = map[string]int{
 		"FTP":           21,
@@ -38,6 +39,7 @@ var (
 		"REDIS":         6379,
 		"ELASTICSEARCH": 9200,
 		"MONGO":         27017,
+		"VNC":           5900,
 	}
 
 	ExecPort = map[string]int{
