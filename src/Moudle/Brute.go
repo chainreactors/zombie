@@ -96,7 +96,7 @@ func Brute(ctx *cli.Context) (err error) {
 		Utils.Timeout += 10 * time.Second
 	}
 
-	ExpireTime := GetExpireTime(len(IpList), len(UserList), len(PassList))
+	//ExpireTime := GetExpireTime(len(IpList), len(UserList), len(PassList))
 
 	TaskList := Core.GenerateTask(UserList, PassList, IpList, CurServer)
 
@@ -124,9 +124,9 @@ func Brute(ctx *cli.Context) (err error) {
 		_ = scanPool.Invoke(task)
 	}
 
-	waitTimeout(wgs, time.Duration(ExpireTime)*Utils.Timeout)
+	//waitTimeout(wgs, time.Duration(ExpireTime)*Utils.Timeout)
 
-	//wgs.Wait()
+	wgs.Wait()
 
 	fmt.Printf("ScanSum is : %d\n", Core.ScanSum)
 
