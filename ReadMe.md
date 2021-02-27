@@ -12,6 +12,7 @@
     3. 体积较小,可以上传到目标上使用(很多时候代理是真的傻逼)
 
 
+
 ## 基础用法
 
 ###  Brute 模块
@@ -48,7 +49,7 @@
     * password or p
         
     * server or s 
-        * 传入要执行命令的服务
+        * 传入要执行命令的服务 :仅支持 mysql 
         
 *  example
     Exec -u root -p test -ip 127.0.0.1:3306 -q "show tables"

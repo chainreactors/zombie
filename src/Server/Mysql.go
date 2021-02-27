@@ -30,7 +30,6 @@ func MysqlConnectTest(User string, Password string, info Utils.IpInfo) (err erro
 		var bgCtx = context.Background()
 		var ctx2SecondTimeout, cancelFunc2SecondTimeout = context.WithTimeout(bgCtx, time.Second*2)
 		defer cancelFunc2SecondTimeout()
-		defer db.Close()
 		err = db.PingContext(ctx2SecondTimeout)
 		if err == nil {
 			result = true

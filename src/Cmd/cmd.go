@@ -12,6 +12,8 @@ var Brute = cli.Command{
 	Flags: []cli.Flag{
 		StringFlag("username", "u", "", ""),
 		StringFlag("password", "p", "", ""),
+		StringFlag("userdict", "U", "", ""),
+		StringFlag("passdict", "P", "", ""),
 		SimpleStringFlag("ip", "", ""),
 		StringFlag("server", "s", "", ""),
 		IntFlag("t", 2, ""),

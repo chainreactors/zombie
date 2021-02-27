@@ -58,14 +58,34 @@ func Brute(ctx *cli.Context) (err error) {
 
 	IpList = Core.GetIpInfoList(IpSlice, CurServer)
 
-	if !ctx.IsSet("username") && !ctx.IsSet("password") {
-		fmt.Println("please input username and password, if the server don't need username,input anything to place")
-		os.Exit(0)
-	} else {
+	//if !ctx.IsSet("username") && !ctx.IsSet("password") {
+	//	fmt.Println("please input username and password, if the server don't need username,input anything to place")
+	//	os.Exit(0)
+	//} else {
+	//	username := ctx.String("username")
+	//	password := ctx.String("password")
+	//	UserList = Core.GetUserList(username)
+	//	PassList = Core.GetPassList(password)
+	//}
+
+	if ctx.IsSet("username") || !ctx.IsSet("userdict") {
 		username := ctx.String("username")
-		password := ctx.String("password")
 		UserList = Core.GetUserList(username)
+	} else if ctx.IsSet("userdict") {
+		UserList, _ = Core.ReadUserDict(ctx.String("userdict"))
+	} else {
+		fmt.Println("please input username")
+		os.Exit(0)
+	}
+
+	if ctx.IsSet("password") || !ctx.IsSet("passdict") {
+		password := ctx.String("password")
 		PassList = Core.GetPassList(password)
+	} else if ctx.IsSet("passdict") {
+		PassList, _ = Core.ReadPassDict(ctx.String("passdict"))
+	} else {
+		fmt.Println("please input user")
+		os.Exit(0)
 	}
 
 	CurServer = strings.ToUpper(CurServer)
@@ -82,10 +102,19 @@ func Brute(ctx *cli.Context) (err error) {
 
 	wgs := &sync.WaitGroup{}
 
-	scanPool, _ := ants.NewPoolWithFunc(500, func(i interface{}) {
-
+	scanPool, _ := ants.NewPoolWithFunc(100, func(i interface{}) {
+		//defer cancel()
 		tc := i.(Utils.ScanTask)
 		defaultScan(tc)
+		//for {
+		//	select {
+		//	case <-ctx.Done():
+		//		fmt.Println("timeout")
+		//		wgs.Done()
+		//		return
+		//	default:
+		//	}
+		//}
 		wgs.Done()
 	}, ants.WithExpiryDuration(2*time.Second))
 	//,ants.WithExpiryDuration(2)
@@ -97,12 +126,15 @@ func Brute(ctx *cli.Context) (err error) {
 
 	waitTimeout(wgs, time.Duration(ExpireTime)*Utils.Timeout)
 
+	//wgs.Wait()
+
 	fmt.Printf("ScanSum is : %d\n", Core.ScanSum)
 
 	return err
 }
 
 func defaultScan(task Utils.ScanTask) {
+
 	err, result := Core.BruteDispatch(task)
 	if err == nil && result {
 		fmt.Printf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\n", task.Info.Ip, task.Info.Port, task.Username, task.Password, task.Server)
@@ -126,7 +158,7 @@ func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
 
 func GetExpireTime(a int, b int, c int) (res int) {
 	summary := a * b * c
-	res = summary/1000 + 1
+	res = summary/100 + 10
 	fmt.Printf("The summary is: %d\n", summary)
 	return res
 }

@@ -5,22 +5,44 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
+	"strings"
 )
 
+//func PostgresConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, db *sql.DB) {
+//	dataSourceName := fmt.Sprintf("postgres://%v:%v@%v:%v/%v?sslmode=%v", User,
+//		Password, info.Ip, info.Port, "postgres", "disable")
+//	db, err = sql.Open("postgres", dataSourceName)
+//
+//	if err != nil {
+//		result = false
+//	}
+//	return err, result, db
+//}
+
 func PostgresConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, db *sql.DB) {
-	dataSourceName := fmt.Sprintf("postgres://%v:%v@%v:%v/%v?sslmode=%v", User,
-		Password, info.Ip, info.Port, "postgres", "disable")
+	dataSourceName := strings.Join([]string{
+		fmt.Sprintf("connect_timeout=%d", 2),
+		"dbname=postgres",
+		fmt.Sprintf("host=%v", info.Ip),
+		fmt.Sprintf("password=%v", Password),
+		fmt.Sprintf("port=%v", info.Port),
+		"sslmode=disable",
+		fmt.Sprintf("user=%v", User),
+	}, " ")
+
 	db, err = sql.Open("postgres", dataSourceName)
 
 	if err != nil {
 		result = false
 	}
 	return err, result, db
+
 }
 
 func PostgresConnectTest(User string, Password string, info Utils.IpInfo) (err error, result bool) {
 	err, result, db := PostgresConnect(User, Password, info)
 	defer db.Close()
+
 	if err == nil {
 		defer db.Close()
 		err = db.Ping()

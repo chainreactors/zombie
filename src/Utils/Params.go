@@ -23,7 +23,7 @@ var (
 		445:   "SMB",
 		1433:  "MSSQL",
 		3306:  "MYSQL",
-		5432:  "POSTGRE",
+		5432:  "POSTGRESQL",
 		6379:  "REDIS",
 		9200:  "ELASTICSEARCH",
 		27017: "MONGO",

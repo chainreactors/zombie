@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/denisenkom/go-mssqldb"
+	"time"
 )
 
 func MssqlConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, db *sql.DB) {
-	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v", info.Ip,
-		info.Port, User, Password, "master")
+	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", info.Ip,
+		info.Port, User, Password, "master", 2*time.Second)
 
 	db, err = sql.Open("mssql", dataSourceName)
 
