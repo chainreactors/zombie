@@ -48,6 +48,19 @@ func GetIpList(ipstring string) (IpList []string) {
 
 func GetIpInfoList(iplist []string, Server string) (IpInfoList []Utils.IpInfo) {
 	for _, ip := range iplist {
+		target := Utils.IpInfo{
+			SSL: false,
+		}
+
+		if strings.HasPrefix(ip, "http") {
+			ips := strings.Split(ip, "http://")
+			ip = ips[1]
+		} else if strings.HasPrefix(ip, "https") {
+			ips := strings.Split(ip, "http://")
+			ip = ips[1]
+			target.SSL = true
+		}
+
 		if strings.Contains(ip, ":") {
 			SplitIp := strings.Split(ip, ":")
 			port, err := strconv.Atoi(SplitIp[1])
@@ -55,10 +68,8 @@ func GetIpInfoList(iplist []string, Server string) (IpInfoList []Utils.IpInfo) {
 				fmt.Println("Please check your address")
 				os.Exit(0)
 			}
-			target := Utils.IpInfo{
-				Ip:   SplitIp[0],
-				Port: port,
-			}
+			target.Port = port
+			target.Ip = SplitIp[0]
 			IpInfoList = append(IpInfoList, target)
 		} else {
 			target := Utils.IpInfo{

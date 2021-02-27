@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"net"
+	"time"
 )
 
 func SSHConnect(User string, Password string, info Utils.IpInfo) (err error, result bool) {
@@ -13,7 +14,7 @@ func SSHConnect(User string, Password string, info Utils.IpInfo) (err error, res
 		Auth: []ssh.AuthMethod{
 			ssh.Password(Password),
 		},
-		Timeout: Utils.Timeout,
+		Timeout: time.Duration(Utils.Timeout+10) * time.Second,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},

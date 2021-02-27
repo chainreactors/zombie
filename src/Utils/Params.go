@@ -1,10 +1,9 @@
 package Utils
 
-import "time"
-
 type IpInfo struct {
 	Ip   string
 	Port int
+	SSL  bool
 }
 
 type ScanTask struct {
@@ -14,7 +13,8 @@ type ScanTask struct {
 	Server   string
 }
 
-var Timeout time.Duration
+var Timeout int
+var SSL bool
 
 var (
 	PortServer = map[int]string{

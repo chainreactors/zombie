@@ -10,7 +10,7 @@ import (
 
 func MssqlConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, db *sql.DB) {
 	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", info.Ip,
-		info.Port, User, Password, "master", 2*time.Second)
+		info.Port, User, Password, "master", time.Duration(Utils.Timeout)*time.Second)
 
 	db, err = sql.Open("mssql", dataSourceName)
 

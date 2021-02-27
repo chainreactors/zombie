@@ -6,6 +6,7 @@ import (
 	_ "github.com/mitchellh/go-vnc"
 	"net"
 	"strconv"
+	"time"
 )
 
 func VNCConnect(User string, Password string, info Utils.IpInfo) (err error, result bool) {
@@ -14,7 +15,7 @@ func VNCConnect(User string, Password string, info Utils.IpInfo) (err error, res
 
 	target := info.Ip + ":" + targetPort
 
-	conn, err := net.DialTimeout("tcp", target, Utils.Timeout)
+	conn, err := net.DialTimeout("tcp", target, time.Duration(Utils.Timeout)*time.Second)
 	if err == nil {
 		config := vnc.ClientConfig{
 			Auth: []vnc.ClientAuth{

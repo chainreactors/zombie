@@ -90,11 +90,7 @@ func Brute(ctx *cli.Context) (err error) {
 
 	CurServer = strings.ToUpper(CurServer)
 
-	Utils.Timeout = time.Duration(ctx.Int("t")) * time.Second
-
-	if CurServer == "SSH" {
-		Utils.Timeout += 10 * time.Second
-	}
+	Utils.Timeout = ctx.Int("t")
 
 	//ExpireTime := GetExpireTime(len(IpList), len(UserList), len(PassList))
 

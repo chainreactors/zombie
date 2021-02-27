@@ -16,6 +16,7 @@ var Brute = cli.Command{
 		StringFlag("passdict", "P", "", ""),
 		SimpleStringFlag("ip", "", ""),
 		StringFlag("server", "s", "", ""),
+		BoolFlag("ssl", ""),
 		IntFlag("t", 2, ""),
 	},
 }

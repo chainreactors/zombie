@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-func RedisConnect(User string, Password string,info Utils.IpInfo)(err error,result bool){
+func RedisConnect(User string, Password string, info Utils.IpInfo) (err error, result bool) {
 
 	opt := redis.Options{Addr: fmt.Sprintf("%v:%v", info.Ip, info.Port),
-		Password: Password, DB: 0, DialTimeout: 2 * time.Second}
+		Password: Password, DB: 0, DialTimeout: time.Duration(Utils.Timeout) * time.Second}
 	client := redis.NewClient(&opt)
 	defer client.Close()
 	_, err = client.Ping().Result()

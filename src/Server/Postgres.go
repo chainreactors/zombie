@@ -21,7 +21,7 @@ import (
 
 func PostgresConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, db *sql.DB) {
 	dataSourceName := strings.Join([]string{
-		fmt.Sprintf("connect_timeout=%d", 2),
+		fmt.Sprintf("connect_timeout=%d", Utils.Timeout),
 		"dbname=postgres",
 		fmt.Sprintf("host=%v", info.Ip),
 		fmt.Sprintf("password=%v", Password),
