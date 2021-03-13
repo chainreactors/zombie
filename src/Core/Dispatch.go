@@ -27,6 +27,8 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result bool) {
 		err, result = Server.VNCConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "SMB":
 		err, result = Server.SMBConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+	case "ELASTICSEARCH":
+		err, result = Server.EsConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 
 	default:
 		fmt.Println("The Server isn't supported")

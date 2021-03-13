@@ -38,6 +38,19 @@
     * `Brute -u admin,admin321,admin888,root,postgres -p aaaa,bbbb,ccc,cccd,ddd,321 -ip 127.0.0.1 -s redis`
     * -U,-P,-IP 则是读取文件模式,(使用绝对路径)
 
+* 目前支持的协议
+  {
+  21:    "FTP",
+  22:    "SSH",
+  445:   "SMB",
+  1433:  "MSSQL",
+  3306:  "MYSQL",
+  5432:  "POSTGRESQL",
+  6379:  "REDIS",
+  9200:  "ELASTICSEARCH",
+  27017: "MONGO",
+  5900:  "VNC",
+  }
 
 ### Exec 模块
 
@@ -57,12 +70,7 @@
 
 
 
+   
 
 
 
-
-
-
-
-
-/home/applprod/.gvfs/updates -IP /home/applprod/.gvfs/ip.txt -U /home/applprod/.gvfs/user.dic -P /home/applprod/.gvfs/pass.dic -s smb -f /home/applprod/.gvfs/log.txt
