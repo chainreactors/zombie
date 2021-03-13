@@ -13,23 +13,29 @@ import (
 	"time"
 )
 
+var FileHandle *os.File
+var O2File bool
+var Datach = make(chan string, 1000)
+
 func Brute(ctx *cli.Context) (err error) {
 	var CurServer string
-	var UserList, PassList []string
+	var UserList, PassList, IpSlice []string
 	var IpList []Utils.IpInfo
 
-	if !ctx.IsSet("ip") {
-		fmt.Println("Please check the address")
+	if ctx.IsSet("ip") || !ctx.IsSet("IP") {
+		IpSlice = Core.GetUserList(ctx.String("ip"))
+	} else if ctx.IsSet("IP") {
+		IpSlice, _ = Core.ReadUserDict(ctx.String("IP"))
+	} else {
+		fmt.Println("please check the ip")
 		os.Exit(0)
 	}
-
-	IpSlice := Core.GetIpList(ctx.String("ip"))
 
 	Ip := IpSlice[0]
 	if ctx.IsSet("server") {
 		ServerName := strings.ToUpper(ctx.String("server"))
 		if _, ok := Utils.ServerPort[ServerName]; ok {
-			CurServer = ctx.String("server")
+			CurServer = ServerName
 		} else {
 			fmt.Println("the Server isn't be supported")
 			os.Exit(0)
@@ -94,6 +100,10 @@ func Brute(ctx *cli.Context) (err error) {
 
 	//ExpireTime := GetExpireTime(len(IpList), len(UserList), len(PassList))
 
+	if ctx.IsSet("file") {
+		initFile(ctx.String("file"))
+	}
+
 	TaskList := Core.GenerateTask(UserList, PassList, IpList, CurServer)
 
 	wgs := &sync.WaitGroup{}
@@ -133,28 +143,50 @@ func defaultScan(task Utils.ScanTask) {
 
 	err, result := Core.BruteDispatch(task)
 	if err == nil && result {
-		fmt.Printf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\n", task.Info.Ip, task.Info.Port, task.Username, task.Password, task.Server)
+		res := fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\n", task.Info.Ip, task.Info.Port, task.Username, task.Password, task.Server)
+		if O2File {
+			Datach <- res
+		}
+		fmt.Println(res)
 	}
 }
 
-func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
-	c := make(chan struct{})
-	go func() {
-		defer close(c)
-		wg.Wait()
-	}()
-	select {
-	case <-c:
-		return false // completed normally
-	case <-time.After(timeout):
-		fmt.Println("The program timeout ended,maybe the targets contains someone don't belongs to this server")
-		return true // timed out
+func initFile(Filename string) {
+	var err error
+
+	if Filename != "" {
+		O2File = true
+		if checkFileIsExist(Filename) { //如果文件存在
+			FileHandle, err = os.OpenFile(Filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend) //打开文件
+			//fmt.Println("文件存在")
+			if err != nil {
+				os.Exit(0)
+			}
+			//io.WriteString(FileHandle, "123")
+		} else {
+			FileHandle, err = os.Create(Filename) //创建文件
+			//fmt.Println("文件不存在")
+			if err != nil {
+				os.Exit(0)
+			}
+			//io.WriteString(FileHandle, "123")
+		}
+
 	}
+	go write2File(FileHandle, Datach)
 }
 
-func GetExpireTime(a int, b int, c int) (res int) {
-	summary := a * b * c
-	res = summary/100 + 10
-	fmt.Printf("The summary is: %d\n", summary)
-	return res
+func checkFileIsExist(filename string) bool {
+	var exist = true
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		exist = false
+	}
+	return exist
+}
+
+func write2File(FileHandle *os.File, Datach chan string) {
+	for res := range Datach {
+		FileHandle.WriteString(res)
+
+	}
 }

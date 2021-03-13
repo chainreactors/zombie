@@ -8,7 +8,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func Exec(ctx *cli.Context) (err error) {
@@ -67,8 +66,6 @@ func Exec(ctx *cli.Context) (err error) {
 	}
 
 	CurServer = strings.ToUpper(CurServer)
-
-	Utils.Timeout = time.Duration(ctx.Int("t")) * time.Second
 
 	IpList := Core.GetIpInfoList(IpSlice, CurServer)
 

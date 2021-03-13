@@ -17,12 +17,16 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result bool) {
 		err, result = Server.PostgresConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "REDIS":
 		err, result = Server.RedisConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+	case "SSH":
+		err, result = Server.SSHConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "MONGO":
 		err, result = Server.MongoConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "MSSQL":
 		err, result = Server.MssqlConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "VNC":
 		err, result = Server.VNCConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+	case "SMB":
+		err, result = Server.SMBConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 
 	default:
 		fmt.Println("The Server isn't supported")
