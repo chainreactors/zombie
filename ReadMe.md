@@ -37,7 +37,7 @@
     * `Brute -u admin,admin321,admin888,root,postgres -p aaaa,bbbb,ccc,cccd,ddd,321 -ip 127.0.0.1:6379 `
     * `Brute -u admin,admin321,admin888,root,postgres -p aaaa,bbbb,ccc,cccd,ddd,321 -ip 127.0.0.1 -s redis`
     * -U,-P,-IP 则是读取文件模式,(使用绝对路径)
-
+    * `Brute -U user.dic -P pass.dic -f log.txt -s tomcat -IP ip.dic`
 * 目前支持的协议
   {
   21:    "FTP",
@@ -50,6 +50,7 @@
   9200:  "ELASTICSEARCH",
   27017: "MONGO",
   5900:  "VNC",
+  8080: "TOMCAT"
   }
 
 ### Exec 模块
