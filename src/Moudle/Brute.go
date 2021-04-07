@@ -3,6 +3,7 @@ package Moudle
 import (
 	"Zombie/src/Core"
 	"Zombie/src/Utils"
+	"context"
 	"fmt"
 	"github.com/panjf2000/ants/v2"
 	"github.com/urfave/cli/v2"
@@ -13,9 +14,8 @@ import (
 	"time"
 )
 
-var FileHandle *os.File
-var O2File bool
-var Datach = make(chan string, 1000)
+var ChildContext context.Context
+var ChildCancel context.CancelFunc
 
 func Brute(ctx *cli.Context) (err error) {
 	var CurServer string
@@ -96,7 +96,8 @@ func Brute(ctx *cli.Context) (err error) {
 
 	CurServer = strings.ToUpper(CurServer)
 
-	Utils.Timeout = ctx.Int("t")
+	Utils.Timeout = ctx.Int("timeout")
+	Utils.Thread = ctx.Int("thread")
 
 	//ExpireTime := GetExpireTime(len(IpList), len(UserList), len(PassList))
 
@@ -104,67 +105,25 @@ func Brute(ctx *cli.Context) (err error) {
 		initFile(ctx.String("file"))
 	}
 
-	TaskList := Core.GenerateTask(UserList, PassList, IpList, CurServer)
-
-	wgs := &sync.WaitGroup{}
-
-	scanPool, _ := ants.NewPoolWithFunc(100, func(i interface{}) {
-		//defer cancel()
-		tc := i.(Utils.ScanTask)
-		defaultScan(tc)
-		//for {
-		//	select {
-		//	case <-ctx.Done():
-		//		fmt.Println("timeout")
-		//		wgs.Done()
-		//		return
-		//	default:
-		//	}
-		//}
-		wgs.Done()
-	}, ants.WithExpiryDuration(2*time.Second))
-	//,ants.WithExpiryDuration(2)
-
-	for task := range TaskList {
-		wgs.Add(1)
-		_ = scanPool.Invoke(task)
-	}
-
-	//waitTimeout(wgs, time.Duration(ExpireTime)*Utils.Timeout)
-
-	wgs.Wait()
-
-	fmt.Printf("ScanSum is : %d\n", Core.ScanSum)
+	err = StartTask(UserList, PassList, IpList, CurServer)
 
 	return err
-}
-
-func defaultScan(task Utils.ScanTask) {
-
-	err, result := Core.BruteDispatch(task)
-	if err == nil && result {
-		res := fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\n", task.Info.Ip, task.Info.Port, task.Username, task.Password, task.Server)
-		if O2File {
-			Datach <- res
-		}
-		fmt.Println(res)
-	}
 }
 
 func initFile(Filename string) {
 	var err error
 
 	if Filename != "" {
-		O2File = true
-		if checkFileIsExist(Filename) { //如果文件存在
-			FileHandle, err = os.OpenFile(Filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend) //打开文件
+		Utils.O2File = true
+		if Utils.CheckFileIsExist(Filename) { //如果文件存在
+			Utils.FileHandle, err = os.OpenFile(Filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend) //打开文件
 			//fmt.Println("文件存在")
 			if err != nil {
 				os.Exit(0)
 			}
 			//io.WriteString(FileHandle, "123")
 		} else {
-			FileHandle, err = os.Create(Filename) //创建文件
+			Utils.FileHandle, err = os.Create(Filename) //创建文件
 			//fmt.Println("文件不存在")
 			if err != nil {
 				os.Exit(0)
@@ -173,20 +132,51 @@ func initFile(Filename string) {
 		}
 
 	}
-	go write2File(FileHandle, Datach)
+	go Utils.Write2File(Utils.FileHandle, Utils.Datach)
 }
 
-func checkFileIsExist(filename string) bool {
-	var exist = true
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		exist = false
-	}
-	return exist
-}
+func StartTask(UserList []string, PassList []string, IpList []Utils.IpInfo, CurServer string) error {
+	rootContext, rootCancel := context.WithCancel(context.Background())
+	for _, ipinfo := range IpList {
 
-func write2File(FileHandle *os.File, Datach chan string) {
-	for res := range Datach {
-		FileHandle.WriteString(res)
+		ChildContext, ChildCancel = context.WithCancel(rootContext)
 
+		TaskList := Core.GenerateTask(UserList, PassList, ipinfo, CurServer)
+
+		wgs := &sync.WaitGroup{}
+		PrePara := Core.PoolPara{
+			Ctx:      ChildContext,
+			Taskchan: TaskList,
+			Wgs:      wgs,
+		}
+
+		scanPool, _ := ants.NewPoolWithFunc(Utils.Thread, func(i interface{}) {
+			par := i.(Core.PoolPara)
+			Core.BruteWork(&par)
+		}, ants.WithExpiryDuration(2*time.Second))
+
+		for i := 0; i < Utils.Thread; i++ {
+			wgs.Add(1)
+			_ = scanPool.Invoke(PrePara)
+		}
+		wgs.Wait()
+
+		RandomTask := Utils.ScanTask{
+			Info:     ipinfo,
+			Username: Core.FlagUserName,
+			Password: Utils.RandStringBytesMaskImprSrcUnsafe(12),
+			Server:   CurServer,
+		}
+
+		err, RanRes := Core.DefaultScan2(RandomTask)
+
+		if err == nil && RanRes {
+			fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\n", RandomTask.Info.Ip, RandomTask.Info.Port, RandomTask.Username, RandomTask.Password, RandomTask.Server)
+			fmt.Sprintf("%s:%d\t is it a honeypot?", RandomTask.Info.Ip, RandomTask.Info.Port)
+		}
 	}
+
+	rootCancel()
+
+	return nil
 }

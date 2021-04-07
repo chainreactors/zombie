@@ -13,7 +13,7 @@ type ScanTask struct {
 	Server   string
 }
 
-var Timeout int
+var Timeout, Thread int
 var SSL bool
 
 var (

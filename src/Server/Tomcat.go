@@ -42,30 +42,6 @@ func TomcatConnect(User string, Password string, info Utils.IpInfo) (err error, 
 		},
 	}
 
-	//res, err := http.NewRequest("GET", url2, nil)
-	//if err == nil {
-	//	res.Header.Add("User-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36")
-	//	res.Header.Add("Accept", "*/*")
-	//	res.Header.Add("Accept-Language", "zh-CN,zh;q=0.9")
-	//	res.Header.Add("Connection", "close")
-	//	resp, err := client.Do(res)
-	//
-	//
-	//
-	//	if err == nil {
-	//		defer resp.Body.Close()
-	//		body, _ := ioutil.ReadAll(resp.Body)
-	//		if strings.Contains(string(body), "/_cat/master") {
-	//			//AnnonTest := fmt.Sprintf("Elastic:%s unauthorized", url)
-	//			result = true
-	//			return nil, result
-	//		}
-	//	}else {
-	//		return err, result
-	//	}
-	//
-	//}
-
 	res, err := http.NewRequest("GET", url, nil)
 	if err == nil {
 		res.Header.Add("User-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36")

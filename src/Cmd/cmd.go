@@ -19,7 +19,8 @@ var Brute = cli.Command{
 		StringFlag("file", "f", "", ""),
 		StringFlag("server", "s", "", ""),
 		BoolFlag("ssl", ""),
-		IntFlag("t", 2, ""),
+		IntSimpleFlag("timeout", 2, ""),
+		IntFlag("thread", "t", "", 60),
 	},
 }
 
@@ -33,7 +34,6 @@ var Exec = cli.Command{
 		SimpleStringFlag("ip", "", ""),
 		StringFlag("server", "s", "", ""),
 		StringFlag("query", "q", "", ""),
-		IntFlag("t", 2, ""),
 	},
 }
 
@@ -61,10 +61,19 @@ func BoolFlag(name, usage string) *cli.BoolFlag {
 	}
 }
 
-func IntFlag(name string, value int, usage string) *cli.IntFlag {
+func IntSimpleFlag(name string, value int, usage string) *cli.IntFlag {
 	return &cli.IntFlag{
 		Name:  name,
 		Value: value,
 		Usage: usage,
+	}
+}
+
+func IntFlag(name, alases, usage string, value int) *cli.IntFlag {
+	return &cli.IntFlag{
+		Name:    name,
+		Aliases: []string{alases},
+		Value:   value,
+		Usage:   usage,
 	}
 }
