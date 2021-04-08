@@ -38,6 +38,7 @@ func BruteWork(WorkerPara *PoolPara) {
 					Utils.Datach <- Bres
 				}
 				fmt.Println(Bres)
+				Utils.ChildCancel()
 			}
 
 		}

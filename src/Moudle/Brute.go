@@ -14,9 +14,6 @@ import (
 	"time"
 )
 
-var ChildContext context.Context
-var ChildCancel context.CancelFunc
-
 func Brute(ctx *cli.Context) (err error) {
 	var CurServer string
 	var UserList, PassList, IpSlice []string
@@ -139,13 +136,15 @@ func StartTask(UserList []string, PassList []string, IpList []Utils.IpInfo, CurS
 	rootContext, rootCancel := context.WithCancel(context.Background())
 	for _, ipinfo := range IpList {
 
-		ChildContext, ChildCancel = context.WithCancel(rootContext)
+		fmt.Printf("Now Processing %s:%d, Server: %s\n", ipinfo.Ip, ipinfo.Port, CurServer)
+
+		Utils.ChildContext, Utils.ChildCancel = context.WithCancel(rootContext)
 
 		TaskList := Core.GenerateTask(UserList, PassList, ipinfo, CurServer)
 
 		wgs := &sync.WaitGroup{}
 		PrePara := Core.PoolPara{
-			Ctx:      ChildContext,
+			Ctx:      Utils.ChildContext,
 			Taskchan: TaskList,
 			Wgs:      wgs,
 		}

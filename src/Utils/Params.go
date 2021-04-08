@@ -1,5 +1,7 @@
 package Utils
 
+import "context"
+
 type IpInfo struct {
 	Ip   string
 	Port int
@@ -15,6 +17,8 @@ type ScanTask struct {
 
 var Timeout, Thread int
 var SSL bool
+var ChildContext context.Context
+var ChildCancel context.CancelFunc
 
 var (
 	PortServer = map[int]string{
