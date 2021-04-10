@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func VNCConnect(User string, Password string, info Utils.IpInfo) (err error, result bool) {
+func VNCConnect(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
 
 	targetPort := strconv.Itoa(info.Port)
 
@@ -26,7 +26,7 @@ func VNCConnect(User string, Password string, info Utils.IpInfo) (err error, res
 		if err == nil {
 			err = vncClient.Close()
 			if err == nil {
-				result = true
+				result.Result = true
 			}
 		}
 	}

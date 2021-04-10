@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func TomcatConnect(User string, Password string, info Utils.IpInfo) (err error, result bool) {
+func TomcatConnect(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
 	auth := User + ":" + Password
 
 	auth = base64.StdEncoding.EncodeToString([]byte(auth))
@@ -55,7 +55,7 @@ func TomcatConnect(User string, Password string, info Utils.IpInfo) (err error, 
 			_, _ = io.ReadAll(resp.Body)
 			resp.Body.Close()
 			if resp.StatusCode == 200 {
-				result = true
+				result.Result = true
 				return nil, result
 			}
 		}

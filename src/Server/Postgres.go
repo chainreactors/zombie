@@ -39,15 +39,15 @@ func PostgresConnect(User string, Password string, info Utils.IpInfo) (err error
 
 }
 
-func PostgresConnectTest(User string, Password string, info Utils.IpInfo) (err error, result bool) {
-	err, result, db := PostgresConnect(User, Password, info)
+func PostgresConnectTest(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
+	err, res, db := PostgresConnect(User, Password, info)
 	defer db.Close()
 
 	if err == nil {
 		defer db.Close()
 		err = db.Ping()
 		if err == nil {
-			result = true
+			result.Result = res
 		}
 	}
 

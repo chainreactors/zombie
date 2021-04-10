@@ -8,7 +8,7 @@ import (
 
 var ScanSum = 0
 
-func BruteDispatch(CurTask Utils.ScanTask) (err error, result bool) {
+func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 
 	switch CurTask.Server {
 	case "MYSQL":

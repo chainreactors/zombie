@@ -169,7 +169,7 @@ func StartTask(UserList []string, PassList []string, IpList []Utils.IpInfo, CurS
 
 		err, RanRes := Core.DefaultScan2(RandomTask)
 
-		if err == nil && RanRes {
+		if err == nil && RanRes.Result {
 			fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\n", RandomTask.Info.Ip, RandomTask.Info.Port, RandomTask.Username, RandomTask.Password, RandomTask.Server)
 			fmt.Sprintf("%s:%d\t is it a honeypot?", RandomTask.Info.Ip, RandomTask.Info.Port)
 		}

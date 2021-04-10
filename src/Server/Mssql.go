@@ -20,13 +20,13 @@ func MssqlConnect(User string, Password string, info Utils.IpInfo) (err error, r
 	return err, result, db
 }
 
-func MssqlConnectTest(User string, Password string, info Utils.IpInfo) (err error, result bool) {
-	err, result, db := MssqlConnect(User, Password, info)
+func MssqlConnectTest(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
+	err, res, db := MssqlConnect(User, Password, info)
 	if err == nil {
 		defer db.Close()
 		err = db.Ping()
 		if err == nil {
-			result = true
+			result.Result = res
 		}
 	}
 

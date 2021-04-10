@@ -15,6 +15,11 @@ type ScanTask struct {
 	Server   string
 }
 
+type BruteRes struct {
+	Result     bool
+	Additional string
+}
+
 var Timeout, Thread int
 var SSL bool
 var ChildContext context.Context

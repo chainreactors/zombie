@@ -27,13 +27,13 @@ func MongoConnect(User string, Password string, info Utils.IpInfo) (err error, r
 	return err, result, client
 }
 
-func MongoConnectTest(User string, Password string, info Utils.IpInfo) (err error, result bool) {
-	err, result, client := MongoConnect(User, Password, info)
+func MongoConnectTest(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
+	err, res, client := MongoConnect(User, Password, info)
 	defer client.Disconnect(context.TODO())
 	if err == nil {
 		err = client.Ping(context.TODO(), nil)
 		if err == nil {
-			result = true
+			result.Result = res
 		}
 	}
 

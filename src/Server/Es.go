@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func EsConnect(User string, Password string, info Utils.IpInfo) (err error, result bool) {
+func EsConnect(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
 	auth := User + ":" + Password
 
 	auth = base64.StdEncoding.EncodeToString([]byte(auth))
@@ -55,7 +55,7 @@ func EsConnect(User string, Password string, info Utils.IpInfo) (err error, resu
 			body, _ := ioutil.ReadAll(resp.Body)
 			if strings.Contains(string(body), "/_cat/master") {
 				//AnnonTest := fmt.Sprintf("Elastic:%s unauthorized", url)
-				result = true
+				result.Result = true
 				return err, result
 			}
 		}
@@ -73,7 +73,7 @@ func EsConnect(User string, Password string, info Utils.IpInfo) (err error, resu
 				body2, _ := ioutil.ReadAll(resp2.Body)
 				if strings.Contains(string(body2), "/_cat/master") {
 					//AnnonTest := fmt.Sprintf("Elastic:%s unauthorized", url)
-					result = true
+					result.Result = true
 				}
 			}
 		}

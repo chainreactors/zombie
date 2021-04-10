@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func SMBConnect(User string, Password string, info Utils.IpInfo) (err error, result bool) {
+func SMBConnect(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
 
 	var UserName, DoaminName string
 
@@ -31,7 +31,7 @@ func SMBConnect(User string, Password string, info Utils.IpInfo) (err error, res
 	if err == nil {
 		session.Close()
 		if session.IsAuthenticated {
-			result = true
+			result.Result = true
 		}
 	}
 	return err, result

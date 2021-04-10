@@ -22,8 +22,8 @@ func MysqlConnect(User string, Password string, info Utils.IpInfo) (err error, r
 	return err, result, db
 }
 
-func MysqlConnectTest(User string, Password string, info Utils.IpInfo) (err error, result bool) {
-	err, result, db := MysqlConnect(User, Password, info)
+func MysqlConnectTest(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
+	err, res, db := MysqlConnect(User, Password, info)
 
 	if err == nil {
 		defer db.Close()
@@ -32,7 +32,7 @@ func MysqlConnectTest(User string, Password string, info Utils.IpInfo) (err erro
 		defer cancelFunc2SecondTimeout()
 		err = db.PingContext(ctx2SecondTimeout)
 		if err == nil {
-			result = true
+			result.Result = res
 		}
 	}
 

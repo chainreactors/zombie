@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func SSHConnect(User string, Password string, info Utils.IpInfo) (err error, result bool) {
+func SSHConnect(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
 	config := &ssh.ClientConfig{
 		User: User,
 		Auth: []ssh.AuthMethod{
@@ -27,7 +27,7 @@ func SSHConnect(User string, Password string, info Utils.IpInfo) (err error, res
 		errRet := session.Run("whoami")
 		if err == nil && errRet == nil {
 			defer session.Close()
-			result = true
+			result.Result = true
 		}
 	}
 	return err, result
