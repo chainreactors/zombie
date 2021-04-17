@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/denisenkom/go-mssqldb v0.9.0
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/go-sql-driver/mysql v1.5.0
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/jlaffaye/ftp v0.0.0-20201112195030-9aae4d151126
 	github.com/lib/pq v1.9.0
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
@@ -16,3 +16,5 @@ require (
 	go.mongodb.org/mongo-driver v1.4.4
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 )
+
+replace github.com/go-sql-driver/mysql => ./pkg/github.com/go-sql-driver/mysql

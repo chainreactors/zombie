@@ -27,18 +27,24 @@ func BruteWork(WorkerPara *PoolPara) {
 				return
 			}
 
+			//if Utils.Simple == 1 {
+			//	fmt.Printf("Now Processing %s:%d, Server: %s\n", task.Info.Ip, task.Info.Port, task.Server)
+			//}
 			err, res := DefaultScan2(task)
 			if err != nil {
 				continue
 			}
 			if res.Result {
-				Bres := fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t%s\n", task.Info.Ip, task.Info.Port, task.Username, task.Password, task.Server, res.Additional)
+				Bres := fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t%s", task.Info.Ip, task.Info.Port, task.Username, task.Password, task.Server, res.Additional)
 				FlagUserName = task.Username
 				if Utils.O2File {
 					Utils.Datach <- Bres
 				}
 				fmt.Println(Bres)
-				Utils.ChildCancel()
+
+				if !Utils.Simple {
+					Utils.ChildCancel()
+				}
 			}
 
 		}

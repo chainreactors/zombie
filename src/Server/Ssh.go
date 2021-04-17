@@ -14,7 +14,7 @@ func SSHConnect(User string, Password string, info Utils.IpInfo) (err error, res
 		Auth: []ssh.AuthMethod{
 			ssh.Password(Password),
 		},
-		Timeout: time.Duration(Utils.Timeout+10) * time.Second,
+		Timeout: time.Duration(Utils.Timeout) * time.Second,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},

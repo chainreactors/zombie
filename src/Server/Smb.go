@@ -1,8 +1,8 @@
 package Server
 
 import (
+	"Zombie/pkg/github.com/stacktitan/smb/smb"
 	"Zombie/src/Utils"
-	"Zombie/src/github.com/stacktitan/smb/smb"
 	"strings"
 )
 

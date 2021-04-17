@@ -21,6 +21,26 @@ func GetUserList(username string) (UserList []string) {
 	return UserList
 }
 
+func GetUAList(UAFile string) (UserPass []string, err error) {
+	file, err := os.Open(UAFile)
+	if err != nil {
+		panic("please check your file")
+	}
+
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		up := strings.TrimSpace(scanner.Text())
+		if up != "" {
+			UserPass = append(UserPass, up)
+		}
+	}
+	return UserPass, err
+}
+
 func GetPassList(password string) (PassList []string) {
 	PassList = append(PassList, "")
 	if strings.Contains(password, ",") {

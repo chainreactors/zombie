@@ -10,9 +10,8 @@ import (
 )
 
 func MysqlConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, db *sql.DB) {
-	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8", User,
-		Password, info.Ip, info.Port, "mysql")
-
+	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&tls=skip-verify&charset=utf8", User,
+		Password, info.Ip, info.Port, Utils.Timeout, Utils.Timeout, Utils.Timeout)
 	db, err = sql.Open("mysql", dataSourceName)
 
 	if err != nil {
@@ -26,14 +25,20 @@ func MysqlConnectTest(User string, Password string, info Utils.IpInfo) (err erro
 	err, res, db := MysqlConnect(User, Password, info)
 
 	if err == nil {
-		defer db.Close()
-		var bgCtx = context.Background()
-		var ctx2SecondTimeout, cancelFunc2SecondTimeout = context.WithTimeout(bgCtx, time.Duration(Utils.Timeout)*time.Second)
-		defer cancelFunc2SecondTimeout()
-		err = db.PingContext(ctx2SecondTimeout)
+		db.SetMaxOpenConns(60)
+		db.SetMaxIdleConns(60)
+		//var bgCtx = context.Background()
+		//var ctxTimeout, cancelFunc2SecondTimeout = context.WithTimeout(bgCtx, time.Duration(Utils.Timeout)*time.Second)
+		//err = db.PingContext(ctxTimeout)
+		err = db.Ping()
+
 		if err == nil {
+			res = true
 			result.Result = res
 		}
+		//cancelFunc2SecondTimeout()
+
+		_ = db.Close()
 	}
 
 	return err, result

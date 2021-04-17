@@ -20,7 +20,11 @@ type BruteRes struct {
 	Additional string
 }
 
-var Timeout, Thread int
+var (
+	Thread  int
+	Simple  bool
+	Timeout int
+)
 var SSL bool
 var ChildContext context.Context
 var ChildCancel context.CancelFunc

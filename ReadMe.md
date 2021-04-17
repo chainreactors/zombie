@@ -28,8 +28,19 @@
     * password or p
         1. 支持以逗号输入传入多个要爆破的用户名
     
+    * UA 参数
+        1. 支持以键值对文本的方式读入用户名密码
+    
     * server or s 
         * 传入要爆破的服务(暂时一轮只能爆破一种)
+      
+    * thread or t
+        * 爆破的协程池大小
+      
+    * timeout 
+        * 超时时间 记得是 --timeout 默认是2
+    * *simple or e*
+        * 在爆用户名密码对比较少,目标多的情况,加上-e参数
 
 * example
     在使用默认端口的时候可以不写端口或者不写服务名
@@ -46,12 +57,16 @@
   1433:  "MSSQL",
   3306:  "MYSQL",
   5432:  "POSTGRESQL",
-  6379:  "REDIS",
+  6379:  "REDIS",  
   9200:  "ELASTICSEARCH",
   27017: "MONGO",
   5900:  "VNC",
   8080: "TOMCAT"
   }
+
+* redis支持爆破成功后系统检测和linux 是否为root权限
+
+* 加入特殊解析如果password中带有%user%的字符串,则会替换为用户名,便于减少密码字典的数量
 
 ### Exec 模块
 

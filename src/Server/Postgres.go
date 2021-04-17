@@ -47,6 +47,7 @@ func PostgresConnectTest(User string, Password string, info Utils.IpInfo) (err e
 		defer db.Close()
 		err = db.Ping()
 		if err == nil {
+			res = true
 			result.Result = res
 		}
 	}

@@ -1,9 +1,13 @@
 # Binary name
 BINARY= Zombie
-VERSION = 0.2beta
+VERSION = 0.4.0beta
 # Builds the project
 build:
 		go build -ldflags "-s -w" -o ${BINARY} ./src/main/main.go
+
+build-linux-64:
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o ./bin/Zombie-linux64-${VERSION} ./src/main/main.go
+
 # Installs our project: copies binaries
 install:
 		go install
@@ -29,7 +33,7 @@ release-upx:
 		CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -ldflags "-s -w" -o ./bin/Zombie-win32-${VERSION}.exe ./src/main/main.go
 		upx -2 ./bin/Zombie-win32-${VERSION}.exe
 		#compress
-		tar cvf Zombie.tar.gz bin/*
+		tar cvf Zombie-${VERSION}.tar.gz bin/*
 # Cleans our projects: deletes binaries
 
 release:

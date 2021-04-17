@@ -10,6 +10,8 @@ var ScanSum = 0
 
 func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 
+	CurTask = Utils.UpdatePass(CurTask)
+
 	switch CurTask.Server {
 	case "MYSQL":
 		err, result = Server.MysqlConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
@@ -29,6 +31,8 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 		err, result = Server.SMBConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "ES":
 		err, result = Server.EsConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+	case "FTP":
+		err, result = Server.FtpConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "TOMCAT":
 		err, result = Server.TomcatConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	default:

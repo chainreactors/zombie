@@ -61,40 +61,37 @@ func Brute(ctx *cli.Context) (err error) {
 
 	IpList = Core.GetIpInfoList(IpSlice, CurServer)
 
-	//if !ctx.IsSet("username") && !ctx.IsSet("password") {
-	//	fmt.Println("please input username and password, if the server don't need username,input anything to place")
-	//	os.Exit(0)
-	//} else {
-	//	username := ctx.String("username")
-	//	password := ctx.String("password")
-	//	UserList = Core.GetUserList(username)
-	//	PassList = Core.GetPassList(password)
-	//}
-
-	if ctx.IsSet("username") || !ctx.IsSet("userdict") {
-		username := ctx.String("username")
-		UserList = Core.GetUserList(username)
-	} else if ctx.IsSet("userdict") {
-		UserList, _ = Core.ReadUserDict(ctx.String("userdict"))
+	if ctx.IsSet("uppair") {
+		uppair := ctx.String("uppair")
+		Core.UPList, _ = Core.GetUAList(uppair)
 	} else {
-		fmt.Println("please input username")
-		os.Exit(0)
-	}
 
-	if ctx.IsSet("password") || !ctx.IsSet("passdict") {
-		password := ctx.String("password")
-		PassList = Core.GetPassList(password)
-	} else if ctx.IsSet("passdict") {
-		PassList, _ = Core.ReadPassDict(ctx.String("passdict"))
-	} else {
-		fmt.Println("please input user")
-		os.Exit(0)
+		if ctx.IsSet("username") || !ctx.IsSet("userdict") {
+			username := ctx.String("username")
+			UserList = Core.GetUserList(username)
+		} else if ctx.IsSet("userdict") {
+			UserList, _ = Core.ReadUserDict(ctx.String("userdict"))
+		} else {
+			fmt.Println("please input username")
+			os.Exit(0)
+		}
+
+		if ctx.IsSet("password") || !ctx.IsSet("passdict") {
+			password := ctx.String("password")
+			PassList = Core.GetPassList(password)
+		} else if ctx.IsSet("passdict") {
+			PassList, _ = Core.ReadPassDict(ctx.String("passdict"))
+		} else {
+			fmt.Println("please input user")
+			os.Exit(0)
+		}
 	}
 
 	CurServer = strings.ToUpper(CurServer)
 
 	Utils.Timeout = ctx.Int("timeout")
 	Utils.Thread = ctx.Int("thread")
+	Utils.Simple = ctx.Bool("simple")
 
 	//ExpireTime := GetExpireTime(len(IpList), len(UserList), len(PassList))
 
@@ -102,7 +99,11 @@ func Brute(ctx *cli.Context) (err error) {
 		initFile(ctx.String("file"))
 	}
 
-	err = StartTask(UserList, PassList, IpList, CurServer)
+	if Utils.Simple {
+		err = StartTaskSimple(UserList, PassList, IpList, CurServer)
+	} else {
+		err = StartTask(UserList, PassList, IpList, CurServer)
+	}
 
 	return err
 }
@@ -174,6 +175,38 @@ func StartTask(UserList []string, PassList []string, IpList []Utils.IpInfo, CurS
 			fmt.Sprintf("%s:%d\t is it a honeypot?", RandomTask.Info.Ip, RandomTask.Info.Port)
 		}
 	}
+
+	fmt.Println("All Task done")
+
+	rootCancel()
+
+	return nil
+}
+
+func StartTaskSimple(UserList []string, PassList []string, IpList []Utils.IpInfo, CurServer string) error {
+	rootContext, rootCancel := context.WithCancel(context.Background())
+
+	TaskList := Core.GenerateTaskSimple(UserList, PassList, IpList, CurServer)
+
+	wgs := &sync.WaitGroup{}
+	PrePara := Core.PoolPara{
+		Ctx:      rootContext,
+		Taskchan: TaskList,
+		Wgs:      wgs,
+	}
+
+	scanPool, _ := ants.NewPoolWithFunc(Utils.Thread, func(i interface{}) {
+		par := i.(Core.PoolPara)
+		Core.BruteWork(&par)
+	}, ants.WithExpiryDuration(2*time.Second))
+
+	for i := 0; i < Utils.Thread; i++ {
+		wgs.Add(1)
+		_ = scanPool.Invoke(PrePara)
+	}
+	wgs.Wait()
+
+	fmt.Println("All Task done")
 
 	rootCancel()
 
