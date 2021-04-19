@@ -46,3 +46,10 @@ func DoRowsMapper(rows *sql.Rows) ([]map[string]string, []string) {
 	}
 	return result, columns
 }
+
+type SqlHandle interface {
+	Query() bool
+	GetInfo() bool
+	Connect() bool
+	SetQuery(string)
+}

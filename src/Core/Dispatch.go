@@ -44,17 +44,34 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 	return err, result
 }
 
-func ExecDispatch(CurTask Utils.ScanTask, Query string) (err error, Qresult []map[string]string, Columns []string) {
+//func ExecDispatch(CurTask Utils.ScanTask, Query string) (err error, Qresult []map[string]string, Columns []string) {
+//	switch CurTask.Server {
+//	case "MYSQL":
+//		err, Qresult, Columns = Server.MysqlQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
+//	case "POSTGRESQL":
+//		err, Qresult, Columns = Server.PostgresQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
+//	case "MSSQL":
+//		err, Qresult, Columns = Server.MssqlQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
+//	default:
+//		fmt.Println("The Server isn't supported")
+//	}
+//
+//	return err, Qresult, Columns
+//}
+
+func ExecDispatch(CurTask Utils.ScanTask) Server.SqlHandle {
 	switch CurTask.Server {
 	case "MYSQL":
-		err, Qresult, Columns = Server.MysqlQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
+		return &Server.MysqlService{
+			Username: CurTask.Username,
+			Password: CurTask.Password,
+			IpInfo:   CurTask.Info,
+		}
 	case "POSTGRESQL":
-		err, Qresult, Columns = Server.PostgresQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
 	case "MSSQL":
-		err, Qresult, Columns = Server.MssqlQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
 	default:
 		fmt.Println("The Server isn't supported")
 	}
 
-	return err, Qresult, Columns
+	return nil
 }

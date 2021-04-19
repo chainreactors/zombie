@@ -13,10 +13,6 @@ import (
 func Exec(ctx *cli.Context) (err error) {
 	var CurServer string
 
-	if !ctx.IsSet("ip") {
-		fmt.Println("Please check the address")
-		os.Exit(0)
-	}
 	if strings.Contains(ctx.String("ip"), ",") {
 		fmt.Println("Exec Moudle only support single ip")
 		os.Exit(0)
@@ -55,16 +51,6 @@ func Exec(ctx *cli.Context) (err error) {
 		os.Exit(0)
 	}
 
-	if !ctx.IsSet("username") && !ctx.IsSet("password") {
-		fmt.Println("please input username and password, if the server don't need username,input anything to place")
-		os.Exit(0)
-	}
-
-	if !ctx.IsSet("query") {
-		fmt.Println("please input your query")
-		os.Exit(0)
-	}
-
 	CurServer = strings.ToUpper(CurServer)
 
 	IpList := Core.GetIpInfoList(IpSlice, CurServer)
@@ -76,22 +62,21 @@ func Exec(ctx *cli.Context) (err error) {
 		Server:   CurServer,
 	}
 
-	err, Qresult, Columns := Core.ExecDispatch(Curtask, ctx.String("query"))
+	CurCon := Core.ExecDispatch(Curtask)
 
-	if err != nil {
-		fmt.Println("something wrong")
-		os.Exit(0)
+	alive := CurCon.Connect()
+
+	if !alive {
+		fmt.Printf("can't connect to db")
+	}
+
+	IsAuto := ctx.Bool("auto")
+
+	if IsAuto {
+		CurCon.GetInfo()
 	} else {
-		for _, cname := range Columns {
-			fmt.Print(cname + "\t")
-		}
-		fmt.Print("\n")
-		for _, items := range Qresult {
-			for _, cname := range Columns {
-				fmt.Print(items[cname] + "\t")
-			}
-			fmt.Print("\n")
-		}
+		CurCon.SetQuery(ctx.String("input"))
+		CurCon.Query()
 	}
 
 	return err
