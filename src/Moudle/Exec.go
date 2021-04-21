@@ -12,9 +12,27 @@ import (
 
 func Exec(ctx *cli.Context) (err error) {
 	var CurServer string
-	var Curtask Utils.ScanTask
+	var CurtaskList []Utils.ScanTask
 
 	if ctx.IsSet("file") {
+		TestList, _ := Core.GetUAList(ctx.String("file"))
+
+		for _, test := range TestList {
+			la := strings.Split(test, "\t")
+
+			if len(la) == 6 {
+				Curtask := Utils.ScanTask{
+					Username: strings.Split(la[2], ":")[1],
+					Password: strings.Split(la[3], ":")[1],
+					Server:   la[4],
+				}
+				IpPo := strings.Split(la[1], ":")
+				Curtask.Info.Ip = IpPo[0]
+				Curtask.Info.Port, _ = strconv.Atoi(IpPo[1])
+				CurtaskList = append(CurtaskList, Curtask)
+			}
+			continue
+		}
 
 	} else {
 		if strings.Contains(ctx.String("ip"), ",") {
@@ -59,31 +77,37 @@ func Exec(ctx *cli.Context) (err error) {
 
 		IpList := Core.GetIpInfoList(IpSlice, CurServer)
 
-		Curtask = Utils.ScanTask{
+		Curtask := Utils.ScanTask{
 			Info:     IpList[0],
 			Username: ctx.String("username"),
 			Password: ctx.String("password"),
 			Server:   CurServer,
 		}
+		CurtaskList = append(CurtaskList, Curtask)
+
 	}
 
-	CurCon := Core.ExecDispatch(Curtask)
+	for _, Curtask := range CurtaskList {
 
-	alive := CurCon.Connect()
+		CurCon := Core.ExecDispatch(Curtask)
 
-	if !alive {
-		fmt.Printf("can't connect to db")
-		os.Exit(0)
+		alive := CurCon.Connect()
+
+		if !alive {
+			fmt.Printf("can't connect to db")
+			os.Exit(0)
+		}
+
+		IsAuto := ctx.Bool("auto")
+
+		if IsAuto {
+			CurCon.GetInfo()
+		} else {
+			CurCon.SetQuery(ctx.String("input"))
+			CurCon.Query()
+		}
 	}
 
-	IsAuto := ctx.Bool("auto")
-
-	if IsAuto {
-		CurCon.GetInfo()
-	} else {
-		CurCon.SetQuery(ctx.String("input"))
-		CurCon.Query()
-	}
-
+	fmt.Println("All Task Done!!!!")
 	return err
 }
