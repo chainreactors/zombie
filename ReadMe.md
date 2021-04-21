@@ -68,23 +68,27 @@
 
 * 加入特殊解析如果password中带有%user%的字符串,则会替换为用户名,便于减少密码字典的数量
 
-### Exec 模块
+### Query 模块
 
-* 参数
-    * ip:
-        1. 例如:127.0.0.1:3306
-    
-    * username or u
-      
-    * password or p
-      
-    * server or s 
-        * 传入要执行命令的服务 :仅支持 mysql 
+* 参数 
+  
+    * --username value, -u value   
+    * --password value, -p value   
+    * --ip value                   
+  * --input value, -i value      
+  * --InputFile value, -F value  
+  * --server value, -s value     
+  * --auto, -a                   (default: false)
+  * --help, -h                   show help (default: false)
+
     
 *  example
-    Exec -u root -p test -ip 127.0.0.1:3306 -q "show tables"
+    Query -u root -p test -ip 127.0.0.1:3306 -q "show tables"
 
 
+目前auto支持postgresql,mysql,mssql,(收集操作系统,数据总量,和一些敏感信息)
+
+且可以通过-F参数将zombie爆破结果至今放入自动化收集
 
    
 
