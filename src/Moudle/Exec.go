@@ -14,8 +14,8 @@ func Exec(ctx *cli.Context) (err error) {
 	var CurServer string
 	var CurtaskList []Utils.ScanTask
 
-	if ctx.IsSet("file") {
-		TestList, _ := Core.GetUAList(ctx.String("file"))
+	if ctx.IsSet("InputFile") {
+		TestList, _ := Core.GetUAList(ctx.String("InputFile"))
 
 		for _, test := range TestList {
 			la := strings.Split(test, "\t")
@@ -26,7 +26,7 @@ func Exec(ctx *cli.Context) (err error) {
 					Password: strings.Split(la[3], ":")[1],
 					Server:   la[4],
 				}
-				IpPo := strings.Split(la[1], ":")
+				IpPo := strings.Split(la[0], ":")
 				Curtask.Info.Ip = IpPo[0]
 				Curtask.Info.Port, _ = strconv.Atoi(IpPo[1])
 				CurtaskList = append(CurtaskList, Curtask)

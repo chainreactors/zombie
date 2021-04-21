@@ -113,6 +113,7 @@ func (s *MssqlService) GetInfo() bool {
 	fmt.Printf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", s.Ip, "Mssql", res.Version, res.OS, res.Count)
 	GetMssqlVulnableInfo(s.SqlCon)
 
+	fmt.Printf("\n")
 	return true
 }
 

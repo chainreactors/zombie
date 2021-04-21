@@ -28,6 +28,7 @@ func (s *PostgresService) GetInfo() bool {
 
 	if res != nil {
 		fmt.Printf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", s.Ip, "Postgres", res.Version, res.OS, res.Count)
+		fmt.Printf("\n")
 	}
 	return true
 }

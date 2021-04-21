@@ -54,6 +54,7 @@ var Query = cli.Command{
 			Value:   "",
 			Usage:   "",
 		},
+		StringFlag("InputFile", "F", "", ""),
 		StringFlag("server", "s", "", ""),
 		BoolFlag("auto", "a", false, ""),
 	},

@@ -92,7 +92,7 @@ func (s *MysqlService) GetInfo() bool {
 	fmt.Printf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v", s.Ip, "Mysql", res.Version, res.OS, res.Count)
 	GetMysqlVulnableInfo(s.SqlCon)
 	GetMysqlGeneralLog(s.SqlCon)
-
+	fmt.Printf("\n")
 	return true
 }
 
