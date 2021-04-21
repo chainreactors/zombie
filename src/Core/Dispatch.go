@@ -1,8 +1,10 @@
 package Core
 
 import (
-	"Zombie/src/Server"
+	"Zombie/src/Database"
+	"Zombie/src/Protocol"
 	"Zombie/src/Utils"
+	"Zombie/src/Web"
 	"fmt"
 )
 
@@ -13,30 +15,31 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 	CurTask = Utils.UpdatePass(CurTask)
 
 	switch CurTask.Server {
-	case "MYSQL":
-		err, result = Server.MysqlConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+
 	case "POSTGRESQL":
-		err, result = Server.PostgresConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = Database.PostgresConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+	case "MYSQL":
+		err, result = Database.MysqlConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "REDIS":
-		err, result = Server.RedisConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = Database.RedisConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "SSH":
-		err, result = Server.SSHConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = Protocol.SSHConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "MONGO":
-		err, result = Server.MongoConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = Database.MongoConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "MSSQL":
-		err, result = Server.MssqlConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = Database.MssqlConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "VNC":
-		err, result = Server.VNCConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = Database.VNCConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "SMB":
-		err, result = Server.SMBConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = Protocol.SMBConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "ES":
-		err, result = Server.EsConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = Web.EsConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "FTP":
-		err, result = Server.FtpConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = Protocol.FtpConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "TOMCAT":
-		err, result = Server.TomcatConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = Web.TomcatConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	default:
-		fmt.Println("The Server isn't supported")
+		fmt.Println("The Database isn't supported")
 	}
 
 	ScanSum += 1
@@ -44,33 +47,29 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 	return err, result
 }
 
-//func ExecDispatch(CurTask Utils.ScanTask, Query string) (err error, Qresult []map[string]string, Columns []string) {
-//	switch CurTask.Server {
-//	case "MYSQL":
-//		err, Qresult, Columns = Server.MysqlQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
-//	case "POSTGRESQL":
-//		err, Qresult, Columns = Server.PostgresQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
-//	case "MSSQL":
-//		err, Qresult, Columns = Server.MssqlQuery(CurTask.Username, CurTask.Password, CurTask.Info, Query)
-//	default:
-//		fmt.Println("The Server isn't supported")
-//	}
-//
-//	return err, Qresult, Columns
-//}
-
-func ExecDispatch(CurTask Utils.ScanTask) Server.SqlHandle {
+func ExecDispatch(CurTask Utils.ScanTask) Database.SqlHandle {
 	switch CurTask.Server {
-	case "MYSQL":
-		return &Server.MysqlService{
+	case "POSTGRESQL":
+		return &Database.PostgresService{
+			Username: CurTask.Username,
+			Password: CurTask.Password,
+			IpInfo:   CurTask.Info,
+			Dbname:   "postgres",
+		}
+	case "MSSQL":
+		return &Database.MssqlService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.Info,
 		}
-	case "POSTGRESQL":
-	case "MSSQL":
+	case "MYSQL":
+		return &Database.MysqlService{
+			Username: CurTask.Username,
+			Password: CurTask.Password,
+			IpInfo:   CurTask.Info,
+		}
 	default:
-		fmt.Println("The Server isn't supported")
+		fmt.Println("The Database isn't supported")
 	}
 
 	return nil

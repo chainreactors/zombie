@@ -1,4 +1,4 @@
-package Server
+package Database
 
 import (
 	"Zombie/src/Utils"

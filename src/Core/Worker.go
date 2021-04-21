@@ -28,7 +28,7 @@ func BruteWork(WorkerPara *PoolPara) {
 			}
 
 			//if Utils.Simple == 1 {
-			//	fmt.Printf("Now Processing %s:%d, Server: %s\n", task.Info.Ip, task.Info.Port, task.Server)
+			//	fmt.Printf("Now Processing %s:%d, Database: %s\n", task.Info.Ip, task.Info.Port, task.Database)
 			//}
 			err, res := DefaultScan2(task)
 			if err != nil {

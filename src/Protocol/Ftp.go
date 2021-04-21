@@ -1,4 +1,4 @@
-package Server
+package Protocol
 
 import (
 	"Zombie/src/Utils"

@@ -8,9 +8,24 @@ type MysqlInf struct {
 	Count   string
 }
 
-func OutPutQuery(Qresult []map[string]string, Columns []string) {
-	for _, cname := range Columns {
-		fmt.Print(cname + "\t")
+type MssqlInf struct {
+	Version string
+	Count   int
+	OS      string
+}
+
+type PostgreInf struct {
+	Version string
+	Count   int
+	OS      string
+}
+
+func OutPutQuery(Qresult []map[string]string, Columns []string, title bool) {
+
+	if title {
+		for _, cname := range Columns {
+			fmt.Print(cname + "\t")
+		}
 	}
 	fmt.Print("\n")
 	for _, items := range Qresult {

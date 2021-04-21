@@ -33,7 +33,7 @@ func CheckFileIsExist(filename string) bool {
 func Write2File(FileHandle *os.File, Datach chan string) {
 
 	for res := range Datach {
-		FileHandle.WriteString(res)
+		FileHandle.WriteString(res + "\n")
 
 	}
 }

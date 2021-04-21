@@ -1,4 +1,4 @@
-package Server
+package Protocol
 
 import (
 	"Zombie/pkg/github.com/stacktitan/smb/smb"

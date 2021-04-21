@@ -1,4 +1,4 @@
-package Server
+package Web
 
 import (
 	"Zombie/src/Utils"

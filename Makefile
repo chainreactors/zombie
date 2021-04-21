@@ -6,7 +6,7 @@ build:
 		go build -ldflags "-s -w" -o ${BINARY} ./src/main/main.go
 
 build-linux-64:
-		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o ./bin/Zombie-linux64-${VERSION} ./src/main/main.go
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ${BINARY}-linux64 ./src/main/main.go
 
 # Installs our project: copies binaries
 install:
@@ -20,8 +20,10 @@ release-upx:
 		upx -2 ./bin/Zombie-mac64-${VERSION}
 		# Build for linux
 		#go clean
+
 		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o ./bin/Zombie-linux64-${VERSION} ./src/main/main.go
 		upx -2 ./bin/Zombie-linux64-${VERSION}
+
 		#go clean
 		CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -ldflags "-s -w" -o ./bin/Zombie-linux32-${VERSION} ./src/main/main.go
 		upx -2 ./bin/Zombie-linux32-${VERSION}

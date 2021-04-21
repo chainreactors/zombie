@@ -34,7 +34,7 @@ func Brute(ctx *cli.Context) (err error) {
 		if _, ok := Utils.ServerPort[ServerName]; ok {
 			CurServer = ServerName
 		} else {
-			fmt.Println("the Server isn't be supported")
+			fmt.Println("the Database isn't be supported")
 			os.Exit(0)
 		}
 
@@ -51,11 +51,11 @@ func Brute(ctx *cli.Context) (err error) {
 			CurServer = Utils.PortServer[port]
 			fmt.Println("Use default server")
 		} else {
-			fmt.Println("Please input the type of Server")
+			fmt.Println("Please input the type of Database")
 			os.Exit(0)
 		}
 	} else {
-		fmt.Println("Please input the type of Server")
+		fmt.Println("Please input the type of Database")
 		os.Exit(0)
 	}
 
@@ -137,7 +137,7 @@ func StartTask(UserList []string, PassList []string, IpList []Utils.IpInfo, CurS
 	rootContext, rootCancel := context.WithCancel(context.Background())
 	for _, ipinfo := range IpList {
 
-		fmt.Printf("Now Processing %s:%d, Server: %s\n", ipinfo.Ip, ipinfo.Port, CurServer)
+		fmt.Printf("Now Processing %s:%d, Database: %s\n", ipinfo.Ip, ipinfo.Port, CurServer)
 
 		Utils.ChildContext, Utils.ChildCancel = context.WithCancel(rootContext)
 

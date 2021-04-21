@@ -26,43 +26,33 @@ var Brute = cli.Command{
 	},
 }
 
-var Exec = cli.Command{
-	Name:        "Exec",
-	Aliases:     []string{"E"},
-	Subcommands: []*cli.Command{&Query},
-}
-
 var Query = cli.Command{
 	Name:    "Query",
 	Action:  Moudle.Exec,
 	Aliases: []string{"Q"},
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:     "username",
-			Aliases:  []string{"u"},
-			Value:    "",
-			Usage:    "",
-			Required: true,
+			Name:    "username",
+			Aliases: []string{"u"},
+			Value:   "",
+			Usage:   "",
 		},
 		&cli.StringFlag{
-			Name:     "password",
-			Aliases:  []string{"p"},
-			Value:    "",
-			Usage:    "",
-			Required: true,
+			Name:    "password",
+			Aliases: []string{"p"},
+			Value:   "",
+			Usage:   "",
 		},
 		&cli.StringFlag{
-			Name:     "ip",
-			Value:    "",
-			Usage:    "",
-			Required: true,
+			Name:  "ip",
+			Value: "",
+			Usage: "",
 		},
 		&cli.StringFlag{
-			Name:     "input",
-			Aliases:  []string{"i"},
-			Value:    "",
-			Usage:    "",
-			Required: true,
+			Name:    "input",
+			Aliases: []string{"i"},
+			Value:   "",
+			Usage:   "",
 		},
 		StringFlag("server", "s", "", ""),
 		BoolFlag("auto", "a", false, ""),
