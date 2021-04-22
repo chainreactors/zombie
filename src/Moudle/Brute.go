@@ -93,17 +93,21 @@ func Brute(ctx *cli.Context) (err error) {
 	Utils.Thread = ctx.Int("thread")
 	Utils.Simple = ctx.Bool("simple")
 
-	//ExpireTime := GetExpireTime(len(IpList), len(UserList), len(PassList))
-
 	if ctx.IsSet("file") {
 		initFile(ctx.String("file"))
 	}
+
+	Core.Summary = len(UserList) * len(PassList) * len(IpList)
+
+	go Core.Process(Core.CountChan)
 
 	if Utils.Simple {
 		err = StartTaskSimple(UserList, PassList, IpList, CurServer)
 	} else {
 		err = StartTask(UserList, PassList, IpList, CurServer)
 	}
+
+	close(Core.CountChan)
 
 	return err
 }

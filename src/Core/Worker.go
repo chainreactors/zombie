@@ -7,6 +7,9 @@ import (
 	"sync"
 )
 
+var Summary int
+var CountChan = make(chan int, 60)
+
 type PoolPara struct {
 	Ctx      context.Context
 	Taskchan chan Utils.ScanTask
@@ -26,10 +29,7 @@ func BruteWork(WorkerPara *PoolPara) {
 			if !ok {
 				return
 			}
-
-			//if Utils.Simple == 1 {
-			//	fmt.Printf("Now Processing %s:%d, Database: %s\n", task.Info.Ip, task.Info.Port, task.Database)
-			//}
+			CountChan <- 1
 			err, res := DefaultScan2(task)
 			if err != nil {
 				continue
@@ -50,6 +50,20 @@ func BruteWork(WorkerPara *PoolPara) {
 		}
 	}
 
+}
+
+func Process(ct chan int) {
+
+	pr := 0
+
+	for i := range ct {
+		pr += i
+		if pr%5 == 0 {
+			fmt.Printf("(%d/%d)\n", pr, Summary)
+		}
+
+	}
+	return
 }
 
 func DefaultScan2(task Utils.ScanTask) (error, Utils.BruteRes) {

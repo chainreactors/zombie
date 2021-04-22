@@ -35,6 +35,7 @@ release-upx:
 		CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -ldflags "-s -w" -o ./bin/Zombie-win32-${VERSION}.exe ./src/main/main.go
 		upx -2 ./bin/Zombie-win32-${VERSION}.exe
 		#compress
+		cp ./ReadMe.md ./bin/
 		tar cvf Zombie-${VERSION}.tar.gz bin/*
 # Cleans our projects: deletes binaries
 
