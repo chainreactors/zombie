@@ -17,7 +17,7 @@ var Brute = cli.Command{
 		StringFlag("uppair", "UP", "", ""),
 		SimpleStringFlag("ip", "", ""),
 		SimpleStringFlag("IP", "", ""),
-		StringFlag("file", "f", "", ""),
+		StringFlag("file", "f", "./res.log", ""),
 		StringFlag("server", "s", "", ""),
 		BoolSimpleFlag("ssl", ""),
 		IntSimpleFlag("timeout", 2, ""),

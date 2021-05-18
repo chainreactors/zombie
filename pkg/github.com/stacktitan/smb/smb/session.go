@@ -63,7 +63,8 @@ func NewSession(opt Options, debug bool) (s *Session, err error) {
 		return
 	}
 
-	_ = conn.SetDeadline(time.Now().Add(time.Duration(2) * time.Second))
+	// TODO: 别忘了改回来
+	//_ = conn.SetDeadline(time.Now().Add(time.Duration(2) * time.Second))
 
 	s = &Session{
 		IsSigningRequired: false,

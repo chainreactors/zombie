@@ -50,23 +50,30 @@
     * -U,-P,-IP 则是读取文件模式,(使用绝对路径)
     * `Brute -U user.dic -P pass.dic -f log.txt -s tomcat -IP ip.dic`
 * 目前支持的协议
-  {
-  21:    "FTP",
-  22:    "SSH",
-  445:   "SMB",
-  1433:  "MSSQL",
-  3306:  "MYSQL",
-  5432:  "POSTGRESQL",
-  6379:  "REDIS",  
-  9200:  "ELASTICSEARCH",
-  27017: "MONGO",
-  5900:  "VNC",
-  8080: "TOMCAT"
-  }
+    * 21:    "FTP",
+    * 22:    "SSH",
+    * 445:   "SMB",
+    * 1433:  "MSSQL",
+    * 3306:  "MYSQL",
+    * 5432:  "POSTGRESQL",
+    * 6379:  "REDIS",  
+    * 9200:  "ELASTICSEARCH",
+    * 27017: "MONGO",
+    * 5900:  "VNC",
+    * 8080: "TOMCAT"
+    
+    
 
 * redis支持爆破成功后系统检测和linux 是否为root权限
 
 * 加入特殊解析如果password中带有%user%的字符串,则会替换为用户名,便于减少密码字典的数量
+
+TODO：
+
+    [+] 爆破SNMP
+    [+] SMB解析版本
+    [+] 自定义get，post or yaml解析
+    [+] 加入IP段的解析爆破
 
 ### Query 模块
 

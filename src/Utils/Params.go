@@ -42,6 +42,7 @@ var (
 		27017: "MONGO",
 		5900:  "VNC",
 		8080:  "TOMCAT",
+		161:   "SNMP",
 	}
 	ServerPort = map[string]int{
 		"FTP":        21,
@@ -55,6 +56,7 @@ var (
 		"MONGO":      27017,
 		"VNC":        5900,
 		"TOMCAT":     8080,
+		"SNMP":       161,
 	}
 
 	ExecPort = map[string]int{

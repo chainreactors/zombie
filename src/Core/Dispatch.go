@@ -36,6 +36,8 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 		err, result = Web.EsConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "FTP":
 		err, result = Protocol.FtpConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+	case "SNMP":
+		err, result = Protocol.SnmpConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "TOMCAT":
 		err, result = Web.TomcatConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	default:
