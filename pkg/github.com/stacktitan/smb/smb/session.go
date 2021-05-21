@@ -30,6 +30,7 @@ type Session struct {
 	dialect           uint16
 	options           Options
 	trees             map[string]uint32
+	Version           string
 }
 
 type Options struct {
@@ -64,7 +65,7 @@ func NewSession(opt Options, debug bool) (s *Session, err error) {
 	}
 
 	// TODO: 别忘了改回来
-	//_ = conn.SetDeadline(time.Now().Add(time.Duration(2) * time.Second))
+	_ = conn.SetDeadline(time.Now().Add(time.Duration(2) * time.Second))
 
 	s = &Session{
 		IsSigningRequired: false,
@@ -198,6 +199,8 @@ func (s *Session) NegotiateProtocol() error {
 		s.Debug("", err)
 		return err
 	}
+
+	s.Version, _ = GetOs(challenge.Version)
 
 	if ssres.Header.Status != StatusMoreProcessingRequired {
 		status, _ := StatusMap[negRes.Header.Status]
@@ -391,4 +394,20 @@ func (s *Session) send(req interface{}) (res []byte, err error) {
 
 	s.messageID++
 	return data, nil
+}
+
+func GetOs(Orgin uint64) (string, error) {
+	var VersionBytes []byte = make([]byte, 8)
+	binary.LittleEndian.PutUint64(VersionBytes, Orgin) //小端序模式
+
+	ServerOSBuild := binary.LittleEndian.Uint16(VersionBytes[2:4]) //小端序模式的字节转换
+
+	ServerOSMajor := VersionBytes[0]
+
+	ServerOSMinor := VersionBytes[1]
+
+	Version := fmt.Sprintf("Windows %v.%v Build %v", ServerOSMajor, ServerOSMinor, ServerOSBuild)
+
+	return Version, nil
+
 }

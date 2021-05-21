@@ -28,10 +28,12 @@ func SMBConnect(User string, Password string, info Utils.IpInfo) (err error, res
 	}
 
 	session, err := smb.NewSession(options, false)
+	result.Additional = session.Version
 	if err == nil {
 		session.Close()
 		if session.IsAuthenticated {
 			result.Result = true
+
 		}
 	}
 	return err, result

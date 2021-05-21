@@ -74,6 +74,7 @@ TODO：
     [+] SMB解析版本
     [+] 自定义get，post or yaml解析
     [+] 加入IP段的解析爆破
+    [+] 加入去重
 
 ### Query 模块
 

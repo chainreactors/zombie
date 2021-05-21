@@ -26,21 +26,31 @@ func BruteWork(WorkerPara *PoolPara) {
 		case <-WorkerPara.Ctx.Done():
 			return
 		case task, ok := <-WorkerPara.Taskchan:
+			Bres := ""
 			if !ok {
 				return
 			}
 			CountChan <- 1
 			err, res := DefaultScan2(task)
 			if err != nil {
+				if task.Server == "SMB" {
+					if res.Additional != "" {
+						Bres = fmt.Sprintf("%s:%d\t\tVersion:%s", task.Info.Ip, task.Info.Port, res.Additional)
+						fmt.Println(Bres)
+					}
+				}
 				continue
 			}
+
 			if res.Result {
-				Bres := fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t%s", task.Info.Ip, task.Info.Port, task.Username, task.Password, task.Server, res.Additional)
+				Bres = fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t%s", task.Info.Ip, task.Info.Port, task.Username, task.Password, task.Server, res.Additional)
 				FlagUserName = task.Username
+
+				fmt.Println(Bres)
+
 				if Utils.O2File {
 					Utils.Datach <- Bres
 				}
-				fmt.Println(Bres)
 
 				if !Utils.Simple {
 					Utils.ChildCancel()
