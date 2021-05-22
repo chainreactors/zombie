@@ -251,6 +251,7 @@ func NewAuthenticateHash(domain, user, workstation, hash string, c Challenge) Au
 	// Assumes domain, user, and workstation are not unicode
 	buf := make([]byte, len(hash)/2)
 	hex.Decode(buf, []byte(hash))
+
 	return newAuthenticate(domain, user, workstation, buf, buf, c)
 }
 

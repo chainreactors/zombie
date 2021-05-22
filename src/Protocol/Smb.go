@@ -19,16 +19,19 @@ func SMBConnect(User string, Password string, info Utils.IpInfo) (err error, res
 	}
 
 	options := smb.Options{
-		Host:        info.Ip,
-		Port:        info.Port,
-		User:        UserName,
-		Password:    Password,
+		Host: info.Ip,
+		Port: info.Port,
+		User: UserName,
+		//Password:    Password,
+		Hash:        Password,
 		Domain:      DoaminName,
 		Workstation: "",
 	}
 
 	session, err := smb.NewSession(options, false)
-	result.Additional = session.Version
+	if session != nil {
+		result.Additional = session.Version
+	}
 	if err == nil {
 		session.Close()
 		if session.IsAuthenticated {

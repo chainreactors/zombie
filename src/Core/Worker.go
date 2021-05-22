@@ -33,7 +33,7 @@ func BruteWork(WorkerPara *PoolPara) {
 			CountChan <- 1
 			err, res := DefaultScan2(task)
 			if err != nil {
-				if task.Server == "SMB" {
+				if task.Server == "SMB" && task.Password != "" {
 					if res.Additional != "" {
 						Bres = fmt.Sprintf("%s:%d\t\tVersion:%s", task.Info.Ip, task.Info.Port, res.Additional)
 						fmt.Println(Bres)
