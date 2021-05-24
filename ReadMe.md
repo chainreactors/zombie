@@ -68,13 +68,16 @@
 
 * 加入特殊解析如果password中带有%user%的字符串,则会替换为用户名,便于减少密码字典的数量
 
+* SMB支持哈希传递,密码字段加上前缀 hash: , 且无论是否成功都会返回winodws版本
+
+* 支持IP段扫描,如果端口自定义则为 127.0.0.1/24:445 的形式
+
 TODO：
 
     [+] 爆破SNMP
     [+] SMB解析版本
     [+] 自定义get，post or yaml解析
-    [+] 加入IP段的解析爆破
-    [+] 加入去重
+    
 
 ### Query 模块
 
@@ -94,11 +97,9 @@ TODO：
     Query -u root -p test -ip 127.0.0.1:3306 -q "show tables"
 
 
-目前auto支持postgresql,mysql,mssql,(收集操作系统,数据总量,和一些敏感信息)
-
-且可以通过-F参数将zombie爆破结果至今放入自动化收集
+* 目前auto支持postgresql,mysql,mssql,(收集操作系统,数据总量,和一些敏感信息)且可以通过-F参数将zombie爆破结果至今放入自动化收集
 
    
-
+* auto模式下会对扫描结果进行去重
 
 

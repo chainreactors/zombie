@@ -15,6 +15,8 @@ func Exec(ctx *cli.Context) (err error) {
 	var CurtaskList []Utils.ScanTask
 
 	if ctx.IsSet("InputFile") {
+		IPStore := make(map[string]int)
+
 		TestList, _ := Core.GetUAList(ctx.String("InputFile"))
 
 		for _, test := range TestList {
@@ -29,7 +31,13 @@ func Exec(ctx *cli.Context) (err error) {
 				IpPo := strings.Split(la[0], ":")
 				Curtask.Info.Ip = IpPo[0]
 				Curtask.Info.Port, _ = strconv.Atoi(IpPo[1])
+
+				if IPStore[IpPo[0]] == 1 {
+					continue
+				}
+
 				CurtaskList = append(CurtaskList, Curtask)
+				IPStore[IpPo[0]] = 1
 			}
 			continue
 		}

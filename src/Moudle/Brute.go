@@ -20,9 +20,9 @@ func Brute(ctx *cli.Context) (err error) {
 	var IpList []Utils.IpInfo
 
 	if ctx.IsSet("ip") || !ctx.IsSet("IP") {
-		IpSlice = Core.GetUserList(ctx.String("ip"))
+		IpSlice = Core.GetIPList(ctx.String("ip"))
 	} else if ctx.IsSet("IP") {
-		IpSlice, _ = Core.ReadUserDict(ctx.String("IP"))
+		IpSlice, _ = Core.ReadIPDict(ctx.String("IP"))
 	} else {
 		fmt.Println("please check the ip")
 		os.Exit(0)
