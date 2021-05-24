@@ -1,6 +1,6 @@
 module Zombie
 
-go 1.13
+go 1.16
 
 require (
 	github.com/alouca/gologger v0.0.0-20120904114645-7d4b7291de9c // indirect
@@ -22,6 +22,5 @@ require (
 
 replace (
 	github.com/go-sql-driver/mysql => ./pkg/github.com/go-sql-driver/mysql
-	github.com/hirochachacha/go-smb2 => ./pkg/github.com/hirochachacha/go-smb2
 )
 
