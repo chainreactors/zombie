@@ -53,7 +53,7 @@ func SMBConnect(User string, Password string, info Utils.IpInfo) (err error, res
 			}
 		}
 
-		//_ = conn.SetDeadline(time.Now().Add(time.Duration(Utils.Timeout) * time.Second))
+		_ = conn.SetDeadline(time.Now().Add(time.Duration(Utils.Timeout) * time.Second))
 
 		s, version, err := d.Dial(conn)
 		result.Additional += version
