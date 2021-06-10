@@ -92,6 +92,7 @@ func Brute(ctx *cli.Context) (err error) {
 	Utils.Timeout = ctx.Int("timeout")
 	Utils.Thread = ctx.Int("thread")
 	Utils.Simple = ctx.Bool("simple")
+	Utils.Proc = ctx.Int("proc")
 
 	if ctx.IsSet("file") {
 		initFile(ctx.String("file"))
@@ -99,7 +100,9 @@ func Brute(ctx *cli.Context) (err error) {
 
 	Core.Summary = len(UserList) * len(PassList) * len(IpList)
 
-	go Core.Process(Core.CountChan)
+	if Utils.Proc != 0 {
+		go Core.Process(Core.CountChan)
+	}
 
 	if Utils.Simple {
 		err = StartTaskSimple(UserList, PassList, IpList, CurServer)

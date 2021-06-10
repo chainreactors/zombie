@@ -24,6 +24,7 @@ var (
 	Thread  int
 	Simple  bool
 	Timeout int
+	Proc    int
 )
 var SSL bool
 var ChildContext context.Context

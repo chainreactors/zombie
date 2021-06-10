@@ -68,7 +68,7 @@ func Process(ct chan int) {
 
 	for i := range ct {
 		pr += i
-		if pr%5 == 0 {
+		if pr%Utils.Proc == 0 {
 			fmt.Printf("(%d/%d)\n", pr, Summary)
 		}
 

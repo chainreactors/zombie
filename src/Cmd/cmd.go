@@ -19,10 +19,11 @@ var Brute = cli.Command{
 		SimpleStringFlag("IP", "", ""),
 		StringFlag("file", "f", "./res.log", ""),
 		StringFlag("server", "s", "", ""),
-		BoolSimpleFlag("ssl", ""),
+		BoolSimpleFlag("ssl", false, ""),
 		IntSimpleFlag("timeout", 2, ""),
 		IntFlag("thread", "t", "", 60),
 		BoolFlag("simple", "e", false, ""),
+		IntSimpleFlag("proc", 0, ""),
 	},
 }
 
@@ -77,9 +78,10 @@ func SimpleStringFlag(name, value, usage string) *cli.StringFlag {
 	}
 }
 
-func BoolSimpleFlag(name, usage string) *cli.BoolFlag {
+func BoolSimpleFlag(name string, value bool, usage string) *cli.BoolFlag {
 	return &cli.BoolFlag{
 		Name:  name,
+		Value: value,
 		Usage: usage,
 	}
 }
