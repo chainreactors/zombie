@@ -22,8 +22,9 @@ var Brute = cli.Command{
 		BoolSimpleFlag("ssl", false, ""),
 		IntSimpleFlag("timeout", 2, ""),
 		IntFlag("thread", "t", "", 60),
-		BoolFlag("simple", "e", false, ""),
+		BoolFlag("simple", "e", true, ""),
 		IntSimpleFlag("proc", 0, ""),
+		SimpleStringFlag("type", "raw", ""),
 	},
 }
 

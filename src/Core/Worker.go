@@ -43,13 +43,22 @@ func BruteWork(WorkerPara *PoolPara) {
 			}
 
 			if res.Result {
-				Bres = fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t%s", task.Info.Ip, task.Info.Port, task.Username, task.Password, task.Server, res.Additional)
+				output := Utils.OutputRes{
+					Type:       task.Server,
+					IP:         task.Info.Ip,
+					Port:       task.Info.Port,
+					Username:   task.Username,
+					Password:   task.Password,
+					Additional: res.Additional,
+				}
+
+				Bres = fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t%s", output.IP, output.Port, output.Username, output.Password, output.Type, output.Additional)
 				FlagUserName = task.Username
 
 				fmt.Println(Bres)
 
 				if Utils.O2File {
-					Utils.Datach <- Bres
+					Utils.Datach <- output
 				}
 
 				if !Utils.Simple {

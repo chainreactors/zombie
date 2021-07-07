@@ -1,6 +1,6 @@
 # Binary name
 BINARY= Zombie
-VERSION = 0.8.4beta
+VERSION = 0.9.1beta
 # Builds the project
 build:
 		go build -ldflags "-s -w" -o ${BINARY} ./src/main/main.go

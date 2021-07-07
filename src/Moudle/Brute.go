@@ -4,6 +4,7 @@ import (
 	"Zombie/src/Core"
 	"Zombie/src/Utils"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/panjf2000/ants/v2"
 	"github.com/urfave/cli/v2"
@@ -93,9 +94,11 @@ func Brute(ctx *cli.Context) (err error) {
 	Utils.Thread = ctx.Int("thread")
 	Utils.Simple = ctx.Bool("simple")
 	Utils.Proc = ctx.Int("proc")
+	Utils.FileFormat = ctx.String("type")
+	Utils.File = ctx.String("file")
 
-	if ctx.IsSet("file") {
-		initFile(ctx.String("file"))
+	if Utils.File != "null" {
+		initFile(Utils.File)
 	}
 
 	Core.Summary = len(UserList) * len(PassList) * len(IpList)
@@ -133,7 +136,6 @@ func initFile(Filename string) {
 			if err != nil {
 				os.Exit(0)
 			}
-			//io.WriteString(FileHandle, "123")
 		}
 
 	}
@@ -185,6 +187,16 @@ func StartTask(UserList []string, PassList []string, IpList []Utils.IpInfo, CurS
 
 	fmt.Println("All Task done")
 
+	time.Sleep(1000 * time.Millisecond)
+	if Utils.FileFormat == "json" {
+		final := Utils.OutputRes{}
+		jsons, errs := json.Marshal(final) //转换成JSON返回的是byte[]
+		if errs != nil {
+			fmt.Println(errs.Error())
+		}
+		Utils.FileHandle.WriteString(string(jsons) + "}")
+	}
+
 	rootCancel()
 
 	return nil
@@ -214,6 +226,16 @@ func StartTaskSimple(UserList []string, PassList []string, IpList []Utils.IpInfo
 	wgs.Wait()
 
 	fmt.Println("All Task done")
+
+	time.Sleep(1000 * time.Millisecond)
+	if Utils.FileFormat == "json" {
+		final := Utils.OutputRes{}
+		jsons, errs := json.Marshal(final) //转换成JSON返回的是byte[]
+		if errs != nil {
+			fmt.Println(errs.Error())
+		}
+		Utils.FileHandle.WriteString(string(jsons) + "}")
+	}
 
 	rootCancel()
 

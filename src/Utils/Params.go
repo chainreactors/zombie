@@ -15,6 +15,15 @@ type ScanTask struct {
 	Server   string
 }
 
+type OutputRes struct {
+	Type       string `json:"type"`
+	IP         string `json:"ip"`
+	Port       int    `json:"port"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
+	Additional string `json:"additional"`
+}
+
 type BruteRes struct {
 	Result     bool
 	Additional string
@@ -26,7 +35,10 @@ var (
 	Timeout int
 	Proc    int
 )
+
+var File string
 var SSL bool
+var FileFormat string
 var ChildContext context.Context
 var ChildCancel context.CancelFunc
 

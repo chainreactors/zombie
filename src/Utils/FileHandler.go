@@ -1,6 +1,8 @@
 package Utils
 
 import (
+	"encoding/json"
+	"fmt"
 	"math/rand"
 	"os"
 	"time"
@@ -9,7 +11,7 @@ import (
 
 var FileHandle *os.File
 var O2File bool
-var Datach = make(chan string, 1000)
+var Datach = make(chan OutputRes, 1000)
 
 var (
 	src = rand.NewSource(time.Now().UnixNano())
@@ -30,13 +32,33 @@ func CheckFileIsExist(filename string) bool {
 	return exist
 }
 
-func Write2File(FileHandle *os.File, Datach chan string) {
+func Write2File(FileHandle *os.File, Datach chan OutputRes) {
 
-	for res := range Datach {
-		FileHandle.WriteString(res + "\n")
-
+	switch FileFormat {
+	case "raw":
+		for res := range Datach {
+			FileHandle.WriteString(fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t%s\n", res.IP, res.Port, res.Username, res.Password, res.Type, res.Additional))
+		}
+	case "json":
+		FileHandle.WriteString("{")
+		for res := range Datach {
+			jsons, errs := json.Marshal(res)
+			if errs != nil {
+				fmt.Println(errs.Error())
+			}
+			FileHandle.WriteString(string(jsons) + ",")
+		}
 	}
+
 }
+
+//func Write2File(FileHandle *os.File, Datach chan OutputRes) {
+//
+//	for res := range Datach {
+//		FileHandle.WriteString(res.Type + "\n")
+//
+//	}
+//}
 
 func RandStringBytesMaskImprSrcUnsafe(n int) string {
 	b := make([]byte, n)
