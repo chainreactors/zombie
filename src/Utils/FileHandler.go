@@ -11,7 +11,8 @@ import (
 
 var FileHandle *os.File
 var O2File bool
-var Datach = make(chan OutputRes, 1000)
+var BDatach = make(chan OutputRes, 1000)
+var QDatach = make(chan string, 1000)
 
 var (
 	src = rand.NewSource(time.Now().UnixNano())
@@ -32,7 +33,7 @@ func CheckFileIsExist(filename string) bool {
 	return exist
 }
 
-func Write2File(FileHandle *os.File, Datach chan OutputRes) {
+func BruteWrite2File(FileHandle *os.File, Datach chan OutputRes) {
 
 	switch FileFormat {
 	case "raw":
@@ -52,13 +53,13 @@ func Write2File(FileHandle *os.File, Datach chan OutputRes) {
 
 }
 
-//func Write2File(FileHandle *os.File, Datach chan OutputRes) {
-//
-//	for res := range Datach {
-//		FileHandle.WriteString(res.Type + "\n")
-//
-//	}
-//}
+func QueryWrite2File(FileHandle *os.File, QDatach chan string) {
+
+	for res := range QDatach {
+		FileHandle.WriteString(res + "\n")
+		fmt.Println(res)
+	}
+}
 
 func RandStringBytesMaskImprSrcUnsafe(n int) string {
 	b := make([]byte, n)

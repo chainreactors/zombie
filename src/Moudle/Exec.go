@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func Exec(ctx *cli.Context) (err error) {
@@ -129,6 +130,12 @@ func Exec(ctx *cli.Context) (err error) {
 		CurtaskList = append(CurtaskList, Curtask)
 
 	}
+	//初始化文件
+	Utils.File = ctx.String("OutputFile")
+
+	if Utils.File != "null" {
+		ExecInitFile(Utils.File)
+	}
 
 	for _, Curtask := range CurtaskList[:len(CurtaskList)-1] {
 
@@ -151,6 +158,32 @@ func Exec(ctx *cli.Context) (err error) {
 		}
 	}
 
+	time.Sleep(1000 * time.Millisecond)
 	fmt.Println("All Task Done!!!!")
+
 	return err
+}
+
+func ExecInitFile(Filename string) {
+	var err error
+
+	if Filename != "" {
+		Utils.O2File = true
+		if Utils.CheckFileIsExist(Filename) { //如果文件存在
+			Utils.FileHandle, err = os.OpenFile(Filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend) //打开文件
+			//fmt.Println("文件存在")
+			if err != nil {
+				os.Exit(0)
+			}
+			//io.WriteString(FileHandle, "123")
+		} else {
+			Utils.FileHandle, err = os.Create(Filename) //创建文件
+			//fmt.Println("文件不存在")
+			if err != nil {
+				os.Exit(0)
+			}
+		}
+
+	}
+	go Utils.QueryWrite2File(Utils.FileHandle, Utils.QDatach)
 }

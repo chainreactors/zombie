@@ -16,6 +16,8 @@ type MysqlService struct {
 	SqlCon *sql.DB
 }
 
+var MysqlCollectInfo string
+
 func MysqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
 
 	err = SqlCon.Ping()
@@ -83,6 +85,8 @@ func (s *MysqlService) Connect() bool {
 func (s *MysqlService) GetInfo() bool {
 	defer s.SqlCon.Close()
 
+	MysqlCollectInfo = ""
+
 	res := GetMysqlBaseInfo(s.SqlCon)
 
 	if res == nil {
@@ -91,10 +95,12 @@ func (s *MysqlService) GetInfo() bool {
 
 	res.Count = GetMysqlSummary(s.SqlCon)
 
-	fmt.Printf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v", s.Ip, "Mysql", res.Version, res.OS, res.Count)
+	MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v", s.Ip, "Mysql", res.Version, res.OS, res.Count)
 	GetMysqlVulnableInfo(s.SqlCon)
 	GetMysqlGeneralLog(s.SqlCon)
-	fmt.Printf("\n")
+
+	//将结果放入管道
+	Utils.QDatach <- MysqlCollectInfo
 	return true
 }
 
@@ -140,7 +146,13 @@ func GetMysqlGeneralLog(SqlCon *sql.DB) {
 	if err != nil {
 		//fmt.Println("something wrong in get general log")
 	} else {
-		Utils.OutPutQuery(Qresult, Columns, false)
+		//Utils.OutPutQuery(Qresult, Columns, false)
+		for _, items := range Qresult {
+			for _, cname := range Columns {
+				MysqlCollectInfo += fmt.Sprint(items[cname] + "\t")
+			}
+			MysqlCollectInfo += "\n"
+		}
 	}
 
 }
@@ -152,7 +164,7 @@ func GetMysqlVulnableInfo(SqlCon *sql.DB) {
 		//fmt.Println("\nsomething wrong in get secure_file_priv")
 	} else {
 		if len(Qresult) == 1 && len(Columns) == 2 {
-			fmt.Print("\n" + Qresult[0][Columns[0]] + ":\t" + Qresult[0][Columns[1]])
+			MysqlCollectInfo += fmt.Sprint("\n" + Qresult[0][Columns[0]] + ":\t" + Qresult[0][Columns[1]])
 		}
 	}
 
@@ -162,7 +174,7 @@ func GetMysqlVulnableInfo(SqlCon *sql.DB) {
 		//fmt.Println("\nsomething wrong in get plugin dir")
 	} else {
 		if len(Qresult) == 1 && len(Columns) == 2 {
-			fmt.Print("\n" + Qresult[0][Columns[0]] + ":\t" + Qresult[0][Columns[1]])
+			MysqlCollectInfo += fmt.Sprint("\n" + Qresult[0][Columns[0]] + ":\t" + Qresult[0][Columns[1]])
 		}
 	}
 

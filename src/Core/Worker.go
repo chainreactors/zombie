@@ -58,7 +58,7 @@ func BruteWork(WorkerPara *PoolPara) {
 				fmt.Println(Bres)
 
 				if Utils.O2File {
-					Utils.Datach <- output
+					Utils.BDatach <- output
 				}
 
 				if !Utils.Simple {

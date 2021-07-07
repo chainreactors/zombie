@@ -18,6 +18,8 @@ type MssqlService struct {
 	SqlCon *sql.DB
 }
 
+var MssqlCollectInfo string
+
 func MssqlConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, db *sql.DB) {
 	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", info.Ip,
 		info.Port, User, Password, "master", Utils.Timeout)
@@ -110,12 +112,16 @@ func (s *MssqlService) GetInfo() bool {
 		return false
 	}
 
+	MssqlCollectInfo = ""
+
 	res.Count = GetMssqlSummary(s.SqlCon)
 
-	fmt.Printf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", s.Ip, "Mssql", res.Version, res.OS, res.Count)
+	MssqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", s.Ip, "Mssql", res.Version, res.OS, res.Count)
 	GetMssqlVulnableInfo(s.SqlCon)
 
-	fmt.Printf("\n")
+	//将结果放入管道
+	Utils.QDatach <- MssqlCollectInfo
+
 	return true
 }
 
@@ -185,27 +191,27 @@ func GetMssqlBaseInfo(SqlCon *sql.DB) *Utils.MssqlInf {
 func GetMssqlVulnableInfo(SqlCon *sql.DB) {
 	err, Qresult, Columns := MssqlQuery(SqlCon, "select count(*) from master.dbo.sysobjects where xtype='x' and name='xp_cmdshell'")
 	if err != nil {
-		fmt.Println("something wrong in get xp_cmdshell")
+		//fmt.Println("something wrong in get xp_cmdshell")
 	} else {
 		info := Utils.GetSummary(Qresult, Columns)
 
 		if info == "1" {
-			fmt.Printf("\nxp_cmdshell: exsit")
+			MssqlCollectInfo += fmt.Sprintf("\nxp_cmdshell: exsit")
 		} else {
-			fmt.Printf("\nxp_cmdshell: none")
+			MssqlCollectInfo += fmt.Sprintf("\nxp_cmdshell: none")
 		}
 	}
 
 	err, Qresult, Columns = MssqlQuery(SqlCon, "select count(*) from master.dbo.sysobjects where xtype='x' and name='SP_OACREATE'")
 	if err != nil {
-		fmt.Println("something wrong in get SP_OACREATE")
+		//fmt.Println("something wrong in get SP_OACREATE")
 	} else {
 		info := Utils.GetSummary(Qresult, Columns)
 
 		if info == "1" {
-			fmt.Printf("\nSP_OACREATE: exsit")
+			MssqlCollectInfo += fmt.Sprintf("\nSP_OACREATE: exsit")
 		} else {
-			fmt.Printf("\nSP_OACREATE: none")
+			MssqlCollectInfo += fmt.Sprintf("\nSP_OACREATE: none")
 		}
 	}
 

@@ -139,7 +139,7 @@ func initFile(Filename string) {
 		}
 
 	}
-	go Utils.Write2File(Utils.FileHandle, Utils.Datach)
+	go Utils.BruteWrite2File(Utils.FileHandle, Utils.BDatach)
 }
 
 func StartTask(UserList []string, PassList []string, IpList []Utils.IpInfo, CurServer string) error {

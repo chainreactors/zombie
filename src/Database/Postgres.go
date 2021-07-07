@@ -20,16 +20,20 @@ type PostgresService struct {
 	SqlCon *sql.DB
 }
 
+var PostgresCollectInfo string
+
 func (s *PostgresService) GetInfo() bool {
 	defer s.SqlCon.Close()
 
 	res := GetBaseInfo(s.SqlCon)
 	res.Count = GetPostgresSummary(s)
-
+	PostgresCollectInfo = ""
 	if res != nil {
-		fmt.Printf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", s.Ip, "Postgres", res.Version, res.OS, res.Count)
-		fmt.Printf("\n")
+		PostgresCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", s.Ip, "Postgres", res.Version, res.OS, res.Count)
+		PostgresCollectInfo += "\n"
 	}
+	//将结果放入管道
+	Utils.QDatach <- PostgresCollectInfo
 	return true
 }
 
