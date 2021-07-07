@@ -25,7 +25,9 @@ func MysqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]s
 			Qresult, Columns = DoRowsMapper(rows)
 
 		} else {
-			fmt.Println("please check your query.")
+			if !Utils.IsAuto {
+				fmt.Println("please check your query.")
+			}
 			return err, Qresult, Columns
 		}
 	} else {
@@ -136,7 +138,7 @@ func GetMysqlSummary(SqlCon *sql.DB) string {
 func GetMysqlGeneralLog(SqlCon *sql.DB) {
 	err, Qresult, Columns := MysqlQuery(SqlCon, "show VARIABLES like 'general%'")
 	if err != nil {
-		fmt.Println("something wrong in get general log")
+		//fmt.Println("something wrong in get general log")
 	} else {
 		Utils.OutPutQuery(Qresult, Columns, false)
 	}
@@ -146,7 +148,8 @@ func GetMysqlGeneralLog(SqlCon *sql.DB) {
 func GetMysqlVulnableInfo(SqlCon *sql.DB) {
 	err, Qresult, Columns := MysqlQuery(SqlCon, "SHOW VARIABLES LIKE \"secure_file_priv\"")
 	if err != nil {
-		fmt.Println("\nsomething wrong in get secure_file_priv")
+		//获取失败
+		//fmt.Println("\nsomething wrong in get secure_file_priv")
 	} else {
 		if len(Qresult) == 1 && len(Columns) == 2 {
 			fmt.Print("\n" + Qresult[0][Columns[0]] + ":\t" + Qresult[0][Columns[1]])
@@ -155,7 +158,8 @@ func GetMysqlVulnableInfo(SqlCon *sql.DB) {
 
 	err, Qresult, Columns = MysqlQuery(SqlCon, "show variables like '%plugin%'")
 	if err != nil {
-		fmt.Println("\nsomething wrong in get plugin dir")
+		//获取失败
+		//fmt.Println("\nsomething wrong in get plugin dir")
 	} else {
 		if len(Qresult) == 1 && len(Columns) == 2 {
 			fmt.Print("\n" + Qresult[0][Columns[0]] + ":\t" + Qresult[0][Columns[1]])

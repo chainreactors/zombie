@@ -3,6 +3,7 @@ package Moudle
 import (
 	"Zombie/src/Core"
 	"Zombie/src/Utils"
+	"encoding/json"
 	"fmt"
 	"github.com/urfave/cli/v2"
 	"os"
@@ -16,30 +17,64 @@ func Exec(ctx *cli.Context) (err error) {
 
 	if ctx.IsSet("InputFile") {
 		IPStore := make(map[string]int)
-
+		var eachJson []Utils.OutputRes
 		TestList, _ := Core.GetUAList(ctx.String("InputFile"))
+		if len(TestList) == 1 {
+			if strings.HasPrefix(TestList[0], "{") {
+				fmt.Println("start analysis json result")
+				plain := TestList[0][1 : len(TestList[0])-1]
+				plain = "[" + plain + "]"
 
-		for _, test := range TestList {
-			la := strings.Split(test, "\t")
+				if err := json.Unmarshal([]byte(plain), &eachJson); err != nil {
+					return err
 
-			if len(la) == 6 {
-				Curtask := Utils.ScanTask{
-					Username: strings.Split(la[2], ":")[1],
-					Password: strings.Split(la[3], ":")[1],
-					Server:   la[4],
 				}
-				IpPo := strings.Split(la[0], ":")
-				Curtask.Info.Ip = IpPo[0]
-				Curtask.Info.Port, _ = strconv.Atoi(IpPo[1])
+				for _, info := range eachJson {
+					Curtask := Utils.ScanTask{
+						Username: info.Username,
+						Password: info.Password,
+						Server:   info.Type,
+					}
+					Curtask.Info.Ip = info.IP
+					Curtask.Info.Port = info.Port
 
-				if IPStore[IpPo[0]] == 1 {
-					continue
+					address := fmt.Sprintf("%v:%v", info.IP, info.Port)
+
+					if IPStore[address] == 1 {
+						continue
+					}
+
+					CurtaskList = append(CurtaskList, Curtask)
+					IPStore[address] = 1
 				}
 
-				CurtaskList = append(CurtaskList, Curtask)
-				IPStore[IpPo[0]] = 1
 			}
-			continue
+		} else {
+			fmt.Println("start analysis raw result")
+			for _, test := range TestList {
+				la := strings.Split(test, "\t")
+
+				if len(la) == 6 {
+					Curtask := Utils.ScanTask{
+						Username: strings.Split(la[2], ":")[1],
+						Password: strings.Split(la[3], ":")[1],
+						Server:   la[4],
+					}
+					IpPo := strings.Split(la[0], ":")
+					Curtask.Info.Ip = IpPo[0]
+					Curtask.Info.Port, _ = strconv.Atoi(IpPo[1])
+
+					address := fmt.Sprintf("%v:%v", Curtask.Info.Ip, Curtask.Info.Port)
+
+					if IPStore[address] == 1 {
+						continue
+					}
+
+					CurtaskList = append(CurtaskList, Curtask)
+					IPStore[address] = 1
+				}
+				continue
+			}
 		}
 
 	} else {
@@ -95,20 +130,20 @@ func Exec(ctx *cli.Context) (err error) {
 
 	}
 
-	for _, Curtask := range CurtaskList {
+	for _, Curtask := range CurtaskList[:len(CurtaskList)-1] {
 
 		CurCon := Core.ExecDispatch(Curtask)
 
 		alive := CurCon.Connect()
 
 		if !alive {
-			fmt.Printf("can't connect to db")
-			os.Exit(0)
+			fmt.Printf("can't connect to db\n")
+			continue
 		}
 
-		IsAuto := ctx.Bool("auto")
+		Utils.IsAuto = ctx.Bool("auto")
 
-		if IsAuto {
+		if Utils.IsAuto {
 			CurCon.GetInfo()
 		} else {
 			CurCon.SetQuery(ctx.String("input"))

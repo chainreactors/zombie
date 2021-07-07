@@ -37,7 +37,7 @@ var (
 )
 
 var File string
-var SSL bool
+var SSL, IsAuto bool
 var FileFormat string
 var ChildContext context.Context
 var ChildCancel context.CancelFunc

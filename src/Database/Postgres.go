@@ -88,7 +88,10 @@ func PostgresQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[strin
 			Qresult, Columns = DoRowsMapper(rows)
 
 		} else {
-			fmt.Println("please check your query.")
+			if !Utils.IsAuto {
+				fmt.Println("please check your query.")
+			}
+
 			return err, Qresult, Columns
 		}
 	} else {

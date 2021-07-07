@@ -60,7 +60,9 @@ func MssqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]s
 			Qresult, Columns = DoRowsMapper(rows)
 
 		} else {
-			fmt.Println("please check your query.")
+			if !Utils.IsAuto {
+				fmt.Println("please check your query.")
+			}
 			return err, Qresult, Columns
 		}
 	} else {
