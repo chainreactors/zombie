@@ -99,6 +99,7 @@ func Brute(ctx *cli.Context) (err error) {
 
 	if Utils.File != "null" {
 		initFile(Utils.File)
+		go Utils.BruteWrite2File(Utils.FileHandle, Utils.BDatach)
 	}
 
 	Core.Summary = len(UserList) * len(PassList) * len(IpList)
@@ -139,7 +140,6 @@ func initFile(Filename string) {
 		}
 
 	}
-	go Utils.BruteWrite2File(Utils.FileHandle, Utils.BDatach)
 }
 
 func StartTask(UserList []string, PassList []string, IpList []Utils.IpInfo, CurServer string) error {
