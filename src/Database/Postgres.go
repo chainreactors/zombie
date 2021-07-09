@@ -11,13 +11,19 @@ import (
 )
 
 type PostgresService struct {
-	Username string
-	Password string
-	Dbname   string
 	Utils.IpInfo
-	Utils.PostgreInf
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Dbname   string `json:"Dbname"`
+	PostgreInf
 	Input  string
 	SqlCon *sql.DB
+}
+
+type PostgreInf struct {
+	Version string
+	Count   int
+	OS      string
 }
 
 var PostgresCollectInfo string
@@ -25,15 +31,11 @@ var PostgresCollectInfo string
 func (s *PostgresService) GetInfo() bool {
 	defer s.SqlCon.Close()
 
-	res := GetBaseInfo(s.SqlCon)
+	res := GetPostBaseInfo(s.SqlCon)
 	res.Count = GetPostgresSummary(s)
-	PostgresCollectInfo = ""
-	if res != nil {
-		PostgresCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", s.Ip, "Postgres", res.Version, res.OS, res.Count)
-		PostgresCollectInfo += "\n"
-	}
+	s.PostgreInf = *res
 	//将结果放入管道
-	Utils.QDatach <- PostgresCollectInfo
+	Utils.TDatach <- *s
 	return true
 }
 
@@ -115,7 +117,7 @@ func (s *PostgresService) Query() bool {
 		fmt.Println("something wrong")
 		os.Exit(0)
 	} else {
-		Utils.OutPutQuery(Qresult, Columns, true)
+		OutPutQuery(Qresult, Columns, true)
 	}
 
 	return true
@@ -130,9 +132,9 @@ func (s *PostgresService) Connect() bool {
 	return false
 }
 
-func GetBaseInfo(SqlCon *sql.DB) *Utils.PostgreInf {
+func GetPostBaseInfo(SqlCon *sql.DB) *PostgreInf {
 
-	res := Utils.PostgreInf{}
+	res := PostgreInf{}
 
 	err, Qresult, Columns := PostgresQuery(SqlCon, "SHOW server_version;")
 
@@ -141,7 +143,7 @@ func GetBaseInfo(SqlCon *sql.DB) *Utils.PostgreInf {
 		return nil
 	}
 
-	VerOs := Utils.GetSummary(Qresult, Columns)
+	VerOs := GetSummary(Qresult, Columns)
 
 	VerOs = strings.Replace(VerOs, "(", "", 1)
 	VerOs = strings.Replace(VerOs, ")", "", 1)
@@ -180,7 +182,7 @@ func GetPostgresSummary(s *PostgresService) int {
 
 	_, Qresult, Columns = PostgresQuery(s.SqlCon, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
 
-	CurIntSum := Utils.GetSummary(Qresult, Columns)
+	CurIntSum := GetSummary(Qresult, Columns)
 
 	CurSum, err := strconv.Atoi(CurIntSum)
 
@@ -200,7 +202,7 @@ func GetPostgresSummary(s *PostgresService) int {
 		if succ {
 			_, Qresult, Columns = PostgresQuery(s.SqlCon, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
 
-			CurIntSum = Utils.GetSummary(Qresult, Columns)
+			CurIntSum = GetSummary(Qresult, Columns)
 
 			CurSum, err = strconv.Atoi(CurIntSum)
 

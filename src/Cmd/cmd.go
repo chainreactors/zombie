@@ -60,6 +60,7 @@ var Query = cli.Command{
 		StringFlag("OutputFile", "f", "./ExecRes.log", ""),
 		StringFlag("server", "s", "", ""),
 		BoolFlag("auto", "a", false, ""),
+		SimpleStringFlag("type", "raw", ""),
 	},
 }
 

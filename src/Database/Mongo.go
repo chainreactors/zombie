@@ -11,6 +11,7 @@ import (
 
 func MongoConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, client *mongo.Client) {
 	var url string
+
 	if Password == "" {
 		url = fmt.Sprintf("mongodb://%v:%v", info.Ip, info.Port)
 	} else {

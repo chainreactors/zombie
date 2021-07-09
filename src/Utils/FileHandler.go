@@ -1,7 +1,6 @@
 package Utils
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/rand"
 	"os"
@@ -11,8 +10,7 @@ import (
 
 var FileHandle *os.File
 var O2File bool
-var BDatach = make(chan OutputRes, 1000)
-var QDatach = make(chan string, 1000)
+var TDatach = make(chan interface{}, 1000)
 
 var (
 	src = rand.NewSource(time.Now().UnixNano())
@@ -31,26 +29,6 @@ func CheckFileIsExist(filename string) bool {
 		exist = false
 	}
 	return exist
-}
-
-func BruteWrite2File(FileHandle *os.File, Datach chan OutputRes) {
-
-	switch FileFormat {
-	case "raw":
-		for res := range Datach {
-			FileHandle.WriteString(fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t%s\n", res.IP, res.Port, res.Username, res.Password, res.Type, res.Additional))
-		}
-	case "json":
-		FileHandle.WriteString("{")
-		for res := range Datach {
-			jsons, errs := json.Marshal(res)
-			if errs != nil {
-				fmt.Println(errs.Error())
-			}
-			FileHandle.WriteString(string(jsons) + ",")
-		}
-	}
-
 }
 
 func QueryWrite2File(FileHandle *os.File, QDatach chan string) {

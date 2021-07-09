@@ -10,12 +10,20 @@ import (
 )
 
 type MssqlService struct {
-	Username string
-	Password string
 	Utils.IpInfo
-	Utils.MssqlInf
+	Username string `json:"username"`
+	Password string `json:"password"`
+	MssqlInf
 	Input  string
 	SqlCon *sql.DB
+}
+
+type MssqlInf struct {
+	Version     string `json:"version"`
+	Count       int    `json:"count"`
+	OS          string `json:"os"`
+	XpCmdShell  string `json:"xp_cmdshell"`
+	SP_OACREATE string `json:"sp_oacreate"`
 }
 
 var MssqlCollectInfo string
@@ -84,7 +92,7 @@ func (s *MssqlService) Query() bool {
 		fmt.Println("something wrong")
 		return false
 	} else {
-		Utils.OutPutQuery(Qresult, Columns, true)
+		OutPutQuery(Qresult, Columns, true)
 	}
 
 	return true
@@ -116,11 +124,10 @@ func (s *MssqlService) GetInfo() bool {
 
 	res.Count = GetMssqlSummary(s.SqlCon)
 
-	MssqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", s.Ip, "Mssql", res.Version, res.OS, res.Count)
-	GetMssqlVulnableInfo(s.SqlCon)
-
+	res = GetMssqlVulnableInfo(s.SqlCon, res)
+	s.MssqlInf = *res
 	//将结果放入管道
-	Utils.QDatach <- MssqlCollectInfo
+	Utils.TDatach <- *s
 
 	return true
 }
@@ -148,7 +155,7 @@ func GetMssqlSummary(SqlCon *sql.DB) int {
 
 		_, Qresult, Columns = MssqlQuery(SqlCon, curinput)
 
-		CurIntSum := Utils.GetSummary(Qresult, Columns)
+		CurIntSum := GetSummary(Qresult, Columns)
 
 		CurSum, err := strconv.Atoi(CurIntSum)
 
@@ -164,16 +171,16 @@ func GetMssqlSummary(SqlCon *sql.DB) int {
 
 }
 
-func GetMssqlBaseInfo(SqlCon *sql.DB) *Utils.MssqlInf {
+func GetMssqlBaseInfo(SqlCon *sql.DB) *MssqlInf {
 
-	res := Utils.MssqlInf{}
+	res := MssqlInf{}
 
 	err, Qresult, Columns := MssqlQuery(SqlCon, "select @@version")
 	if err != nil {
 		fmt.Println("something wrong at get version")
 		return nil
 	}
-	info := Utils.GetSummary(Qresult, Columns)
+	info := GetSummary(Qresult, Columns)
 
 	infolist := strings.Split(info, "\n")
 
@@ -188,17 +195,17 @@ func GetMssqlBaseInfo(SqlCon *sql.DB) *Utils.MssqlInf {
 	return &res
 }
 
-func GetMssqlVulnableInfo(SqlCon *sql.DB) {
+func GetMssqlVulnableInfo(SqlCon *sql.DB, res *MssqlInf) *MssqlInf {
 	err, Qresult, Columns := MssqlQuery(SqlCon, "select count(*) from master.dbo.sysobjects where xtype='x' and name='xp_cmdshell'")
 	if err != nil {
 		//fmt.Println("something wrong in get xp_cmdshell")
 	} else {
-		info := Utils.GetSummary(Qresult, Columns)
+		info := GetSummary(Qresult, Columns)
 
 		if info == "1" {
-			MssqlCollectInfo += fmt.Sprintf("\nxp_cmdshell: exsit")
+			res.XpCmdShell = "exsit"
 		} else {
-			MssqlCollectInfo += fmt.Sprintf("\nxp_cmdshell: none")
+			res.XpCmdShell = "none"
 		}
 	}
 
@@ -206,13 +213,14 @@ func GetMssqlVulnableInfo(SqlCon *sql.DB) {
 	if err != nil {
 		//fmt.Println("something wrong in get SP_OACREATE")
 	} else {
-		info := Utils.GetSummary(Qresult, Columns)
+		info := GetSummary(Qresult, Columns)
 
 		if info == "1" {
-			MssqlCollectInfo += fmt.Sprintf("\nSP_OACREATE: exsit")
+			res.SP_OACREATE = "exsit"
 		} else {
-			MssqlCollectInfo += fmt.Sprintf("\nSP_OACREATE: none")
+			res.SP_OACREATE = "none"
 		}
 	}
+	return res
 
 }

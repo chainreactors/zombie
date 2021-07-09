@@ -5,18 +5,27 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"strings"
 )
 
 type MysqlService struct {
-	Username string
-	Password string
 	Utils.IpInfo
-	Utils.MysqlInf
+	Username string `json:"username"`
+	Password string `json:"password"`
+	MysqlInf
 	Input  string
 	SqlCon *sql.DB
 }
 
-var MysqlCollectInfo string
+type MysqlInf struct {
+	Version        string `json:"version"`
+	OS             string `json:"os"`
+	Count          string `json:"count"`
+	GeneralLog     string `json:"general_log"`
+	GeneralLogFile string `json:"general_log_file"`
+	SecureFilePriv string `json:"secure_file_priv"`
+	PluginPath     string `json:"plugin_path"`
+}
 
 func MysqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
 
@@ -85,8 +94,6 @@ func (s *MysqlService) Connect() bool {
 func (s *MysqlService) GetInfo() bool {
 	defer s.SqlCon.Close()
 
-	MysqlCollectInfo = ""
-
 	res := GetMysqlBaseInfo(s.SqlCon)
 
 	if res == nil {
@@ -95,12 +102,12 @@ func (s *MysqlService) GetInfo() bool {
 
 	res.Count = GetMysqlSummary(s.SqlCon)
 
-	MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v", s.Ip, "Mysql", res.Version, res.OS, res.Count)
-	GetMysqlVulnableInfo(s.SqlCon)
-	GetMysqlGeneralLog(s.SqlCon)
+	res = GetMysqlVulnableInfo(s.SqlCon, res)
+	res = GetMysqlGeneralLog(s.SqlCon, res)
+	s.MysqlInf = *res
 
 	//将结果放入管道
-	Utils.QDatach <- MysqlCollectInfo
+	Utils.TDatach <- *s
 	return true
 }
 
@@ -111,7 +118,7 @@ func (s *MysqlService) Query() bool {
 		fmt.Println("something wrong")
 		return false
 	} else {
-		Utils.OutPutQuery(Qresult, Columns, true)
+		OutPutQuery(Qresult, Columns, true)
 	}
 	return true
 }
@@ -120,13 +127,13 @@ func (s *MysqlService) SetQuery(query string) {
 	s.Input = query
 }
 
-func GetMysqlBaseInfo(SqlCon *sql.DB) *Utils.MysqlInf {
+func GetMysqlBaseInfo(SqlCon *sql.DB) *MysqlInf {
 	err, Qresult, Columns := MysqlQuery(SqlCon, "select VERSION(),@@version_compile_os")
 	if err != nil {
 		fmt.Println("something wrong at get version")
 		return nil
 	}
-	res := Utils.GetBaseInfo(Qresult, Columns)
+	res := HandleBaseInfo(Qresult, Columns)
 
 	return &res
 }
@@ -135,36 +142,49 @@ func GetMysqlSummary(SqlCon *sql.DB) string {
 	err, Qresult, Columns := MysqlQuery(SqlCon, "select sum(table_rows) from  information_schema.tables where table_rows is not null")
 
 	if err == nil {
-		Count := Utils.GetSummary(Qresult, Columns)
+		Count := GetSummary(Qresult, Columns)
 		return Count
 	}
 	return ""
 }
 
-func GetMysqlGeneralLog(SqlCon *sql.DB) {
+func GetMysqlGeneralLog(SqlCon *sql.DB, res *MysqlInf) *MysqlInf {
 	err, Qresult, Columns := MysqlQuery(SqlCon, "show VARIABLES like 'general%'")
 	if err != nil {
 		//fmt.Println("something wrong in get general log")
 	} else {
+		flag := 0
 		//Utils.OutPutQuery(Qresult, Columns, false)
 		for _, items := range Qresult {
 			for _, cname := range Columns {
-				MysqlCollectInfo += fmt.Sprint(items[cname] + "\t")
+				if flag == 1 {
+					res.GeneralLog = items[cname]
+					flag = 0
+				} else {
+					res.GeneralLogFile = items[cname]
+					flag = 0
+				}
+				if strings.Contains(items[cname], "general_log_file") {
+					flag = 2
+				} else if strings.Contains(items[cname], "general_log") {
+					flag = 1
+				}
 			}
-			MysqlCollectInfo += "\n"
 		}
 	}
+	return res
 
 }
 
-func GetMysqlVulnableInfo(SqlCon *sql.DB) {
+func GetMysqlVulnableInfo(SqlCon *sql.DB, res *MysqlInf) *MysqlInf {
 	err, Qresult, Columns := MysqlQuery(SqlCon, "SHOW VARIABLES LIKE \"secure_file_priv\"")
 	if err != nil {
 		//获取失败
 		//fmt.Println("\nsomething wrong in get secure_file_priv")
 	} else {
 		if len(Qresult) == 1 && len(Columns) == 2 {
-			MysqlCollectInfo += fmt.Sprint("\n" + Qresult[0][Columns[0]] + ":\t" + Qresult[0][Columns[1]])
+			//MysqlCollectInfo += fmt.Sprint("\n" + Qresult[0][Columns[0]] + ":\t" + Qresult[0][Columns[1]])
+			res.SecureFilePriv = Qresult[0][Columns[1]]
 		}
 	}
 
@@ -174,8 +194,27 @@ func GetMysqlVulnableInfo(SqlCon *sql.DB) {
 		//fmt.Println("\nsomething wrong in get plugin dir")
 	} else {
 		if len(Qresult) == 1 && len(Columns) == 2 {
-			MysqlCollectInfo += fmt.Sprint("\n" + Qresult[0][Columns[0]] + ":\t" + Qresult[0][Columns[1]])
+			//MysqlCollectInfo += fmt.Sprint("\n" + Qresult[0][Columns[0]] + ":\t" + Qresult[0][Columns[1]])
+			res.PluginPath = Qresult[0][Columns[1]]
 		}
 	}
+	return res
 
+}
+
+func HandleBaseInfo(Qresult []map[string]string, Columns []string) MysqlInf {
+
+	res := MysqlInf{}
+
+	for _, items := range Qresult {
+		for _, cname := range Columns {
+			if cname == "VERSION()" {
+				res.Version = items[cname]
+			} else {
+				res.OS = items[cname]
+			}
+		}
+
+	}
+	return res
 }

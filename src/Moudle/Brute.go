@@ -2,6 +2,7 @@ package Moudle
 
 import (
 	"Zombie/src/Core"
+	"Zombie/src/Database"
 	"Zombie/src/Utils"
 	"context"
 	"encoding/json"
@@ -96,10 +97,11 @@ func Brute(ctx *cli.Context) (err error) {
 	Utils.Proc = ctx.Int("proc")
 	Utils.FileFormat = ctx.String("type")
 	Utils.File = ctx.String("file")
+	Utils.OutputType = "Brute"
 
 	if Utils.File != "null" {
 		initFile(Utils.File)
-		go Utils.BruteWrite2File(Utils.FileHandle, Utils.BDatach)
+		go Database.QueryWrite3File(Utils.FileHandle, Utils.TDatach)
 	}
 
 	Core.Summary = len(UserList) * len(PassList) * len(IpList)

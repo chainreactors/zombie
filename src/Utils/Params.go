@@ -3,8 +3,8 @@ package Utils
 import "context"
 
 type IpInfo struct {
-	Ip   string
-	Port int
+	Ip   string `json:"IP"`
+	Port int    `json:"Port"`
 	SSL  bool
 }
 
@@ -37,6 +37,7 @@ var (
 )
 
 var File string
+var OutputType string
 var SSL, IsAuto bool
 var FileFormat string
 var ChildContext context.Context

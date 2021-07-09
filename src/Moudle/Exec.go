@@ -2,6 +2,7 @@ package Moudle
 
 import (
 	"Zombie/src/Core"
+	"Zombie/src/Database"
 	"Zombie/src/Utils"
 	"encoding/json"
 	"fmt"
@@ -48,6 +49,7 @@ func Exec(ctx *cli.Context) (err error) {
 					CurtaskList = append(CurtaskList, Curtask)
 					IPStore[address] = 1
 				}
+				CurtaskList = CurtaskList[:len(CurtaskList)-1]
 
 			}
 		} else {
@@ -132,25 +134,26 @@ func Exec(ctx *cli.Context) (err error) {
 	}
 	//初始化文件
 	Utils.File = ctx.String("OutputFile")
+	Utils.FileFormat = ctx.String("type")
+	Utils.IsAuto = ctx.Bool("auto")
 
-	if Utils.File != "null" {
+	if Utils.File != "null" && Utils.IsAuto {
 		initFile(Utils.File)
-		go Utils.QueryWrite2File(Utils.FileHandle, Utils.QDatach)
+		Utils.OutputType = CurtaskList[0].Server
+		go Database.QueryWrite3File(Utils.FileHandle, Utils.TDatach)
 
 	}
 
-	for _, Curtask := range CurtaskList[:len(CurtaskList)-1] {
+	for _, Curtask := range CurtaskList {
 
 		CurCon := Core.ExecDispatch(Curtask)
 
 		alive := CurCon.Connect()
 
 		if !alive {
-			fmt.Printf("can't connect to db\n")
+			fmt.Printf("%v:%v can't connect to db\n", Curtask.Info.Ip, Curtask.Info.Port)
 			continue
 		}
-
-		Utils.IsAuto = ctx.Bool("auto")
 
 		if Utils.IsAuto {
 			CurCon.GetInfo()
@@ -161,6 +164,14 @@ func Exec(ctx *cli.Context) (err error) {
 	}
 
 	time.Sleep(1000 * time.Millisecond)
+	if Utils.FileFormat == "json" {
+		final := Utils.OutputRes{}
+		jsons, errs := json.Marshal(final) //转换成JSON返回的是byte[]
+		if errs != nil {
+			fmt.Println(errs.Error())
+		}
+		Utils.FileHandle.WriteString(string(jsons) + "}")
+	}
 	fmt.Println("All Task Done!!!!")
 
 	return err
