@@ -75,6 +75,7 @@ func Brute(ctx *cli.Context) (err error) {
 			UserList, _ = Core.ReadUserDict(ctx.String("userdict"))
 		} else {
 			if defaultuser, ok := Utils.DefaultUserDict[CurServer]; ok {
+				fmt.Println("[+] Use default user dict")
 				UserList = defaultuser
 			} else if CurServer == "REDIS" {
 				UserList = []string{"aaa"}
@@ -91,6 +92,7 @@ func Brute(ctx *cli.Context) (err error) {
 		} else if ctx.IsSet("passdict") {
 			PassList, _ = Core.ReadPassDict(ctx.String("passdict"))
 		} else {
+			fmt.Println("[+] Use default password dict")
 			PassList = Utils.DefaultPasswords
 		}
 	}

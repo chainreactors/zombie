@@ -47,6 +47,10 @@
         * 输出的文件，默认为当前目录下的res.log，如果不想生成文件则输入-f null
     * type
         * 调整输出文件的格式，默认为raw，若要json，则输入-type json
+    * proc 
+        * 默认不显示进度条，可以--proc int 来设置爆破多少次显示一次
+    * uppair or UP
+        * 支持出入键值对的用户名密码
     
 
 * example
@@ -78,6 +82,8 @@
 * SMB支持哈希传递,密码字段加上前缀 hash: , 且无论是否成功都会返回winodws版本
 
 * 支持IP段扫描,如果端口自定义则为 127.0.0.1/24:445 的形式
+
+* 新增内置字典，只需要输入IP和爆破类型就会使用内置字典
 
 TODO：
 
@@ -113,4 +119,21 @@ TODO：
 
 * 目前支持Xshell，Xftp，低于7版本的解密
 * 支持Navicat全版本解密（最新版测试通过）
+  * all, a
+    * 同时运行两款解密
+  * Navicat, N
+    > 可以手动输入来解密，如果不输入，则自己从注册表读取数据
+    * --cipher value, -c value
+    * --OutputFile value, -f value  (default: "./DeRes.log")
+
+  * Xshell, X
+    > 默认从用户目录下读取判断版本，也可以自己输入数据来解密
+    * --cipher value, -c value
+    * --username value, -u value
+    * --sid value, -s value
+    * --version value, -v value     (default: 0)
+    * --OutputFile value, -f value  (default: "./DeRes.log")
+    
+
+  
 
