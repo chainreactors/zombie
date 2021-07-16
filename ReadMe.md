@@ -81,9 +81,9 @@
 
 TODO：
 
-    [+] 爆破SNMP
-    [+] SMB解析版本
+    [+] ssh批量执行命令，ssh私钥喷射
     [+] 自定义get，post or yaml解析
+    
     
 
 ### Query 模块

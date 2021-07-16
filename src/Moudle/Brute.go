@@ -68,24 +68,30 @@ func Brute(ctx *cli.Context) (err error) {
 		Core.UPList, _ = Core.GetUAList(uppair)
 	} else {
 
-		if ctx.IsSet("username") || !ctx.IsSet("userdict") {
+		if ctx.IsSet("username") && !ctx.IsSet("userdict") {
 			username := ctx.String("username")
 			UserList = Core.GetUserList(username)
 		} else if ctx.IsSet("userdict") {
 			UserList, _ = Core.ReadUserDict(ctx.String("userdict"))
 		} else {
-			fmt.Println("please input username")
-			os.Exit(0)
+			if defaultuser, ok := Utils.DefaultUserDict[CurServer]; ok {
+				UserList = defaultuser
+			} else if CurServer == "REDIS" {
+				UserList = []string{"aaa"}
+			} else {
+				fmt.Println("please input username")
+				os.Exit(0)
+			}
+
 		}
 
-		if ctx.IsSet("password") || !ctx.IsSet("passdict") {
+		if ctx.IsSet("password") && !ctx.IsSet("passdict") {
 			password := ctx.String("password")
 			PassList = Core.GetPassList(password)
 		} else if ctx.IsSet("passdict") {
 			PassList, _ = Core.ReadPassDict(ctx.String("passdict"))
 		} else {
-			fmt.Println("please input user")
-			os.Exit(0)
+			PassList = Utils.DefaultPasswords
 		}
 	}
 
