@@ -8,6 +8,7 @@ require (
 	github.com/denisenkom/go-mssqldb v0.9.0
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/gosnmp/gosnmp v1.32.0
 	github.com/hirochachacha/go-smb2 v1.0.10
 	github.com/jlaffaye/ftp v0.0.0-20201112195030-9aae4d151126
 	github.com/lib/pq v1.9.0
@@ -24,4 +25,3 @@ replace (
 	github.com/go-sql-driver/mysql => ./pkg/github.com/go-sql-driver/mysql
 	github.com/hirochachacha/go-smb2 => ./pkg/github.com/hirochachacha/go-smb2
 )
-

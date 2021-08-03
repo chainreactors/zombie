@@ -61,6 +61,7 @@ var Query = cli.Command{
 		StringFlag("server", "s", "", ""),
 		BoolFlag("auto", "a", false, ""),
 		SimpleStringFlag("type", "raw", ""),
+		BoolSimpleFlag("more", false, ""),
 	},
 }
 

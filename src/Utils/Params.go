@@ -38,7 +38,7 @@ var (
 
 var File string
 var OutputType string
-var SSL, IsAuto bool
+var SSL, IsAuto, More bool
 var FileFormat string
 var ChildContext context.Context
 var ChildCancel context.CancelFunc
@@ -89,6 +89,7 @@ var (
 		"MSSQL":      1433,
 		"MYSQL":      3306,
 		"POSTGRESQL": 5432,
+		"SNMP":       161,
 	}
 
 	ExecServer = map[int]string{
