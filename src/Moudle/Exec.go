@@ -143,9 +143,9 @@ func Exec(ctx *cli.Context) (err error) {
 	if !exist {
 		err := os.Mkdir(dir, os.ModePerm)
 		if err != nil {
-			fmt.Printf("mkdir failed![%v]\n", err)
+			fmt.Printf("mkdir res dir failed![%v]\n", err)
 		} else {
-			fmt.Printf("mkdir success!\n")
+			fmt.Printf("mkdir res dir success!\n")
 		}
 	}
 
