@@ -137,6 +137,18 @@ func Exec(ctx *cli.Context) (err error) {
 	Utils.FileFormat = ctx.String("type")
 	Utils.IsAuto = ctx.Bool("auto")
 
+	dir := "./res"
+	exist, _ := Utils.PathExists(dir)
+
+	if !exist {
+		err := os.Mkdir(dir, os.ModePerm)
+		if err != nil {
+			fmt.Printf("mkdir failed![%v]\n", err)
+		} else {
+			fmt.Printf("mkdir success!\n")
+		}
+	}
+
 	if Utils.File != "null" && Utils.IsAuto {
 		initFile(Utils.File)
 		Utils.OutputType = CurtaskList[0].Server

@@ -1,9 +1,10 @@
-package Protocol
+package Database
 
 import (
 	"Zombie/src/Utils"
 	"fmt"
 	"github.com/gosnmp/gosnmp"
+	"os"
 	"strings"
 	"time"
 )
@@ -174,8 +175,27 @@ func (s *SnmpService) GetInfo() bool {
 		}
 	}
 
-	FinIPSlice = removeDuplicateElement(FinIPSlice)
-	FinCidrSlice = removeDuplicateElement(FinCidrSlice)
+	FinIPSlice = Utils.RemoveDuplicateElement(FinIPSlice)
+	FinCidrSlice = Utils.RemoveDuplicateElement(FinCidrSlice)
+
+	f, err1 := os.Create("./res/" + s.Ip + "Cidr.txt")
+	if err1 != nil {
+		panic(err1)
+	}
+	for _, resip := range FinCidrSlice {
+		f.WriteString(resip + "\n")
+	}
+
+	f2, err2 := os.Create("./res/" + s.Ip + "AliveIP.txt")
+	if err2 != nil {
+		panic(err2)
+	}
+	for _, sub := range FinIPSlice {
+		f2.WriteString(sub + "\n")
+	}
+	f.Close()
+	f2.Close()
+
 	s.Cidr = FinCidrSlice
 	s.GateWay = FinIPSlice
 

@@ -1,6 +1,7 @@
-package Protocol
+package Database
 
 import (
+	"Zombie/src/Utils"
 	"fmt"
 	"github.com/gosnmp/gosnmp"
 	"log"
@@ -87,8 +88,8 @@ func HandleinetCidrRouteEntry(spcon *gosnmp.GoSNMP) (*CiderRoute, error) {
 		}
 
 	}
-	result.Cidr = removeDuplicateElement(result.Cidr)
-	result.GateWay = removeDuplicateElement(result.GateWay)
+	result.Cidr = Utils.RemoveDuplicateElement(result.Cidr)
+	result.GateWay = Utils.RemoveDuplicateElement(result.GateWay)
 
 	return &result, nil
 
@@ -238,16 +239,4 @@ func ipMaskToInt(netmask string) (int, error) {
 
 	ones, _ := net.IPv4Mask(ipv4MaskArr[0], ipv4MaskArr[1], ipv4MaskArr[2], ipv4MaskArr[3]).Size()
 	return ones, nil
-}
-
-func removeDuplicateElement(addrs []string) []string {
-	result := make([]string, 0, len(addrs))
-	temp := map[string]struct{}{}
-	for _, item := range addrs {
-		if _, ok := temp[item]; !ok {
-			temp[item] = struct{}{}
-			result = append(result, item)
-		}
-	}
-	return result
 }

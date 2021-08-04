@@ -37,7 +37,7 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 	case "FTP":
 		err, result = Protocol.FtpConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "SNMP":
-		err, result = Protocol.SnmpConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = Database.SnmpConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "TOMCAT":
 		err, result = Web.TomcatConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	default:
@@ -71,7 +71,7 @@ func ExecDispatch(CurTask Utils.ScanTask) Database.SqlHandle {
 			IpInfo:   CurTask.Info,
 		}
 	case "SNMP":
-		return &Protocol.SnmpService{
+		return &Database.SnmpService{
 			Password: CurTask.Password,
 			IpInfo:   CurTask.Info,
 		}
