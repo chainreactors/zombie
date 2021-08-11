@@ -13,6 +13,7 @@ type ScanTask struct {
 	Username string
 	Password string
 	Server   string
+	Input    string
 }
 
 type OutputRes struct {
@@ -92,11 +93,14 @@ var (
 		"MYSQL":      3306,
 		"POSTGRESQL": 5432,
 		"SNMP":       161,
+		"SSH":        22,
 	}
 
 	ExecServer = map[int]string{
 		1433: "MSSQL",
 		3306: "MYSQL",
 		5432: "POSTGRE",
+		161:  "SNMP",
+		22:   "SSH",
 	}
 )

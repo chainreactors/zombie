@@ -3,7 +3,7 @@ BINARY= Zombie
 VERSION = 0.9.8beta
 # Builds the project
 build:
-		go build -ldflags "-s -w" -o ${BINARY} ./src/main/main.go
+		go build -ldflags "-s -w" -o ${BINARY} ./src/main.go
 
 build-linux-64:
 		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ${BINARY}-linux64 ./src/main.go

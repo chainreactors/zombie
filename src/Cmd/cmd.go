@@ -62,6 +62,7 @@ var Query = cli.Command{
 		BoolFlag("auto", "a", false, ""),
 		SimpleStringFlag("type", "raw", ""),
 		BoolSimpleFlag("more", false, ""),
+		IntFlag("thread", "t", "", 60),
 	},
 }
 

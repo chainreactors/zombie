@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"net"
+	"regexp"
+	"strings"
 	"time"
 )
 
@@ -27,6 +29,32 @@ func (s *SshService) Connect() bool {
 }
 
 func (s *SshService) GetInfo() bool {
+
+	if s.Cmd != "" {
+		session, err := s.SshCon.NewSession()
+		defer session.Close()
+		defer s.SshCon.Close()
+		cmd := "ping -c 5 " + s.Cmd
+		buf, err := session.Output(cmd)
+
+		if err != nil {
+			return false
+		}
+
+		re, _ := regexp.Compile(`\d received`)
+
+		FindRes := string(re.Find([]byte(buf)))
+
+		reslist := strings.Split(FindRes, " ")
+		if reslist[1] == "received" {
+			if reslist[0] != "0" {
+				fmt.Printf("%v can reach %v\n", s.Ip, s.Cmd)
+			}
+		}
+	} else {
+		panic("Please input ip")
+	}
+
 	return true
 }
 
@@ -39,7 +67,7 @@ func (s *SshService) Query() bool {
 	session, err := s.SshCon.NewSession()
 	defer session.Close()
 	defer s.SshCon.Close()
-	buf, err := session.Output("ping -c 3 114.114.114.114")
+	buf, err := session.Output(s.Cmd)
 
 	if err != nil {
 		return false

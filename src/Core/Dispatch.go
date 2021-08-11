@@ -77,6 +77,12 @@ func ExecDispatch(CurTask Utils.ScanTask) ExecAble.ExecAble {
 			Password: CurTask.Password,
 			IpInfo:   CurTask.Info,
 		}
+	case "SSH":
+		return &ExecAble.SshService{
+			Username: CurTask.Username,
+			Password: CurTask.Password,
+			IpInfo:   CurTask.Info,
+		}
 	default:
 		fmt.Println("The ExecAble isn't supported")
 	}
