@@ -30,7 +30,10 @@ func BruteWork(WorkerPara *PoolPara) {
 			if !ok {
 				return
 			}
-			CountChan <- 1
+			if Utils.Proc != 0 {
+				CountChan <- 1
+			}
+
 			err, res := DefaultScan2(task)
 			if err != nil {
 				if task.Server == "SMB" && task.Password != "" {

@@ -100,6 +100,7 @@ func Brute(ctx *cli.Context) (err error) {
 	CurServer = strings.ToUpper(CurServer)
 
 	Utils.Timeout = ctx.Int("timeout")
+	Utils.SSL = ctx.Bool("ssl")
 	Utils.Thread = ctx.Int("thread")
 	Utils.Simple = ctx.Bool("simple")
 	Utils.Proc = ctx.Int("proc")

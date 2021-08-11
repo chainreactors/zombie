@@ -6,7 +6,7 @@ build:
 		go build -ldflags "-s -w" -o ${BINARY} ./src/main/main.go
 
 build-linux-64:
-		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ${BINARY}-linux64 ./src/main/main.go
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ${BINARY}-linux64 ./src/main.go
 
 # Installs our project: copies binaries
 install:
