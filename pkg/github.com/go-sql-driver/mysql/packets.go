@@ -657,7 +657,7 @@ func (mc *mysqlConn) readColumns(count int) ([]mysqlField, error) {
 			return nil, err
 		}
 
-		// Database [len coded string]
+		// ExecAble [len coded string]
 		n, err := skipLengthEncodedString(data[pos:])
 		if err != nil {
 			return nil, err

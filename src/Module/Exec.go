@@ -1,8 +1,8 @@
-package Moudle
+package Module
 
 import (
 	"Zombie/src/Core"
-	"Zombie/src/Database"
+	"Zombie/src/ExecAble"
 	"Zombie/src/Utils"
 	"encoding/json"
 	"fmt"
@@ -82,7 +82,7 @@ func Exec(ctx *cli.Context) (err error) {
 
 	} else {
 		if strings.Contains(ctx.String("ip"), ",") {
-			fmt.Println("Exec Moudle only support single ip")
+			fmt.Println("Exec Module only support single ip")
 			os.Exit(0)
 		}
 
@@ -94,7 +94,7 @@ func Exec(ctx *cli.Context) (err error) {
 			if _, ok := Utils.ExecPort[ServerName]; ok {
 				CurServer = ctx.String("server")
 			} else {
-				fmt.Println("the Database isn't be supported")
+				fmt.Println("the ExecAble isn't be supported")
 				os.Exit(0)
 			}
 
@@ -111,11 +111,11 @@ func Exec(ctx *cli.Context) (err error) {
 				CurServer = Utils.PortServer[port]
 				fmt.Println("Use default server")
 			} else {
-				fmt.Println("Please input the type of Database")
+				fmt.Println("Please input the type of ExecAble")
 				os.Exit(0)
 			}
 		} else {
-			fmt.Println("Please input the type of Database")
+			fmt.Println("Please input the type of ExecAble")
 			os.Exit(0)
 		}
 
@@ -152,7 +152,7 @@ func Exec(ctx *cli.Context) (err error) {
 	if Utils.File != "null" && Utils.IsAuto {
 		initFile(Utils.File)
 		Utils.OutputType = CurtaskList[0].Server
-		go Database.QueryWrite3File(Utils.FileHandle, Utils.TDatach)
+		go ExecAble.QueryWrite3File(Utils.FileHandle, Utils.TDatach)
 
 	}
 

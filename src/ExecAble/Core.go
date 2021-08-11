@@ -1,4 +1,4 @@
-package Database
+package ExecAble
 
 import "database/sql"
 
@@ -47,7 +47,7 @@ func DoRowsMapper(rows *sql.Rows) ([]map[string]string, []string) {
 	return result, columns
 }
 
-type SqlHandle interface {
+type ExecAble interface {
 	Query() bool
 	GetInfo() bool
 	Connect() bool

@@ -38,13 +38,13 @@ type Config struct {
 	Passwd           string            // Password (requires User)
 	Net              string            // Network type
 	Addr             string            // Network address (requires Net)
-	DBName           string            // Database name
+	DBName           string            // ExecAble name
 	Params           map[string]string // Connection parameters
 	Collation        string            // Connection collation
 	Loc              *time.Location    // Location for time.Time values
 	MaxAllowedPacket int               // Max packet size allowed
-	ServerPubKey     string            // Database public key name
-	pubKey           *rsa.PublicKey    // Database public key
+	ServerPubKey     string            // ExecAble public key name
+	pubKey           *rsa.PublicKey    // ExecAble public key
 	TLSConfig        string            // TLS configuration name
 	tls              *tls.Config       // TLS configuration
 	Timeout          time.Duration     // Dial timeout
@@ -488,7 +488,7 @@ func parseDSNParams(cfg *Config, params string) (err error) {
 				return errors.New("invalid bool value: " + value)
 			}
 
-		// Database public key
+		// ExecAble public key
 		case "serverPubKey":
 			name, err := url.QueryUnescape(value)
 			if err != nil {

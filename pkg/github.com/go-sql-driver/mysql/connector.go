@@ -32,7 +32,7 @@ func (c *connector) Connect(ctx context.Context) (driver.Conn, error) {
 	}
 	mc.parseTime = mc.cfg.ParseTime
 
-	// Connect to Database
+	// Connect to ExecAble
 	dialsLock.RLock()
 	dial, ok := dials[mc.cfg.Net]
 	dialsLock.RUnlock()

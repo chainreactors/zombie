@@ -1,7 +1,7 @@
 package Core
 
 import (
-	"Zombie/src/Database"
+	"Zombie/src/ExecAble"
 	"Zombie/src/Protocol"
 	"Zombie/src/Utils"
 	"Zombie/src/Web"
@@ -17,19 +17,19 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 	switch CurTask.Server {
 
 	case "POSTGRESQL":
-		err, result = Database.PostgresConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = ExecAble.PostgresConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "MYSQL":
-		err, result = Database.MysqlConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = ExecAble.MysqlConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "REDIS":
-		err, result = Database.RedisConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = ExecAble.RedisConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "SSH":
-		err, result = Protocol.SSHConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = ExecAble.SSHConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "MONGO":
-		err, result = Database.MongoConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = ExecAble.MongoConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "MSSQL":
-		err, result = Database.MssqlConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = ExecAble.MssqlConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "VNC":
-		err, result = Database.VNCConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = ExecAble.VNCConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "SMB":
 		err, result = Protocol.SMBConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "ES":
@@ -37,13 +37,13 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 	case "FTP":
 		err, result = Protocol.FtpConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "SNMP":
-		err, result = Database.SnmpConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+		err, result = ExecAble.SnmpConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "TOMCAT":
 		err, result = Web.TomcatConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "VX":
 		err, result = Web.VxConnect(CurTask.Username, CurTask.Password, CurTask.Info)
 	default:
-		fmt.Println("The Database isn't supported")
+		fmt.Println("The ExecAble isn't supported")
 	}
 
 	ScanSum += 1
@@ -51,34 +51,34 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 	return err, result
 }
 
-func ExecDispatch(CurTask Utils.ScanTask) Database.SqlHandle {
+func ExecDispatch(CurTask Utils.ScanTask) ExecAble.ExecAble {
 	switch CurTask.Server {
 	case "POSTGRESQL":
-		return &Database.PostgresService{
+		return &ExecAble.PostgresService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.Info,
 			Dbname:   "postgres",
 		}
 	case "MSSQL":
-		return &Database.MssqlService{
+		return &ExecAble.MssqlService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.Info,
 		}
 	case "MYSQL":
-		return &Database.MysqlService{
+		return &ExecAble.MysqlService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.Info,
 		}
 	case "SNMP":
-		return &Database.SnmpService{
+		return &ExecAble.SnmpService{
 			Password: CurTask.Password,
 			IpInfo:   CurTask.Info,
 		}
 	default:
-		fmt.Println("The Database isn't supported")
+		fmt.Println("The ExecAble isn't supported")
 	}
 
 	return nil
