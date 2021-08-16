@@ -58,7 +58,7 @@ var (
 		5900:  "VNC",
 		8080:  "TOMCAT",
 		161:   "SNMP",
-		8083:  "VX",
+		3389:  "RDP",
 	}
 	ServerPort = map[string]int{
 		"FTP":        21,
@@ -72,7 +72,7 @@ var (
 		"MONGO":      27017,
 		"VNC":        5900,
 		"TOMCAT":     8080,
-		"VX":         8083,
+		"RDP":        3389,
 		"SNMP":       161,
 	}
 
@@ -94,6 +94,7 @@ var (
 		"POSTGRESQL": 5432,
 		"SNMP":       161,
 		"SSH":        22,
+		"RDP":        3389,
 	}
 
 	ExecServer = map[int]string{
@@ -102,5 +103,6 @@ var (
 		5432: "POSTGRE",
 		161:  "SNMP",
 		22:   "SSH",
+		3389: "RDP",
 	}
 )

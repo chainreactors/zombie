@@ -40,8 +40,9 @@ func BruteDispatch(CurTask Utils.ScanTask) (err error, result Utils.BruteRes) {
 		err, result = ExecAble.SnmpConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
 	case "TOMCAT":
 		err, result = Web.TomcatConnect(CurTask.Username, CurTask.Password, CurTask.Info)
-	case "VX":
-		err, result = Web.VxConnect(CurTask.Username, CurTask.Password, CurTask.Info)
+	case "RDP":
+		err, result = Protocol.RdpConnectTest(CurTask.Username, CurTask.Password, CurTask.Info)
+
 	default:
 		fmt.Println("The ExecAble isn't supported")
 	}
