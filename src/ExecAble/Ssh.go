@@ -4,6 +4,8 @@ import (
 	"Zombie/src/Utils"
 	"fmt"
 	"golang.org/x/crypto/ssh"
+	"io/ioutil"
+	"log"
 	"net"
 	"regexp"
 	"strings"
@@ -76,6 +78,10 @@ func (s *SshService) Query() bool {
 	return true
 }
 
+func (s *SshService) Output(res interface{}) {
+
+}
+
 func SSHConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, connect *ssh.Client) {
 	config := &ssh.ClientConfig{
 		User: User,
@@ -110,4 +116,18 @@ func SSHConnectTest(User string, Password string, info Utils.IpInfo) (err error,
 	}
 
 	return err, result
+}
+
+func publicKeyAuthFunc(kPath string) ssh.AuthMethod {
+
+	key, err := ioutil.ReadFile(kPath)
+	if err != nil {
+		log.Fatal("ssh key file read failed", err)
+	}
+	// Create the Signer for this private key.
+	signer, err := ssh.ParsePrivateKey(key)
+	if err != nil {
+		log.Fatal("ssh key signer failed", err)
+	}
+	return ssh.PublicKeys(signer)
 }

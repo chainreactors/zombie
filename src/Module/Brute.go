@@ -109,7 +109,7 @@ func Brute(ctx *cli.Context) (err error) {
 	Utils.OutputType = "Brute"
 
 	if Utils.File != "null" {
-		initFile(Utils.File)
+		Utils.InitFile(Utils.File)
 		go ExecAble.QueryWrite3File(Utils.FileHandle, Utils.TDatach)
 	}
 
@@ -128,29 +128,6 @@ func Brute(ctx *cli.Context) (err error) {
 	close(Core.CountChan)
 
 	return err
-}
-
-func initFile(Filename string) {
-	var err error
-
-	if Filename != "" {
-		Utils.O2File = true
-		if Utils.CheckFileIsExist(Filename) { //如果文件存在
-			Utils.FileHandle, err = os.OpenFile(Filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend) //打开文件
-			//fmt.Println("文件存在")
-			if err != nil {
-				os.Exit(0)
-			}
-			//io.WriteString(FileHandle, "123")
-		} else {
-			Utils.FileHandle, err = os.Create(Filename) //创建文件
-			//fmt.Println("文件不存在")
-			if err != nil {
-				os.Exit(0)
-			}
-		}
-
-	}
 }
 
 func StartTask(UserList []string, PassList []string, IpList []Utils.IpInfo, CurServer string) error {

@@ -3,6 +3,7 @@ package ExecAble
 import (
 	"Zombie/src/Utils"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	_ "github.com/denisenkom/go-mssqldb"
 	"strconv"
@@ -127,9 +128,31 @@ func (s *MssqlService) GetInfo() bool {
 	res = GetMssqlVulnableInfo(s.SqlCon, res)
 	s.MssqlInf = *res
 	//将结果放入管道
-	Utils.TDatach <- *s
+	s.Output(*s)
 
 	return true
+}
+
+func (s *MssqlService) Output(res interface{}) {
+	finres := res.(MssqlService)
+	MsCollectInfo := ""
+	MsCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.Ip, Utils.OutputType, finres.Version, finres.OS, finres.Count)
+	MsCollectInfo += fmt.Sprintf("\nSP_OACREATE: %v", finres.SP_OACREATE)
+	MsCollectInfo += fmt.Sprintf("\nxp_cmdshell: %v", finres.XpCmdShell)
+	MsCollectInfo += "\n"
+	fmt.Println(MsCollectInfo)
+	switch Utils.FileFormat {
+	case "raw":
+		Utils.TDatach <- MsCollectInfo
+	case "json":
+
+		jsons, errs := json.Marshal(res)
+		if errs != nil {
+			fmt.Println(errs.Error())
+			return
+		}
+		Utils.TDatach <- jsons
+	}
 }
 
 func GetMssqlSummary(SqlCon *sql.DB) int {

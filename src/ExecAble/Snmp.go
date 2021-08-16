@@ -154,6 +154,10 @@ func (s *SnmpService) Connect() bool {
 	return false
 }
 
+func (s *SnmpService) Output(res interface{}) {
+
+}
+
 func (s *SnmpService) GetInfo() bool {
 	cidr, _ := HandleinetCidrRouteEntry(s.SnmpCon)
 	submask, _ := HandleIpSubmask(s.SnmpCon)

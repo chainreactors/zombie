@@ -3,6 +3,7 @@ package ExecAble
 import (
 	"Zombie/src/Utils"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"strings"
@@ -107,8 +108,31 @@ func (s *MysqlService) GetInfo() bool {
 	s.MysqlInf = *res
 
 	//将结果放入管道
-	Utils.TDatach <- *s
+	s.Output(*s)
 	return true
+}
+
+func (s *MysqlService) Output(res interface{}) {
+	finres := res.(MysqlService)
+	MysqlCollectInfo := ""
+	MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v\n", finres.Ip, Utils.OutputType, finres.Version, finres.OS, finres.Count)
+	MysqlCollectInfo += fmt.Sprintf("general_log: %v\tgeneral_log_file: %v\n", finres.GeneralLog, finres.GeneralLogFile)
+	MysqlCollectInfo += fmt.Sprintf("plugin_dir: %v\tsecure_file_priv: %v\n", finres.PluginPath, finres.SecureFilePriv)
+	MysqlCollectInfo += "\n"
+	fmt.Println(MysqlCollectInfo)
+	switch Utils.FileFormat {
+	case "raw":
+		Utils.TDatach <- MysqlCollectInfo
+	case "json":
+		jsons, errs := json.Marshal(finres)
+		if errs != nil {
+			fmt.Println(errs.Error())
+			return
+		}
+		Utils.TDatach <- jsons
+
+	}
+
 }
 
 func (s *MysqlService) Query() bool {

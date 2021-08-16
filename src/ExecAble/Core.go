@@ -1,6 +1,8 @@
 package ExecAble
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 func DoRowsMapper(rows *sql.Rows) ([]map[string]string, []string) {
 
@@ -52,4 +54,5 @@ type ExecAble interface {
 	GetInfo() bool
 	Connect() bool
 	SetQuery(string)
+	Output(interface{})
 }
