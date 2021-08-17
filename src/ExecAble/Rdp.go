@@ -1,4 +1,4 @@
-package Protocol
+package ExecAble
 
 /*
    //darwin编译环境配置
@@ -105,7 +105,43 @@ import (
 
 var mtx sync.Mutex
 
-func RdpConnectTest(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
+type RdpService struct {
+	Utils.IpInfo
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Input    string
+}
+
+func (s *RdpService) Query() bool {
+	return false
+}
+
+func (s *RdpService) GetInfo() bool {
+	return false
+}
+
+func (s *RdpService) Connect() bool {
+	err, res := RdpConnectTest(s.Username, s.Password, s.IpInfo)
+	if err == nil && res {
+		return true
+	}
+	return false
+
+}
+
+func (s *RdpService) DisConnect() bool {
+	return false
+}
+
+func (s *RdpService) SetQuery(query string) {
+	s.Input = query
+}
+
+func (s *RdpService) Output(res interface{}) {
+
+}
+
+func RdpConnectTest(User string, Password string, info Utils.IpInfo) (err error, result bool) {
 
 	var UserName, DoaminName string
 
@@ -120,7 +156,7 @@ func RdpConnectTest(User string, Password string, info Utils.IpInfo) (err error,
 	res, _ := RdpConnect(info.Ip, DoaminName, UserName, Password, info.Port)
 
 	if res == true {
-		result.Result = true
+		result = true
 	}
 
 	return err, result
@@ -135,13 +171,6 @@ func RdpConnect(ip, domain, login, password string, port int) (bool, error) {
 	var nLogin *C.char = C.CString(login)
 	var nPassword *C.char = C.CString(password)
 	var nPort C.uint = C.uint(port)
-
-	//defer func() {
-	//	C.free(unsafe.Pointer(nIp))
-	//	C.free(unsafe.Pointer(nDomain))
-	//	C.free(unsafe.Pointer(nLogin))
-	//	C.free(unsafe.Pointer(nPassword))
-	//}()
 
 	rInt := uint(C.check_rdp(nIp, nPort, nDomain, nLogin, nPassword))
 	switch rInt {

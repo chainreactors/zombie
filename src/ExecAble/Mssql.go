@@ -50,18 +50,6 @@ func MssqlConnect(User string, Password string, info Utils.IpInfo) (err error, r
 	return err, result, db
 }
 
-func MssqlConnectTest(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
-	err, res, db := MssqlConnect(User, Password, info)
-
-	if err == nil {
-		result.Result = res
-		_ = db.Close()
-	}
-
-	return err, result
-
-}
-
 func MssqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
 
 	err = SqlCon.Ping()
@@ -109,6 +97,11 @@ func (s *MssqlService) Connect() bool {
 		s.SqlCon = db
 		return true
 	}
+	return false
+}
+
+func (s *MssqlService) DisConnect() bool {
+	s.SqlCon.Close()
 	return false
 }
 
