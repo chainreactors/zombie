@@ -9,6 +9,51 @@ import (
 	"time"
 )
 
+type MongoService struct {
+	Utils.IpInfo
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Input    string
+}
+
+func (s *MongoService) Query() bool {
+	return false
+}
+
+func (s *MongoService) GetInfo() bool {
+	return false
+}
+
+func (s *MongoService) Connect() bool {
+
+	err, res, client := MongoConnect(s.Username, s.Password, s.IpInfo)
+
+	if err == nil {
+		err = client.Ping(context.TODO(), nil)
+		//由于没有设计查询用途所以就直接关闭了
+		defer client.Disconnect(context.TODO())
+		if err == nil && res {
+
+			return true
+		}
+	}
+
+	return false
+
+}
+
+func (s *MongoService) DisConnect() bool {
+	return false
+}
+
+func (s *MongoService) SetQuery(query string) {
+	s.Input = query
+}
+
+func (s *MongoService) Output(res interface{}) {
+
+}
+
 func MongoConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, client *mongo.Client) {
 	var url string
 
@@ -26,19 +71,5 @@ func MongoConnect(User string, Password string, info Utils.IpInfo) (err error, r
 		result = false
 	}
 
-	return err, result, client
-}
-
-func MongoConnectTest(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
-	err, res, client := MongoConnect(User, Password, info)
-	defer client.Disconnect(context.TODO())
-	if err == nil {
-		err = client.Ping(context.TODO(), nil)
-		if err == nil {
-			res = true
-			result.Result = res
-		}
-	}
-
-	return err, result
+	return err, true, client
 }

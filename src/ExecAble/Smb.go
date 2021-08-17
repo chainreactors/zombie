@@ -1,4 +1,4 @@
-package Protocol
+package ExecAble
 
 import (
 	"Zombie/src/Utils"
@@ -11,7 +11,45 @@ import (
 	"time"
 )
 
-func SMBConnect(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
+type SmbService struct {
+	Utils.IpInfo
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Version  string
+	Input    string
+}
+
+func (s *SmbService) Query() bool {
+	return false
+}
+
+func (s *SmbService) GetInfo() bool {
+	return false
+}
+
+func (s *SmbService) Connect() bool {
+	err, verison, res := SMBConnect(s.Username, s.Password, s.IpInfo)
+	s.Version = verison
+	if err == nil && res {
+		return true
+	}
+
+	return false
+}
+
+func (s *SmbService) DisConnect() bool {
+	return false
+}
+
+func (s *SmbService) SetQuery(query string) {
+	s.Input = query
+}
+
+func (s *SmbService) Output(res interface{}) {
+
+}
+
+func SMBConnect(User string, Password string, info Utils.IpInfo) (err error, version string, result bool) {
 
 	var UserName, DoaminName string
 
@@ -55,14 +93,15 @@ func SMBConnect(User string, Password string, info Utils.IpInfo) (err error, res
 
 		_ = conn.SetDeadline(time.Now().Add(time.Duration(Utils.Timeout) * time.Second))
 
-		s, version, err := d.Dial(conn)
-		result.Additional += version
-		if err == nil {
-			defer s.Logoff()
-			result.Result = true
-		}
-		return err, result
-	}
+		s, curversion, err2 := d.Dial(conn)
 
-	return err, result
+		if err2 == nil {
+			defer s.Logoff()
+			result = true
+			return err2, curversion, result
+		}
+		return err2, curversion, result
+	}
+	return err, "", result
+
 }

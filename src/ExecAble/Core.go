@@ -55,4 +55,5 @@ type ExecAble interface {
 	Connect() bool
 	SetQuery(string)
 	Output(interface{})
+	DisConnect() bool
 }
