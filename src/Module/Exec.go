@@ -93,7 +93,7 @@ func Exec(ctx *cli.Context) (err error) {
 		Ip := IpSlice[0]
 		if ctx.IsSet("server") {
 			ServerName := strings.ToUpper(ctx.String("server"))
-			if _, ok := Utils.ExecPort[ServerName]; ok {
+			if _, ok := Utils.ServerPort[ServerName]; ok {
 				CurServer = ctx.String("server")
 			} else {
 				fmt.Println("the ExecAble isn't be supported")
@@ -109,7 +109,7 @@ func Exec(ctx *cli.Context) (err error) {
 				os.Exit(0)
 			}
 
-			if _, ok := Utils.ExecServer[port]; ok {
+			if _, ok := Utils.PortServer[port]; ok {
 				CurServer = Utils.PortServer[port]
 				fmt.Println("Use default server")
 			} else {

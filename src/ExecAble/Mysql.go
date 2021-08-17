@@ -72,23 +72,17 @@ func MysqlConnect(User string, Password string, info Utils.IpInfo) (err error, r
 	return err, result, db
 }
 
-func MysqlConnectTest(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
-	err, res, db := MysqlConnect(User, Password, info)
-
-	if err == nil {
-		result.Result = res
-		_ = db.Close()
-	}
-
-	return err, result
-}
-
 func (s *MysqlService) Connect() bool {
 	err, _, db := MysqlConnect(s.Username, s.Password, s.IpInfo)
 	if err == nil {
 		s.SqlCon = db
 		return true
 	}
+	return false
+}
+
+func (s *MysqlService) DisConnect() bool {
+	s.SqlCon.Close()
 	return false
 }
 

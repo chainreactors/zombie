@@ -95,17 +95,6 @@ func PostgresConnect(User string, Password string, info Utils.IpInfo, dbname str
 
 }
 
-func PostgresConnectTest(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
-	err, res, db := PostgresConnect(User, Password, info, "postgres")
-
-	if err == nil {
-		result.Result = res
-		_ = db.Close()
-	}
-
-	return err, result
-}
-
 func PostgresQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
 	err = SqlCon.Ping()
 	if err == nil {
@@ -149,6 +138,11 @@ func (s *PostgresService) Connect() bool {
 		s.SqlCon = db
 		return true
 	}
+	return false
+}
+
+func (s *PostgresService) DisConnect() bool {
+	s.SqlCon.Close()
 	return false
 }
 

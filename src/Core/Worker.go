@@ -1,6 +1,7 @@
 package Core
 
 import (
+	"Zombie/src/ExecAble"
 	"Zombie/src/Utils"
 	"context"
 	"fmt"
@@ -34,13 +35,22 @@ func BruteWork(WorkerPara *PoolPara) {
 				CountChan <- 1
 			}
 
-			err, res := DefaultScan2(task)
-			if err != nil {
-				if task.Server == "SMB" && task.Password != "" {
-					if res.Additional != "" {
-						Bres = fmt.Sprintf("%s:%d\t\tVersion:%s", task.Info.Ip, task.Info.Port, res.Additional)
+			res := Utils.BruteRes{}
+			CurCon := ExecDispatch(task)
+
+			alive := CurCon.Connect()
+			CurCon.DisConnect()
+			res.Result = alive
+			if !alive {
+				switch CurCon.(type) {
+				case *ExecAble.SmbService:
+					if task.Password == "" && CurCon.(*ExecAble.SmbService).Version != "" {
+						Bres = fmt.Sprintf("%s:%d\t\tVersion:%s", task.Info.Ip, task.Info.Port, CurCon.(*ExecAble.SmbService).Version)
+						res.Additional += CurCon.(*ExecAble.SmbService).Version
 						fmt.Println(Bres)
 					}
+				case *ExecAble.RedisService:
+					res.Additional += CurCon.(*ExecAble.RedisService).Additional
 				}
 				continue
 			}
@@ -85,8 +95,9 @@ func Process(ct chan int) {
 	return
 }
 
-func DefaultScan2(task Utils.ScanTask) (error, Utils.BruteRes) {
-	err, result := BruteDispatch(task)
-
-	return err, result
-}
+//
+//func DefaultScan2(task Utils.ScanTask) (error, Utils.BruteRes) {
+//	err, result := BruteDispatch(task)
+//
+//	return err, result
+//}

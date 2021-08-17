@@ -30,6 +30,11 @@ func (s *SshService) Connect() bool {
 	return false
 }
 
+func (s *SshService) DisConnect() bool {
+	s.SshCon.Close()
+	return false
+}
+
 func (s *SshService) GetInfo() bool {
 
 	if s.Cmd != "" {
@@ -105,17 +110,6 @@ func SSHConnect(User string, Password string, info Utils.IpInfo) (err error, res
 		connect = client
 	}
 	return err, result, connect
-}
-
-func SSHConnectTest(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
-	err, res, conn := SSHConnect(User, Password, info)
-
-	if err == nil {
-		result.Result = res
-		conn.Close()
-	}
-
-	return err, result
 }
 
 func publicKeyAuthFunc(kPath string) ssh.AuthMethod {

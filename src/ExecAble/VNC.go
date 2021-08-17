@@ -9,7 +9,43 @@ import (
 	"time"
 )
 
-func VNCConnect(User string, Password string, info Utils.IpInfo) (err error, result Utils.BruteRes) {
+type VNCService struct {
+	Utils.IpInfo
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Input    string
+}
+
+func (s *VNCService) Query() bool {
+	return false
+}
+
+func (s *VNCService) GetInfo() bool {
+	return false
+}
+
+func (s *VNCService) Connect() bool {
+	err, res := VNCConnect(s.Username, s.Password, s.IpInfo)
+	if err == nil && res {
+		return true
+	}
+	return false
+
+}
+
+func (s *VNCService) DisConnect() bool {
+	return false
+}
+
+func (s *VNCService) SetQuery(query string) {
+	s.Input = query
+}
+
+func (s *VNCService) Output(res interface{}) {
+
+}
+
+func VNCConnect(User string, Password string, info Utils.IpInfo) (err error, result bool) {
 
 	targetPort := strconv.Itoa(info.Port)
 
@@ -26,7 +62,7 @@ func VNCConnect(User string, Password string, info Utils.IpInfo) (err error, res
 		if err == nil {
 			err = vncClient.Close()
 			if err == nil {
-				result.Result = true
+				return err, true
 			}
 		}
 	}

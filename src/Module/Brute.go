@@ -165,9 +165,11 @@ func StartTask(UserList []string, PassList []string, IpList []Utils.IpInfo, CurS
 			Server:   CurServer,
 		}
 
-		err, RanRes := Core.DefaultScan2(RandomTask)
+		CurCon := Core.ExecDispatch(RandomTask)
 
-		if err == nil && RanRes.Result {
+		alive := CurCon.Connect()
+
+		if alive {
 			fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\n", RandomTask.Info.Ip, RandomTask.Info.Port, RandomTask.Username, RandomTask.Password, RandomTask.Server)
 			fmt.Sprintf("%s:%d\t is it a honeypot?", RandomTask.Info.Ip, RandomTask.Info.Port)
 		}
@@ -213,9 +215,10 @@ func StartTaskSimple(UserList []string, PassList []string, IpList []Utils.IpInfo
 	}
 	wgs.Wait()
 
+	time.Sleep(1000 * time.Millisecond)
+
 	fmt.Println("All Task done")
 
-	time.Sleep(1000 * time.Millisecond)
 	if Utils.FileFormat == "json" {
 		final := Utils.OutputRes{}
 		jsons, errs := json.Marshal(final) //转换成JSON返回的是byte[]
