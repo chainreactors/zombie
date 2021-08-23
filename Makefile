@@ -5,8 +5,11 @@ VERSION = 0.9.9beta
 build:
 		go build -ldflags "-s -w" -o ${BINARY} ./src/main.go
 
+build-windows-64:
+		CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ go build -a -ldflags '-linkmode "external" -extldflags "-static"' -o ${BINARY}-windowsx64.exe src/main.go
+
 build-linux-64:
-		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ${BINARY}-linux64 ./src/main.go
+		CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++ go build -a -ldflags '-linkmode external -extldflags -static' -o ${BINARY}-linux64 src/main.go
 
 # Installs our project: copies binaries
 install:

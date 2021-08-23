@@ -1,12 +1,12 @@
 package ExecAble
 
 /*
-   //darwin编译环境配置
-   #cgo darwin CFLAGS: -DCGO_OS_DARWIN=1
-   #cgo darwin CFLAGS: -I../lib/mac/freerdp2/include/freerdp2
-   #cgo darwin CFLAGS: -I../lib/mac/freerdp2/include/winpr2
-   #cgo darwin LDFLAGS: -L${SRCDIR}/../lib/mac/freerdp2/lib
-   #cgo darwin LDFLAGS: -lfreerdp2 -lwinpr2 -lssl -lcrypto
+//linux编译环境配置
+#cgo darwin CFLAGS: -DCGO_OS_DARWIN=1
+#cgo darwin CFLAGS: -I../../pkg/lib/mac/freerdp2/include/freerdp2
+#cgo darwin CFLAGS: -I../../pkg/lib/mac/freerdp2/include/winpr2
+#cgo darwin LDFLAGS: -L${SRCDIR}/../../pkg/lib/mac/freerdp2/lib
+#cgo darwin LDFLAGS: -lfreerdp2 -lwinpr2 -lssl -lcrypto
 
    #if defined(CGO_OS_WINDOWS)
    	//static char* os = "windows";
@@ -22,7 +22,7 @@ package ExecAble
 
    #if defined(CGO_OS_LINUX)
    	//static char* os = "linux";
-   	//#define uint int
+   	#define uint int
    #endif
 
 

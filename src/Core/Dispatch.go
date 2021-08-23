@@ -100,12 +100,12 @@ func ExecDispatch(CurTask Utils.ScanTask) ExecAble.ExecAble {
 			Password: CurTask.Password,
 			IpInfo:   CurTask.Info,
 		}
-	case "MONGO":
-		return &ExecAble.MongoService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.Info,
-		}
+	//case "MONGO":
+	//	return &ExecAble.MongoService{
+	//		Username: CurTask.Username,
+	//		Password: CurTask.Password,
+	//		IpInfo:   CurTask.Info,
+	//	}
 	case "VNC":
 		return &ExecAble.VNCService{
 			Username: CurTask.Username,
