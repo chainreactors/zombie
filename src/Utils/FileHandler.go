@@ -105,3 +105,7 @@ func InitFile(Filename string) {
 
 	}
 }
+
+func ReadFromGt(gtres string) (HdRes []IpServerInfo) {
+	return HdRes
+}
