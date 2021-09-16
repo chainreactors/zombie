@@ -39,7 +39,7 @@ func BruteWork(WorkerPara *PoolPara) {
 			CurCon := ExecDispatch(task)
 
 			alive := CurCon.Connect()
-			CurCon.DisConnect()
+
 			res.Result = alive
 			if !alive {
 				switch CurCon.(type) {
@@ -54,7 +54,7 @@ func BruteWork(WorkerPara *PoolPara) {
 				}
 				continue
 			}
-
+			CurCon.DisConnect()
 			if res.Result {
 				output := Utils.OutputRes{
 					Type:       task.Server,
