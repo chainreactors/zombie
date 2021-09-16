@@ -52,7 +52,6 @@
     * uppair or UP
         * 支持出入键值对的用户名密码
     
-
 * example
     在使用默认端口的时候可以不写端口或者不写服务名
     * `Brute -u admin,admin321,admin888,root,postgres -p aaaa,bbbb,ccc,cccd,ddd,321 -ip 127.0.0.1:6379 -s redis`
@@ -72,9 +71,10 @@
     * 27017: "MONGO",
     * 5900:  "VNC",
     * 8080: "TOMCAT"
+    * 3389:"RDP"
     
     
-
+    
 * redis支持爆破成功后系统检测和linux 是否为root权限
 
 * 加入特殊解析如果password中带有%user%的字符串,则会替换为用户名,便于减少密码字典的数量
@@ -85,12 +85,9 @@
 
 * 新增内置字典，只需要输入IP和爆破类型就会使用内置字典
 
-TODO：
 
-    [+] ssh批量执行命令，ssh私钥喷射
-    [+] 自定义get，post or yaml解析
-    
-    
+
+​    
 
 ### Query 模块
 
@@ -105,15 +102,14 @@ TODO：
   * --auto, -a                   (default: false)
   * --help, -h                   show help (default: false)
 
-    
 *  example
     Query -u root -p test -ip 127.0.0.1:3306 -q "show tables"
 
 
 * 目前auto支持postgresql,mysql,mssql,(收集操作系统,数据总量,和一些敏感信息)且可以通过-F参数将zombie爆破结果至今放入自动化收集
 
-   
 * auto模式下会对扫描结果进行去重
+* ssh的auto模式为输入一个ip，将爆破出的ssh都进行对目标的ip进行ping默认为5次，会将可以ping通的ip输出，便于跨网段机器确认
 
 ### Decrypt 模块
 
@@ -121,11 +117,12 @@ TODO：
 * 支持Navicat全版本解密（最新版测试通过）
   * all, a
     * 同时运行两款解密
+    
   * Navicat, N
     > 可以手动输入来解密，如果不输入，则自己从注册表读取数据
     * --cipher value, -c value
     * --OutputFile value, -f value  (default: "./DeRes.log")
-
+  
   * Xshell, X
     > 默认从用户目录下读取判断版本，也可以自己输入数据来解密
     * --cipher value, -c value
@@ -134,6 +131,12 @@ TODO：
     * --version value, -v value     (default: 0)
     * --OutputFile value, -f value  (default: "./DeRes.log")
     
-
+  * Mimi,M
   
+    * --pass, -p               (default: true)
+    * --remove                 (default: true)
+    * --query value, -q value
+    * --help, -h               show help (default: false)
+  
+    (默认就是读取密码，可以通过-q输入其他命令，--remove就是不删除生成的mimikatz临时文件)
 

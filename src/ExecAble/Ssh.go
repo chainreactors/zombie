@@ -90,13 +90,21 @@ func (s *SshService) Output(res interface{}) {
 func SSHConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, connect *ssh.Client) {
 	config := &ssh.ClientConfig{
 		User: User,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(Password),
-		},
+
 		Timeout: time.Duration(Utils.Timeout) * time.Second,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
+	}
+
+	if strings.HasPrefix(Password, "pk:") {
+		config.Auth = []ssh.AuthMethod{
+			publicKeyAuthFunc(Password[3:]),
+		}
+	} else {
+		config.Auth = []ssh.AuthMethod{
+			ssh.Password(Password),
+		}
 	}
 
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%v:%v", info.Ip, info.Port), config)
