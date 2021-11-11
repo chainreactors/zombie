@@ -70,7 +70,6 @@
     * 9200:  "ELASTICSEARCH",
     * 27017: "MONGO",
     * 5900:  "VNC",
-    * 8080: "TOMCAT"
     * 3389:"RDP"
     
     

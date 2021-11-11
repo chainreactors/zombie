@@ -79,7 +79,7 @@ func (s *SshService) Query() bool {
 	if err != nil {
 		return false
 	}
-	fmt.Println(string(buf))
+	fmt.Println(s.Ip + ":" + string(buf))
 	return true
 }
 

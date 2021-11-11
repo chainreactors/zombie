@@ -1,6 +1,6 @@
 # Binary name
 BINARY= Zombie
-VERSION = 1.0.2beta
+VERSION = 1.0.4-gt
 # Builds the project
 build:
 		go build -ldflags "-s -w" -o ${BINARY} ./src/main.go
@@ -10,6 +10,9 @@ build-windows-64:
 
 build-linux-64:
 		CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++ go build -a -ldflags '-linkmode external -extldflags -static' -o ${BINARY}-linux64 src/main.go
+
+build-arm-64:
+		CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags '-s -w' -o ${BINARY}-arm64 src/main.go
 
 # Installs our project: copies binaries
 install:

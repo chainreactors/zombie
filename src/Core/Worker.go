@@ -38,6 +38,10 @@ func BruteWork(WorkerPara *PoolPara) {
 			res := Utils.BruteRes{}
 			CurCon := ExecDispatch(task)
 
+			if CurCon == nil {
+				continue
+			}
+
 			alive := CurCon.Connect()
 
 			res.Result = alive

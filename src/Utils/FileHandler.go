@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+
 	"time"
 	"unsafe"
 )
@@ -80,30 +81,31 @@ func PathExists(path string) (bool, error) {
 	return false, err
 }
 
-func InitFile(Filename string) {
+func InitFile(Filename string) *os.File {
 	var err error
-
+	var CurfileHandle *os.File
 	if Filename != "" {
 		O2File = true
 		if CheckFileIsExist(Filename) { //如果文件存在
-			FileHandle, err = os.OpenFile(Filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend) //打开文件
+			CurfileHandle, err = os.OpenFile(Filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend) //打开文件
 			//fmt.Println("文件存在")
 			if err != nil {
 				os.Exit(0)
 			}
 			//io.WriteString(FileHandle, "123")
 		} else {
-			FileHandle, err = os.Create(Filename) //创建文件
+			CurfileHandle, err = os.Create(Filename) //创建文件
 			//fmt.Println("文件不存在")
 			if err != nil {
 				os.Exit(0)
 			}
 		}
 		if FileFormat == "json" {
-			FileHandle.WriteString("{")
+			CurfileHandle.WriteString("[")
 		}
 
 	}
+	return CurfileHandle
 }
 
 func ReadFromGt(gtres string) (HdRes []IpServerInfo) {
