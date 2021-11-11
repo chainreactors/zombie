@@ -112,7 +112,7 @@ func Brute(ctx *cli.Context) (err error) {
 	Utils.OutputType = "Brute"
 
 	if Utils.File != "null" {
-		Utils.InitFile(Utils.File)
+		Utils.FileHandle = Utils.InitFile(Utils.File)
 		go ExecAble.QueryWrite3File(Utils.FileHandle, Utils.TDatach)
 	}
 
@@ -127,8 +127,15 @@ func Brute(ctx *cli.Context) (err error) {
 	} else {
 		err = StartTask(UserList, PassList, ipserverinfo)
 	}
+	Utils.FileHandle.Close()
 
 	close(Core.CountChan)
+
+	reslist, err := Core.CleanRes(Utils.File)
+	if err != nil {
+		return err
+	}
+	Core.OutPutRes(reslist, Utils.File)
 
 	return err
 }
@@ -187,7 +194,7 @@ func StartTask(UserList []string, PassList []string, IpServerList []Utils.IpServ
 		if errs != nil {
 			fmt.Println(errs.Error())
 		}
-		Utils.FileHandle.WriteString(string(jsons) + "}")
+		Utils.FileHandle.WriteString(string(jsons) + "]")
 	}
 
 	rootCancel()
@@ -228,7 +235,7 @@ func StartTaskSimple(UserList []string, PassList []string, IpServerList []Utils.
 		if errs != nil {
 			fmt.Println(errs.Error())
 		}
-		Utils.FileHandle.WriteString(string(jsons) + "}")
+		Utils.FileHandle.WriteString(string(jsons) + "]")
 	}
 
 	rootCancel()

@@ -68,7 +68,6 @@ func MysqlConnect(User string, Password string, info Utils.IpInfo) (err error, r
 	if err == nil {
 		result = true
 	}
-
 	return err, result, db
 }
 

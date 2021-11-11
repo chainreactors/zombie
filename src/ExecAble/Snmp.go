@@ -134,8 +134,8 @@ func (s *SnmpService) SetQuery(query string) {
 
 func (s *SnmpService) Connect() bool {
 
-	_, _, sn := SnmpConnect(s.Password, s.IpInfo)
-	if sn != nil {
+	_, result, sn := SnmpConnect(s.Password, s.IpInfo)
+	if sn != nil && result {
 		s.SnmpCon = sn
 		return true
 	}
