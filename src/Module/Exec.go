@@ -18,70 +18,15 @@ import (
 func Exec(ctx *cli.Context) (err error) {
 	var CurServer string
 	var CurtaskList []Utils.ScanTask
+	Utils.Timeout = 2
 
+	//ctx.String("InputFile")
 	if ctx.IsSet("InputFile") {
-		IPStore := make(map[string]int)
-		var eachJson []Utils.OutputRes
-		TestList, _ := Core.GetUAList(ctx.String("InputFile"))
-		if len(TestList) == 1 {
-			if strings.HasPrefix(TestList[0], "{") {
-				fmt.Println("start analysis json result")
-				plain := TestList[0][1 : len(TestList[0])-1]
-				plain = "[" + plain + "]"
-
-				if err := json.Unmarshal([]byte(plain), &eachJson); err != nil {
-					return err
-
-				}
-				for _, info := range eachJson {
-					Curtask := Utils.ScanTask{
-						Username: info.Username,
-						Password: info.Password,
-						Server:   info.Type,
-					}
-					Curtask.Info.Ip = info.IP
-					Curtask.Info.Port = info.Port
-
-					address := fmt.Sprintf("%v:%v", info.IP, info.Port)
-
-					if IPStore[address] == 1 {
-						continue
-					}
-
-					CurtaskList = append(CurtaskList, Curtask)
-					IPStore[address] = 1
-				}
-				CurtaskList = CurtaskList[:len(CurtaskList)-1]
-
-			}
-		} else {
-			fmt.Println("start analysis raw result")
-			for _, test := range TestList {
-				la := strings.Split(test, "\t")
-
-				if len(la) == 6 {
-					Curtask := Utils.ScanTask{
-						Username: strings.Split(la[2], ":")[1],
-						Password: strings.Split(la[3], ":")[1],
-						Server:   la[4],
-					}
-					IpPo := strings.Split(la[0], ":")
-					Curtask.Info.Ip = IpPo[0]
-					Curtask.Info.Port, _ = strconv.Atoi(IpPo[1])
-
-					address := fmt.Sprintf("%v:%v", Curtask.Info.Ip, Curtask.Info.Port)
-
-					if IPStore[address] == 1 {
-						continue
-					}
-
-					CurtaskList = append(CurtaskList, Curtask)
-					IPStore[address] = 1
-				}
-				continue
-			}
+		taskList, err := Core.CleanRes(ctx.String("InputFile"))
+		CurtaskList = *taskList
+		if err != nil {
+			return err
 		}
-
 	} else {
 		if strings.Contains(ctx.String("ip"), ",") {
 			fmt.Println("Exec Module only support single ip")
@@ -136,6 +81,7 @@ func Exec(ctx *cli.Context) (err error) {
 
 	}
 	//初始化文件
+	input := ctx.String("input")
 	Utils.File = ctx.String("OutputFile")
 	Utils.FileFormat = ctx.String("type")
 	Utils.IsAuto = ctx.Bool("auto")
@@ -154,7 +100,7 @@ func Exec(ctx *cli.Context) (err error) {
 	}
 
 	if Utils.File != "null" && Utils.IsAuto {
-		Utils.InitFile(Utils.File)
+		Utils.FileHandle = Utils.InitFile(Utils.File)
 		Utils.OutputType = CurtaskList[0].Server
 		go ExecAble.QueryWrite3File(Utils.FileHandle, Utils.TDatach)
 
@@ -168,7 +114,7 @@ func Exec(ctx *cli.Context) (err error) {
 	}, ants.WithExpiryDuration(2*time.Second))
 
 	for _, Curtask := range CurtaskList {
-
+		Curtask.Input = input
 		//CurCon := Core.ExecDispatch(Curtask)
 		//
 		//alive := CurCon.Connect()
@@ -207,6 +153,10 @@ func Exec(ctx *cli.Context) (err error) {
 
 func StartExec(task Utils.ScanTask) {
 	CurCon := Core.ExecDispatch(task)
+
+	if CurCon == nil {
+		return
+	}
 
 	alive := CurCon.Connect()
 

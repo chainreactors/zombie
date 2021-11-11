@@ -3,10 +3,11 @@ package Core
 import (
 	"Zombie/src/ExecAble"
 	"Zombie/src/Utils"
-	"fmt"
+	"strings"
 )
 
 func ExecDispatch(CurTask Utils.ScanTask) ExecAble.ExecAble {
+	CurTask.Server = strings.ToUpper(CurTask.Server)
 	switch CurTask.Server {
 	case "POSTGRESQL":
 		return &ExecAble.PostgresService{
@@ -76,7 +77,7 @@ func ExecDispatch(CurTask Utils.ScanTask) ExecAble.ExecAble {
 		}
 
 	default:
-		fmt.Println("The ExecAble isn't supported")
+		return nil
 	}
 
 	return nil
