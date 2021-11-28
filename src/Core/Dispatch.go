@@ -28,6 +28,12 @@ func ExecDispatch(CurTask Utils.ScanTask) ExecAble.ExecAble {
 			Password: CurTask.Password,
 			IpInfo:   CurTask.Info,
 		}
+	case "ORACLE":
+		return &ExecAble.OracleService{
+			Username: CurTask.Username,
+			Password: CurTask.Password,
+			IpInfo:   CurTask.Info,
+		}
 	case "SNMP":
 		return &ExecAble.SnmpService{
 			Password: CurTask.Password,
@@ -57,12 +63,12 @@ func ExecDispatch(CurTask Utils.ScanTask) ExecAble.ExecAble {
 			Password: CurTask.Password,
 			IpInfo:   CurTask.Info,
 		}
-	case "MONGO":
-		return &ExecAble.MongoService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.Info,
-		}
+	//case "MONGO":
+	//	return &ExecAble.MongoService{
+	//		Username: CurTask.Username,
+	//		Password: CurTask.Password,
+	//		IpInfo:   CurTask.Info,
+	//	}
 	case "VNC":
 		return &ExecAble.VNCService{
 			Username: CurTask.Username,

@@ -49,7 +49,7 @@ func BruteWork(WorkerPara *PoolPara) {
 				switch CurCon.(type) {
 				case *ExecAble.SmbService:
 					if task.Password == "" && CurCon.(*ExecAble.SmbService).Version != "" {
-						Bres = fmt.Sprintf("%s:%d\t\tVersion:%s", task.Info.Ip, task.Info.Port, CurCon.(*ExecAble.SmbService).Version)
+						Bres = fmt.Sprintf("%s:%d\t\tVersion:%s", task.Ip, task.Port, CurCon.(*ExecAble.SmbService).Version)
 						res.Additional += CurCon.(*ExecAble.SmbService).Version
 						fmt.Println(Bres)
 					}
@@ -61,12 +61,21 @@ func BruteWork(WorkerPara *PoolPara) {
 			CurCon.DisConnect()
 			if res.Result {
 				output := Utils.OutputRes{
-					Type:       task.Server,
-					IP:         task.Info.Ip,
-					Port:       task.Info.Port,
-					Username:   task.Username,
-					Password:   task.Password,
+					TargetInfo: Utils.TargetInfo{
+						IpServerInfo: Utils.IpServerInfo{
+							Server: task.Server,
+							IpInfo: Utils.IpInfo{
+								Ip:   task.Ip,
+								Port: task.Port,
+							},
+						},
+						Username: task.Username,
+						Password: task.Password,
+					},
 					Additional: res.Additional,
+				}
+				if task.Server == "ORACLE" {
+					output.Additional = task.Instance
 				}
 
 				FlagUserName = task.Username

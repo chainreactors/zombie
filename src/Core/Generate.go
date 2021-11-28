@@ -37,10 +37,11 @@ func GenerateTask(UserList []string, PassList []string, info Utils.IpServerInfo)
 			for _, username := range UserList {
 				for _, password := range PassList {
 					NewTask := Utils.ScanTask{
-						Info:     info.IpInfo,
-						Username: username,
-						Password: password,
-						Server:   info.Server,
+						TargetInfo: Utils.TargetInfo{
+							IpServerInfo: info,
+							Username:     username,
+							Password:     password,
+						},
 					}
 					TaskList <- NewTask
 				}
@@ -54,10 +55,11 @@ func GenerateTask(UserList []string, PassList []string, info Utils.IpServerInfo)
 					continue
 				}
 				NewTask := Utils.ScanTask{
-					Info:     info.IpInfo,
-					Username: username,
-					Password: password,
-					Server:   info.Server,
+					TargetInfo: Utils.TargetInfo{
+						IpServerInfo: info,
+						Username:     username,
+						Password:     password,
+					},
 				}
 				TaskList <- NewTask
 
@@ -106,12 +108,22 @@ func GenerateTaskSimple(UserList []string, PassList []string, ipinfo []Utils.IpS
 				for _, username := range UserList {
 					for _, password := range PassList {
 						NewTask := Utils.ScanTask{
-							Info:     info.IpInfo,
-							Username: username,
-							Password: password,
-							Server:   info.Server,
+							TargetInfo: Utils.TargetInfo{
+								IpServerInfo: info,
+								Username:     username,
+								Password:     password,
+							},
 						}
-						TaskList <- NewTask
+						if info.Server == "ORACLE" {
+							for _, ins := range Utils.Instance {
+								NewTask.Instance = ins
+								TaskList <- NewTask
+							}
+
+						} else {
+							TaskList <- NewTask
+						}
+
 					}
 				}
 
@@ -123,12 +135,21 @@ func GenerateTaskSimple(UserList []string, PassList []string, ipinfo []Utils.IpS
 						continue
 					}
 					NewTask := Utils.ScanTask{
-						Info:     info.IpInfo,
-						Username: username,
-						Password: password,
-						Server:   info.Server,
+						TargetInfo: Utils.TargetInfo{
+							IpServerInfo: info,
+							Username:     username,
+							Password:     password,
+						},
 					}
-					TaskList <- NewTask
+					if info.Server == "ORACLE" {
+						for _, ins := range Utils.Instance {
+							NewTask.Instance = ins
+							TaskList <- NewTask
+						}
+
+					} else {
+						TaskList <- NewTask
+					}
 
 				}
 
