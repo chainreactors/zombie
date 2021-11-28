@@ -1,8 +1,4 @@
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/alouca/gologger v0.0.0-20120904114645-7d4b7291de9c h1:k/7/05/5kPRX7HaKyVYlsGVX6XkFTyYLqkqHzceUVlU=
-github.com/alouca/gologger v0.0.0-20120904114645-7d4b7291de9c/go.mod h1:SI1d/2/wpSTDjHgdS9ZLy6hqvsdhzVYAc8RLztweMpA=
-github.com/alouca/gosnmp v0.0.0-20170620005048-04d83944c9ab h1:pfx9N/EMDxIwVzGu9JLnmbOMNukW1mfPA9Ymo+S58Ng=
-github.com/alouca/gosnmp v0.0.0-20170620005048-04d83944c9ab/go.mod h1:kEcj+iUROrUCr7AIrul5NutI2kWv0ns9BL0ezVp1h/Y=
 github.com/aws/aws-sdk-go v1.34.28 h1:sscPpn/Ns3i0F4HPEWAVcwdIRaZZCuL7llJ2/60yPIk=
 github.com/aws/aws-sdk-go v1.34.28/go.mod h1:H7NKnBqNVzoTJpGfLrQkkD+ytBA93eiDYi/+8rV9s48=
 github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d h1:U+s90UTSYgptZMwQh2aRr3LuazLJIa+Pg3Kc1ylSYVY=
@@ -115,6 +111,8 @@ github.com/russross/blackfriday/v2 v2.0.1 h1:lPqVAte+HuHNfhJ/0LC98ESWRz8afy9tM/0
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/shurcooL/sanitized_anchor_name v1.0.0 h1:PdmoCO6wvbs+7yrJyMORt4/BmY5IYyJwS/kOiWx8mHo=
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
+github.com/sijms/go-ora/v2 v2.2.15 h1:GJfudyOHT+DUgBPvS2wP/8lgmuer3OKfha8C0xnThW8=
+github.com/sijms/go-ora/v2 v2.2.15/go.mod h1:jzfAFD+4CXHE+LjGWFl6cPrtiIpQVxakI2gvrMF2w6Y=
 github.com/sirupsen/logrus v1.4.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMBDgk/93Q=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=

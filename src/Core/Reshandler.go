@@ -27,12 +27,12 @@ func CleanRes(Filename string) (*[]Utils.ScanTask, error) {
 				Curtask := Utils.ScanTask{
 					Username: info.Username,
 					Password: info.Password,
-					Server:   info.Type,
+					Server:   info.ScanTask.Input,
 				}
-				Curtask.Info.Ip = info.IP
-				Curtask.Info.Port = info.Port
+				Curtask.Info.Ip = info.ScanTask.Info.Ip
+				Curtask.Info.Port = info.ScanTask.Info.Port
 
-				address := fmt.Sprintf("%v:%v", info.IP, info.Port)
+				address := fmt.Sprintf("%v:%v", info.ScanTask.Info.Ip, info.ScanTask.Info.Port)
 
 				if IPStore[address] == 1 {
 					continue
@@ -45,7 +45,7 @@ func CleanRes(Filename string) (*[]Utils.ScanTask, error) {
 
 		}
 	} else {
-		fmt.Println("start analysis raw result")
+		fmt.Println("start analysis raw result(clean)")
 		for _, test := range TestList {
 			la := strings.Split(test, "\t")
 
@@ -56,6 +56,9 @@ func CleanRes(Filename string) (*[]Utils.ScanTask, error) {
 					Server:   la[4],
 				}
 				if strings.Split(la[3], ":")[1] == "" && (la[4] == "SMB" || la[4] == "RDP") {
+					address := fmt.Sprintf("%v:%v", Curtask.Info.Ip, Curtask.Info.Port)
+					fmt.Printf("%s is %s, but it's passed by empty password, please check\n", address, la[4])
+					IPStore[address] = 1
 					continue
 				}
 				IpPo := strings.Split(la[0], ":")
@@ -64,7 +67,7 @@ func CleanRes(Filename string) (*[]Utils.ScanTask, error) {
 
 				address := fmt.Sprintf("%v:%v", Curtask.Info.Ip, Curtask.Info.Port)
 
-				if IPStore[address] == 1 {
+				if _, ok := IPStore[address]; ok {
 					continue
 				}
 
@@ -77,16 +80,16 @@ func CleanRes(Filename string) (*[]Utils.ScanTask, error) {
 	return &CurtaskList, nil
 }
 
-func OutPutRes(reslist *[]Utils.ScanTask, file string) error {
+func OutPutRes(reslist *[]Utils.OutputRes, file string) error {
 
 	dir, name := filepath.Split(file)
 
-	clean_file := dir + "clean_" + name
+	clean_file := dir + ".clean_" + name
 	hanlder := Utils.InitFile(clean_file)
 	outputlist := *reslist
 	for _, info := range outputlist {
 
-		resstr := fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t\n", info.Info.Ip, info.Info.Port, info.Username, info.Password, info.Server)
+		resstr := fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t\n", info.ScanTask.Info.Ip, info.ScanTask.Info.Port, info.Username, info.Password, info.ScanTask.Server)
 		//fmt.Println(resstr)
 		switch Utils.FileFormat {
 		case "raw":

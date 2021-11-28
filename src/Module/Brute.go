@@ -102,8 +102,11 @@ func Brute(ctx *cli.Context) (err error) {
 		}
 	}
 
+	if ctx.IsSet("instance") {
+		Utils.Instance = Core.GetUserList(ctx.String("instance"))
+	}
+
 	Utils.Timeout = ctx.Int("timeout")
-	Utils.SSL = ctx.Bool("ssl")
 	Utils.Thread = ctx.Int("thread")
 	Utils.Simple = ctx.Bool("simple")
 	Utils.Proc = ctx.Int("proc")
@@ -131,11 +134,16 @@ func Brute(ctx *cli.Context) (err error) {
 
 	close(Core.CountChan)
 
-	reslist, err := Core.CleanRes(Utils.File)
-	if err != nil {
-		return err
-	}
-	Core.OutPutRes(reslist, Utils.File)
+	fmt.Println("start analysis brute res")
+
+	cblist, reslist := ExecAble.CleanBruteRes(Utils.BrutedList)
+	fmt.Println(cblist)
+
+	//reslist, err := Core.CleanRes(Utils.File)
+	//if err != nil {
+	//	return err
+	//}
+	Core.OutPutRes(&reslist, Utils.File)
 
 	return err
 }
@@ -169,10 +177,11 @@ func StartTask(UserList []string, PassList []string, IpServerList []Utils.IpServ
 		wgs.Wait()
 
 		RandomTask := Utils.ScanTask{
-			Info:     ipinfo.IpInfo,
-			Username: Core.FlagUserName,
-			Password: Utils.RandStringBytesMaskImprSrcUnsafe(12),
-			Server:   ipinfo.Server,
+			TargetInfo: Utils.TargetInfo{
+				IpServerInfo: ipinfo,
+				Username:     Core.FlagUserName,
+				Password:     Utils.RandStringBytesMaskImprSrcUnsafe(12),
+			},
 		}
 
 		CurCon := Core.ExecDispatch(RandomTask)
@@ -180,8 +189,8 @@ func StartTask(UserList []string, PassList []string, IpServerList []Utils.IpServ
 		alive := CurCon.Connect()
 
 		if alive {
-			fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\n", RandomTask.Info.Ip, RandomTask.Info.Port, RandomTask.Username, RandomTask.Password, RandomTask.Server)
-			fmt.Sprintf("%s:%d\t is it a honeypot?", RandomTask.Info.Ip, RandomTask.Info.Port)
+			fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\n", RandomTask.Ip, RandomTask.Port, RandomTask.Username, RandomTask.Password, RandomTask.Server)
+			fmt.Sprintf("%s:%d\t is it a honeypot?", RandomTask.Ip, RandomTask.Port)
 		}
 	}
 

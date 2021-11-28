@@ -87,17 +87,17 @@ func Exec(ctx *cli.Context) (err error) {
 	Utils.IsAuto = ctx.Bool("auto")
 	Utils.Thread = ctx.Int("thread")
 
-	dir := "./res"
-	exist, _ := Utils.PathExists(dir)
-
-	if !exist {
-		err := os.Mkdir(dir, os.ModePerm)
-		if err != nil {
-			fmt.Printf("mkdir res dir failed![%v]\n", err)
-		} else {
-			fmt.Printf("mkdir res dir success!\n")
-		}
-	}
+	//dir := "./res"
+	//exist, _ := Utils.PathExists(dir)
+	//
+	//if !exist {
+	//	err := os.Mkdir(dir, os.ModePerm)
+	//	if err != nil {
+	//		fmt.Printf("mkdir res dir failed![%v]\n", err)
+	//	} else {
+	//		fmt.Printf("mkdir res dir success!\n")
+	//	}
+	//}
 
 	if Utils.File != "null" && Utils.IsAuto {
 		Utils.FileHandle = Utils.InitFile(Utils.File)
