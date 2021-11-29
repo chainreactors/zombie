@@ -71,11 +71,15 @@ func Exec(ctx *cli.Context) (err error) {
 		IpList := Core.GetIpInfoList(IpSlice, CurServer)
 
 		Curtask := Utils.ScanTask{
-			Info:     IpList[0],
-			Username: ctx.String("username"),
-			Password: ctx.String("password"),
-			Server:   CurServer,
-			Input:    ctx.String("input"),
+			TargetInfo: Utils.TargetInfo{
+				IpServerInfo: Utils.IpServerInfo{
+					IpInfo: IpList[0],
+					Server: CurServer,
+				},
+				Username: ctx.String("username"),
+				Password: ctx.String("password"),
+			},
+			Input: ctx.String("input"),
 		}
 		CurtaskList = append(CurtaskList, Curtask)
 
@@ -161,7 +165,7 @@ func StartExec(task Utils.ScanTask) {
 	alive := CurCon.Connect()
 
 	if !alive {
-		fmt.Printf("%v:%v can't connect to target\n", task.Info.Ip, task.Info.Port)
+		fmt.Printf("%v:%v can't connect to target\n", task.Ip, task.Port)
 		return
 	}
 
