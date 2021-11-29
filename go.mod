@@ -18,6 +18,9 @@ require (
 	github.com/urfave/cli/v2 v2.3.0
 	go.mongodb.org/mongo-driver v1.4.4
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
+	github.com/huin/asn1ber v0.0.0-20120622192748-af09f62e6358
+	github.com/icodeface/tls v0.0.0-20190904083142-17aec93c60e5
+	github.com/lunixbochs/struc v0.0.0-20200707160740-784aaebc1d40
 )
 
 replace (

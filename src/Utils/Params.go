@@ -54,7 +54,7 @@ var OutputType string
 var IsAuto, More bool
 var FileFormat string
 var Instance []string
-var BrutedList *[]OutputRes
+var BrutedList []OutputRes
 var ChildContext context.Context
 var ChildCancel context.CancelFunc
 

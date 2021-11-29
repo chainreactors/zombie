@@ -116,18 +116,7 @@ func GetIpList(ipstring string) (IpList []string) {
 
 func GetIpInfoList(iplist []string, Server string) (IpInfoList []Utils.IpInfo) {
 	for _, ip := range iplist {
-		target := Utils.IpInfo{
-			SSL: false,
-		}
-
-		if strings.HasPrefix(ip, "http") {
-			ips := strings.Split(ip, "http://")
-			ip = ips[1]
-		} else if strings.HasPrefix(ip, "https") {
-			ips := strings.Split(ip, "http://")
-			ip = ips[1]
-			target.SSL = true
-		}
+		target := Utils.IpInfo{}
 
 		if strings.Contains(ip, ":") {
 			SplitIp := strings.Split(ip, ":")

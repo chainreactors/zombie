@@ -26,18 +26,19 @@ func Brute(ctx *cli.Context) (err error) {
 
 	fromgt = ctx.IsSet("gt")
 
-	if ctx.IsSet("ip") && (!ctx.IsSet("IP") || !ctx.IsSet("gt")) {
-		IpSlice = Core.GetIPList(ctx.String("ip"))
-	} else if ctx.IsSet("IP") && !ctx.IsSet("gt") {
-		IpSlice, _ = Core.ReadIPDict(ctx.String("IP"))
-	} else if ctx.IsSet("gt") {
-		fmt.Println("Read from gt result")
-	} else {
-		fmt.Println("please check the ip")
-		os.Exit(0)
+	if ctx.IsSet("ip") {
+		IpSlice = append(IpSlice, Core.GetIPList(ctx.String("ip"))...)
 	}
 
+	if ctx.IsSet("IP") {
+		IpdictSlice, _ := Core.ReadIPDict(ctx.String("IP"))
+		IpSlice = append(IpSlice, IpdictSlice...)
+	}
 	if !fromgt {
+		if len(IpSlice) == 0 {
+			fmt.Println("Please check your input")
+			return
+		}
 
 		Ip := IpSlice[0]
 		if ctx.IsSet("server") {
@@ -75,7 +76,9 @@ func Brute(ctx *cli.Context) (err error) {
 		IpList = Core.GetIpInfoList(IpSlice, CurServer)
 		ipserverinfo = GenerIPServerInfo(IpList, CurServer)
 	} else {
-		ipserverinfo = GenFromGT(ctx.String("gt"))
+		fmt.Println("Read from gt result")
+
+		ipserverinfo = GenFromGT(ctx.String("gt"), ctx.String("ss"))
 	}
 
 	if ctx.IsSet("uppair") {
@@ -136,14 +139,13 @@ func Brute(ctx *cli.Context) (err error) {
 
 	fmt.Println("start analysis brute res")
 
-	cblist, reslist := ExecAble.CleanBruteRes(Utils.BrutedList)
-	fmt.Println(cblist)
+	cblist, reslist := ExecAble.CleanBruteRes(&Utils.BrutedList)
 
 	//reslist, err := Core.CleanRes(Utils.File)
 	//if err != nil {
 	//	return err
 	//}
-	Core.OutPutRes(&reslist, Utils.File)
+	Core.OutPutRes(&reslist, &cblist, Utils.File)
 
 	return err
 }
@@ -263,7 +265,7 @@ func GenerIPServerInfo(ipinfo []Utils.IpInfo, server string) (ipserverinfo []Uti
 	return ipserverinfo
 }
 
-func GenFromGT(gtfile string) (ipserverinfo []Utils.IpServerInfo) {
+func GenFromGT(gtfile string, server string) (ipserverinfo []Utils.IpServerInfo) {
 
 	bytes, err := ioutil.ReadFile(gtfile)
 	if err != nil {
@@ -275,6 +277,17 @@ func GenFromGT(gtfile string) (ipserverinfo []Utils.IpServerInfo) {
 	if err := json.Unmarshal(bytes, &ipserverinfo); err != nil {
 		println(" Unmarshal failed")
 		os.Exit(0)
+	}
+
+	if server != "all" {
+		var temp []Utils.IpServerInfo
+		for _, info := range ipserverinfo {
+			if info.Server != strings.ToUpper(server) {
+				continue
+			}
+			temp = append(temp, info)
+		}
+		return temp
 	}
 
 	return ipserverinfo
