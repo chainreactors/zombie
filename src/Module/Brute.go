@@ -76,7 +76,7 @@ func Brute(ctx *cli.Context) (err error) {
 		IpList = Core.GetIpInfoList(IpSlice, CurServer)
 		ipserverinfo = GenerIPServerInfo(IpList, CurServer)
 	} else {
-		fmt.Println("Read from gt result")
+		fmt.Println("[+] Read from gt result")
 
 		ipserverinfo = GenFromGT(ctx.String("gt"), ctx.String("ss"))
 	}
@@ -103,6 +103,12 @@ func Brute(ctx *cli.Context) (err error) {
 		} else {
 			fmt.Println("[+] Use default password dict")
 		}
+	}
+
+	if ctx.IsSet("cb") {
+		u, p := GenFromCb(ctx.String("cb"), ctx.String("ss"))
+		UserList = append(UserList, u...)
+		PassList = append(PassList, p...)
 	}
 
 	if ctx.IsSet("instance") {
@@ -263,6 +269,42 @@ func GenerIPServerInfo(ipinfo []Utils.IpInfo, server string) (ipserverinfo []Uti
 	}
 
 	return ipserverinfo
+}
+
+func GenFromCb(cbfile string, server string) (userlist, passlist []string) {
+	var cblist []Utils.Codebook
+	cbbytes, err := ioutil.ReadFile(cbfile)
+	if err != nil {
+		println(cbfile + " open failed")
+		//panic(dictPath + " open failed")
+		os.Exit(0)
+	}
+
+	if err := json.Unmarshal(cbbytes, &cblist); err != nil {
+		println(" Unmarshal failed")
+		os.Exit(0)
+	}
+
+	if server != "all" {
+		var temp []Utils.Codebook
+		for _, info := range cblist {
+			if info.Server != strings.ToUpper(server) {
+				continue
+			}
+			temp = append(temp, info)
+		}
+		cblist = temp
+	}
+
+	for _, info := range cblist {
+		userlist = append(userlist, info.Username)
+		passlist = append(passlist, info.Password)
+	}
+
+	userlist = Utils.RemoveDuplicateElement(userlist)
+	passlist = Utils.RemoveDuplicateElement(passlist)
+
+	return
 }
 
 func GenFromGT(gtfile string, server string) (ipserverinfo []Utils.IpServerInfo) {
