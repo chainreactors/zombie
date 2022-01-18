@@ -19,6 +19,7 @@ var Brute = cli.Command{
 		SimpleStringFlag("ip", "", ""),
 		SimpleStringFlag("IP", "", ""),
 		SimpleStringFlag("gt", "", ""),
+		SimpleStringFlag("cb", "", ""),
 		SimpleStringFlag("ss", "all", ""),
 		StringFlag("file", "f", "./.res.log", ""),
 		StringFlag("server", "s", "", ""),

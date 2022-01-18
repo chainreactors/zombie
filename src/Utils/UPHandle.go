@@ -24,3 +24,22 @@ func GetUP(up string) (user, pass string, err error) {
 
 	return "", "", fmt.Errorf("Something error!")
 }
+
+func SliceContains(s []string, e string) bool {
+	for _, v := range s {
+		if v == e {
+			return true
+		}
+	}
+	return false
+}
+
+func SliceLike(s []string, e string) bool {
+	for _, v := range s {
+		e = strings.ToUpper(e)
+		if strings.Contains(e, v) {
+			return true
+		}
+	}
+	return false
+}

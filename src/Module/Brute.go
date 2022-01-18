@@ -26,6 +26,11 @@ func Brute(ctx *cli.Context) (err error) {
 
 	fromgt = ctx.IsSet("gt")
 
+	if Utils.HasStdin() {
+		stdinip, _ := Core.ReadStdin(os.Stdin)
+		IpSlice = append(IpSlice, stdinip...)
+	}
+
 	if ctx.IsSet("ip") {
 		IpSlice = append(IpSlice, Core.GetIPList(ctx.String("ip"))...)
 	}
