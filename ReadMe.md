@@ -28,7 +28,7 @@
     * password or p
         1. 支持以逗号输入传入多个要爆破的用户名
     
-    * UA 参数
+    * UP 参数
         1. 支持以键值对文本的方式读入用户名密码
     
     * server or s 
@@ -36,9 +36,18 @@
       
     * thread or t
         * 爆破的协程池大小
-      
+    * gt
+        * 支持从gt的导出结果直接用于扫描
+            * cb
+        * 从密码本中获取账号密码，每次扫描结束都会自动更新密码本(默认为当前文件夹下的.cb.log)
+    * ss
+        * 指定gt或者cb只使用其中特定服务的信息，例如只想爆破ssh等
+    * cb
+        * 从密码本中获取账号密码，每次扫描结束都会自动更新密码本(默认为当前文件夹下的.cb.log)
     * timeout 
         * 超时时间 记得是 --timeout 默认是2
+    * instance or i
+        * oracle爆破时需要instance默认为orcl
     * *simple or e*
         * 在爆用户名密码对比较少,目标少且字典大的情况,加上-e参数（即新增是默认开启喷射模式）
     * proc
@@ -66,9 +75,8 @@
     * 1433:  "MSSQL",
     * 3306:  "MYSQL",
     * 5432:  "POSTGRESQL",
-    * 6379:  "REDIS",  
-    * 9200:  "ELASTICSEARCH",
-    * 27017: "MONGO",
+    * 6379:  "REDIS", 
+   	* 1521："ORACLE"
     * 5900:  "VNC",
     * 3389:"RDP"
     

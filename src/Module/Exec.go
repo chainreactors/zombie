@@ -103,7 +103,7 @@ func Exec(ctx *cli.Context) (err error) {
 	//	}
 	//}
 
-	if Utils.File != "null" && Utils.IsAuto {
+	if Utils.File != "null" {
 		Utils.FileHandle = Utils.InitFile(Utils.File)
 		Utils.OutputType = CurtaskList[0].Server
 		go ExecAble.QueryWrite3File(Utils.FileHandle, Utils.TDatach)

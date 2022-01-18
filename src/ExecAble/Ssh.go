@@ -79,12 +79,14 @@ func (s *SshService) Query() bool {
 	if err != nil {
 		return false
 	}
-	fmt.Println(s.Ip + ":" + string(buf))
+	res := fmt.Sprintf(s.Ip + ":\n" + string(buf) + "\n")
+	s.Output(res)
 	return true
 }
 
 func (s *SshService) Output(res interface{}) {
-
+	finres := res.(string)
+	Utils.TDatach <- finres
 }
 
 func SSHConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, connect *ssh.Client) {

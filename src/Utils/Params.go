@@ -59,6 +59,10 @@ var ChildContext context.Context
 var ChildCancel context.CancelFunc
 
 var (
+	ValueableSlice = []string{"PWD", "PASS", "PASSWORD", "CERT", "EMAIL", "MOBILE", "PAPER"}
+)
+
+var (
 	PortServer = map[int]string{
 		21:    "FTP",
 		22:    "SSH",

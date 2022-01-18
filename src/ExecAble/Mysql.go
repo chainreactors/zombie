@@ -26,6 +26,12 @@ type MysqlInf struct {
 	GeneralLogFile string `json:"general_log_file"`
 	SecureFilePriv string `json:"secure_file_priv"`
 	PluginPath     string `json:"plugin_path"`
+	vb             []MysqlValuable
+}
+
+type MysqlValuable struct {
+	STName     string
+	ColumnName string
 }
 
 func MysqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
@@ -98,6 +104,7 @@ func (s *MysqlService) GetInfo() bool {
 
 	res = GetMysqlVulnableInfo(s.SqlCon, res)
 	res = GetMysqlGeneralLog(s.SqlCon, res)
+	res.vb = *FindValuableTable(s.SqlCon)
 	s.MysqlInf = *res
 
 	//将结果放入管道
@@ -111,6 +118,9 @@ func (s *MysqlService) Output(res interface{}) {
 	MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v\n", finres.Ip, Utils.OutputType, finres.Version, finres.OS, finres.Count)
 	MysqlCollectInfo += fmt.Sprintf("general_log: %v\tgeneral_log_file: %v\n", finres.GeneralLog, finres.GeneralLogFile)
 	MysqlCollectInfo += fmt.Sprintf("plugin_dir: %v\tsecure_file_priv: %v\n", finres.PluginPath, finres.SecureFilePriv)
+	for _, info := range finres.vb {
+		MysqlCollectInfo += fmt.Sprintf("%v:%v\t", info.STName, info.ColumnName)
+	}
 	MysqlCollectInfo += "\n"
 	fmt.Println(MysqlCollectInfo)
 	switch Utils.FileFormat {
@@ -155,8 +165,28 @@ func GetMysqlBaseInfo(SqlCon *sql.DB) *MysqlInf {
 	return &res
 }
 
+func FindValuableTable(SqlCon *sql.DB) *[]MysqlValuable {
+	err, Qresult, _ := MysqlQuery(SqlCon, "select concat(table_schema,\"->\",table_name),column_name from information_schema.columns where "+
+		"table_schema != \"information_schema\" &&  table_schema != \"mysql\" && table_schema != \"performance_schema\"")
+
+	if err != nil {
+		return nil
+	}
+
+	vb := HandleMysqlValuable(Qresult)
+	return &vb
+}
+
 func GetMysqlSummary(SqlCon *sql.DB) string {
 	err, Qresult, Columns := MysqlQuery(SqlCon, "select sum(table_rows) from  information_schema.tables where table_rows is not null")
+
+	if err == nil {
+		Count := GetSummary(Qresult, Columns)
+		return Count
+	}
+
+	//某些场景下使用is not null 会出现bug，所以增加一条，失败后是
+	err, Qresult, Columns = MysqlQuery(SqlCon, "select sum(table_rows) from  information_schema.tables")
 
 	if err == nil {
 		Count := GetSummary(Qresult, Columns)
@@ -216,6 +246,21 @@ func GetMysqlVulnableInfo(SqlCon *sql.DB, res *MysqlInf) *MysqlInf {
 		}
 	}
 	return res
+
+}
+
+func HandleMysqlValuable(Qresult []map[string]string) []MysqlValuable {
+	var fin []MysqlValuable
+	for _, items := range Qresult {
+		if Utils.SliceLike(Utils.ValueableSlice, items["column_name"]) {
+			temp := MysqlValuable{
+				STName:     items["concat(table_schema,\"->\",table_name)"],
+				ColumnName: items["column_name"],
+			}
+			fin = append(fin, temp)
+		}
+	}
+	return fin
 
 }
 

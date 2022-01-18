@@ -93,14 +93,14 @@ func SMBConnect(User string, Password string, info Utils.IpInfo) (err error, ver
 
 		_ = conn.SetDeadline(time.Now().Add(time.Duration(Utils.Timeout) * time.Second))
 
-		s, curversion, err2 := d.Dial(conn)
+		s, _, err2 := d.Dial(conn)
 
 		if err2 == nil {
 			defer s.Logoff()
 			result = true
-			return err2, curversion, result
+			return err2, "", result
 		}
-		return err2, curversion, result
+		return err2, "", result
 	}
 	return err, "", result
 
