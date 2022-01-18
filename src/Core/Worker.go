@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 )
 
 var Summary int
@@ -27,7 +28,6 @@ func BruteWork(WorkerPara *PoolPara) {
 		case <-WorkerPara.Ctx.Done():
 			return
 		case task, ok := <-WorkerPara.Taskchan:
-			Bres := ""
 			if !ok {
 				return
 			}
@@ -47,12 +47,7 @@ func BruteWork(WorkerPara *PoolPara) {
 			res.Result = alive
 			if !alive {
 				switch CurCon.(type) {
-				case *ExecAble.SmbService:
-					if task.Password == "" && CurCon.(*ExecAble.SmbService).Version != "" {
-						Bres = fmt.Sprintf("%s:%d\t\tVersion:%s", task.Ip, task.Port, CurCon.(*ExecAble.SmbService).Version)
-						res.Additional += CurCon.(*ExecAble.SmbService).Version
-						fmt.Println(Bres)
-					}
+
 				case *ExecAble.RedisService:
 					res.Additional += CurCon.(*ExecAble.RedisService).Additional
 				}
@@ -88,6 +83,9 @@ func BruteWork(WorkerPara *PoolPara) {
 					Utils.ChildCancel()
 				}
 			}
+		// 加入连接超时，过长直接断开
+		case <-time.After(2 * time.Duration(Utils.Timeout) * time.Second):
+			continue
 
 		}
 	}

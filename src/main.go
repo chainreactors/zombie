@@ -12,7 +12,7 @@ func main() {
 	app.Authors = []*cli.Author{
 		{Name: "U2"},
 	}
-	app.Version = "1.0.0Beta"
+	app.Version = "1.2.0-gtBeta"
 	app.Usage = "None"
 	app.Commands = []*cli.Command{&Cmd.Brute, &Cmd.Query}
 	app.Run(os.Args)

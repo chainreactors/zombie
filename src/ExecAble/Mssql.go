@@ -19,12 +19,18 @@ type MssqlService struct {
 	SqlCon *sql.DB
 }
 
+type MssqlValuable struct {
+	STName     string
+	ColumnName string
+}
+
 type MssqlInf struct {
 	Version     string `json:"version"`
 	Count       int    `json:"count"`
 	OS          string `json:"os"`
 	XpCmdShell  string `json:"xp_cmdshell"`
 	SP_OACREATE string `json:"sp_oacreate"`
+	vb          []MssqlValuable
 }
 
 var MssqlCollectInfo string
@@ -119,6 +125,7 @@ func (s *MssqlService) GetInfo() bool {
 	res.Count = GetMssqlSummary(s.SqlCon)
 
 	res = GetMssqlVulnableInfo(s.SqlCon, res)
+	res.vb = *FindMssqlValuableTable(s.SqlCon)
 	s.MssqlInf = *res
 	//将结果放入管道
 	s.Output(*s)
@@ -131,7 +138,10 @@ func (s *MssqlService) Output(res interface{}) {
 	MsCollectInfo := ""
 	MsCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.Ip, Utils.OutputType, finres.Version, finres.OS, finres.Count)
 	MsCollectInfo += fmt.Sprintf("\nSP_OACREATE: %v", finres.SP_OACREATE)
-	MsCollectInfo += fmt.Sprintf("\nxp_cmdshell: %v", finres.XpCmdShell)
+	MsCollectInfo += fmt.Sprintf("\nxp_cmdshell: %v\n", finres.XpCmdShell)
+	for _, info := range finres.vb {
+		MsCollectInfo += fmt.Sprintf("%v:%v\t", info.STName, info.ColumnName)
+	}
 	MsCollectInfo += "\n"
 	fmt.Println(MsCollectInfo)
 	switch Utils.FileFormat {
@@ -238,5 +248,31 @@ func GetMssqlVulnableInfo(SqlCon *sql.DB, res *MssqlInf) *MssqlInf {
 		}
 	}
 	return res
+
+}
+
+func FindMssqlValuableTable(SqlCon *sql.DB) *[]MssqlValuable {
+	err, Qresult, Columns := MssqlQuery(SqlCon, "SELECT concat(TABLE_SCHEMA,'->',TABLE_NAME),COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS")
+
+	if err != nil {
+		return nil
+	}
+
+	vb := HandleMssqlValuable(Qresult, Columns)
+	return &vb
+}
+
+func HandleMssqlValuable(Qresult []map[string]string, Columns []string) []MssqlValuable {
+	var fin []MssqlValuable
+	for _, items := range Qresult {
+		if Utils.SliceLike(Utils.ValueableSlice, items["COLUMN_NAME"]) {
+			temp := MssqlValuable{
+				STName:     items[Columns[0]],
+				ColumnName: items[Columns[1]],
+			}
+			fin = append(fin, temp)
+		}
+	}
+	return fin
 
 }

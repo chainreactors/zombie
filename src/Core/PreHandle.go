@@ -179,6 +179,21 @@ func ReadIPDict(IpDict string) (IPList []string, err error) {
 	return IPList, err
 }
 
+func ReadStdin(file *os.File) (IPList []string, err error) {
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		user := strings.TrimSpace(scanner.Text())
+		if user != "" {
+			IPList = append(IPList, user)
+		}
+	}
+	return IPList, err
+}
+
 func ReadPassDict(passDict string) (password []string, err error) {
 	file, err := os.Open(passDict)
 	if err != nil {
