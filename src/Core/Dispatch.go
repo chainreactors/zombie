@@ -63,6 +63,7 @@ func ExecDispatch(CurTask Utils.ScanTask) ExecAble.ExecAble {
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
 		}
+
 	//case "MONGO":
 	//	return &ExecAble.MongoService{
 	//		Username: CurTask.Username,
@@ -77,6 +78,12 @@ func ExecDispatch(CurTask Utils.ScanTask) ExecAble.ExecAble {
 		}
 	case "REDIS":
 		return &ExecAble.RedisService{
+			Username: CurTask.Username,
+			Password: CurTask.Password,
+			IpInfo:   CurTask.IpInfo,
+		}
+	case "LDAP":
+		return &ExecAble.LdapService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
