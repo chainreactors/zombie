@@ -31,7 +31,7 @@ func GenerateTask(UserList []string, PassList []string, info Utils.IpServerInfo)
 			}
 
 			if PassIsDefault {
-				PassList = Utils.DefaultPasswords
+				PassList = Utils.DefaultPasswords[info.Server]
 			}
 
 			for _, username := range UserList {
@@ -98,7 +98,7 @@ func GenerateTaskSimple(UserList []string, PassList []string, ipinfo []Utils.IpS
 			}
 
 			if PassIsDefault {
-				PassList = Utils.DefaultPasswords
+				PassList = Utils.DefaultPasswords[info.Server]
 			}
 
 			Summary = len(PassList) * len(UserList) * len(ipinfo)
