@@ -26,10 +26,10 @@ func Brute(ctx *cli.Context) (err error) {
 
 	fromgt = ctx.IsSet("gt")
 
-	if Utils.HasStdin() {
-		stdinip, _ := Core.ReadStdin(os.Stdin)
-		IpSlice = append(IpSlice, stdinip...)
-	}
+	//if Utils.HasStdin() {
+	//	stdinip, _ := Core.ReadStdin(os.Stdin)
+	//	IpSlice = append(IpSlice, stdinip...)
+	//}
 
 	if ctx.IsSet("ip") {
 		IpSlice = append(IpSlice, Core.GetIPList(ctx.String("ip"))...)
@@ -293,10 +293,18 @@ func GenFromCb(cbfile string, server string) (userlist, passlist []string) {
 	if server != "all" {
 		var temp []Utils.Codebook
 		for _, info := range cblist {
-			if info.Server != strings.ToUpper(server) {
-				continue
+			if strings.HasPrefix("~", server) {
+				if info.Server == strings.ToUpper(server[1:]) {
+					continue
+				}
+				temp = append(temp, info)
+			} else {
+				if info.Server != strings.ToUpper(server) {
+					continue
+				}
+				temp = append(temp, info)
 			}
-			temp = append(temp, info)
+
 		}
 		cblist = temp
 	}
@@ -328,11 +336,21 @@ func GenFromGT(gtfile string, server string) (ipserverinfo []Utils.IpServerInfo)
 
 	if server != "all" {
 		var temp []Utils.IpServerInfo
+
 		for _, info := range ipserverinfo {
-			if info.Server != strings.ToUpper(server) {
-				continue
+			if strings.HasPrefix("~", server) {
+				if info.Server == strings.ToUpper(server[1:]) {
+					continue
+				}
+				temp = append(temp, info)
+			} else {
+
+				if info.Server != strings.ToUpper(server) {
+					continue
+				}
+				temp = append(temp, info)
 			}
-			temp = append(temp, info)
+
 		}
 		return temp
 	}
