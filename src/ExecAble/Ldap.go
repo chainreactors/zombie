@@ -4,7 +4,7 @@ import (
 	"Zombie/src/Utils"
 	"crypto/tls"
 	"fmt"
-	"github.com/go-ldap/ldap"
+	"github.com/go-ldap/ldap/v3"
 )
 
 type LdapService struct {
