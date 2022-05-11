@@ -93,5 +93,4 @@ func ExecDispatch(CurTask Utils.ScanTask) ExecAble.ExecAble {
 		return nil
 	}
 
-	return nil
 }
