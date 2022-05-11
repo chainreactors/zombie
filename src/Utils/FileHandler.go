@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-
 	"time"
 	"unsafe"
 )
@@ -85,6 +84,7 @@ func InitFile(Filename string) *os.File {
 	var err error
 	var CurfileHandle *os.File
 	if Filename != "" {
+
 		O2File = true
 		if CheckFileIsExist(Filename) { //如果文件存在
 			CurfileHandle, err = os.OpenFile(Filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend) //打开文件
