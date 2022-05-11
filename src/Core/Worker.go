@@ -11,6 +11,7 @@ import (
 
 var Summary int
 var CountChan = make(chan int, 60)
+var NotHoney sync.Map
 
 type PoolPara struct {
 	Ctx      context.Context
@@ -18,7 +19,27 @@ type PoolPara struct {
 	Wgs      *sync.WaitGroup
 }
 
+type HoneyPara struct {
+	Task Utils.ScanTask
+}
+
 var FlagUserName string
+
+func HoneyTest(WorkerPara *HoneyPara) {
+	CurCon := ExecDispatch(WorkerPara.Task)
+	if CurCon == nil {
+		return
+	}
+
+	alive := CurCon.Connect()
+
+	if !alive {
+		NotHoney.Store(WorkerPara.Task, true)
+	} else {
+		fmt.Printf("%s:%v\t%v maybe honey pot\n", WorkerPara.Task.Ip, WorkerPara.Task.Port, WorkerPara.Task.Server)
+	}
+	return
+}
 
 func BruteWork(WorkerPara *PoolPara) {
 	defer WorkerPara.Wgs.Done()

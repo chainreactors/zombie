@@ -73,6 +73,27 @@ func GenerateTask(UserList []string, PassList []string, info Utils.IpServerInfo)
 	return TaskList
 }
 
+func GenerateRandTask(ipinfo []Utils.IpServerInfo) chan Utils.ScanTask {
+	TaskList := make(chan Utils.ScanTask)
+	go func() {
+		for _, info := range ipinfo {
+			NewTask := Utils.ScanTask{
+				TargetInfo: Utils.TargetInfo{
+					IpServerInfo: info,
+					Username:     "admin",
+					Password:     Utils.RandStringBytesMaskImprSrcUnsafe(12),
+				},
+			}
+			if info.Server == "ORACLE" {
+				NewTask.Instance = "orcl"
+			}
+			TaskList <- NewTask
+		}
+		close(TaskList)
+	}()
+	return TaskList
+}
+
 func GenerateTaskSimple(UserList []string, PassList []string, ipinfo []Utils.IpServerInfo) chan Utils.ScanTask {
 
 	TaskList := make(chan Utils.ScanTask)

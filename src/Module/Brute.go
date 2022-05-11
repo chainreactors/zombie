@@ -11,6 +11,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"io/ioutil"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -128,6 +130,10 @@ func Brute(ctx *cli.Context) (err error) {
 	Utils.File = ctx.String("file")
 	Utils.OutputType = "Brute"
 
+	if Utils.File == "./.res.log" {
+		Utils.File = getExcPath() + "/.res.log"
+	}
+
 	if Utils.File != "null" {
 		Utils.FileHandle = Utils.InitFile(Utils.File)
 		go ExecAble.QueryWrite3File(Utils.FileHandle, Utils.TDatach)
@@ -138,6 +144,8 @@ func Brute(ctx *cli.Context) (err error) {
 	if Utils.Proc != 0 {
 		go Core.Process(Core.CountChan)
 	}
+
+	ipserverinfo = HoneyPotTest(ipserverinfo)
 
 	if Utils.Simple {
 		err = StartTaskSimple(UserList, PassList, ipserverinfo)
@@ -152,13 +160,44 @@ func Brute(ctx *cli.Context) (err error) {
 
 	cblist, reslist := ExecAble.CleanBruteRes(&Utils.BrutedList)
 
-	//reslist, err := Core.CleanRes(Utils.File)
-	//if err != nil {
-	//	return err
-	//}
 	Core.OutPutRes(&reslist, &cblist, Utils.File)
 
 	return err
+}
+
+func HoneyPotTest(IpServerList []Utils.IpServerInfo) []Utils.IpServerInfo {
+
+	tasklist := Core.GenerateRandTask(IpServerList)
+
+	wgs := &sync.WaitGroup{}
+
+	scanPool, _ := ants.NewPoolWithFunc(Utils.Thread, func(i interface{}) {
+		par := i.(Core.HoneyPara)
+		Core.HoneyTest(&par)
+		wgs.Done()
+	}, ants.WithExpiryDuration(2*time.Second))
+
+	for target := range tasklist {
+		PrePara := Core.HoneyPara{
+			Task: target,
+		}
+
+		wgs.Add(1)
+		_ = scanPool.Invoke(PrePara)
+	}
+
+	wgs.Wait()
+	scanPool.Release()
+	fmt.Println("Honey Pot Check  done")
+
+	var aliveinfo []Utils.IpServerInfo
+	Core.NotHoney.Range(func(key, value interface{}) bool {
+		if value.(bool) == true {
+			aliveinfo = append(aliveinfo, key.(Utils.ScanTask).IpServerInfo)
+		}
+		return true
+	})
+	return aliveinfo
 }
 
 func StartTask(UserList []string, PassList []string, IpServerList []Utils.IpServerInfo) error {
@@ -293,7 +332,7 @@ func GenFromCb(cbfile string, server string) (userlist, passlist []string) {
 	if server != "all" {
 		var temp []Utils.Codebook
 		for _, info := range cblist {
-			if strings.HasPrefix("~", server) {
+			if strings.HasPrefix(server, "~") {
 				if info.Server == strings.ToUpper(server[1:]) {
 					continue
 				}
@@ -338,7 +377,7 @@ func GenFromGT(gtfile string, server string) (ipserverinfo []Utils.IpServerInfo)
 		var temp []Utils.IpServerInfo
 
 		for _, info := range ipserverinfo {
-			if strings.HasPrefix("~", server) {
+			if strings.HasPrefix(server, "~") {
 				if info.Server == strings.ToUpper(server[1:]) {
 					continue
 				}
@@ -356,4 +395,14 @@ func GenFromGT(gtfile string, server string) (ipserverinfo []Utils.IpServerInfo)
 	}
 
 	return ipserverinfo
+}
+
+func getExcPath() string {
+	file, _ := exec.LookPath(os.Args[0])
+	// 获取包含可执行文件名称的路径
+	path, _ := filepath.Abs(file)
+	// 获取可执行文件所在目录
+	index := strings.LastIndex(path, string(os.PathSeparator))
+	ret := path[:index]
+	return strings.Replace(ret, "\\", "/", -1)
 }
