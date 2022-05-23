@@ -2,9 +2,8 @@ package ExecAble
 
 import (
 	"Zombie/src/Utils"
-	"Zombie/src/grdp"
-	"Zombie/src/grdp/glog"
 	"fmt"
+	"github.com/chainreactors/grdp"
 	"strings"
 )
 
@@ -67,9 +66,8 @@ func RdpConnectTest(User string, Password string, info Utils.IpInfo) (err error,
 
 func RdpConnect(ip, domain, username, password string, port int) (bool, error) {
 	target := fmt.Sprintf("%v:%v", ip, port)
-	g := grdp.NewClient(target, glog.NONE)
 	//SSL协议登录测试
-	err := g.LoginForSSL(domain, username, password)
+	err := grdp.LoginForSSL(target, domain, username, password)
 	if err == nil {
 		//fmt.Println("Login Success")
 		return true, nil
@@ -79,7 +77,7 @@ func RdpConnect(ip, domain, username, password string, port int) (bool, error) {
 		return false, err
 	}
 	//RDP协议登录测试
-	err = g.LoginForRDP(domain, username, password)
+	err = grdp.LoginForRDP(target, domain, username, password)
 	if err == nil {
 		//fmt.Println("Login Success")
 		return true, err
