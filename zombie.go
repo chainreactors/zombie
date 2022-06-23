@@ -14,6 +14,6 @@ func main() {
 	}
 	app.Version = "1.2.0-gtBeta"
 	app.Usage = "None"
-	app.Commands = []*cli.Command{&cmd.BruteCli, &cmd.QueryCli}
+	app.Commands = []*cli.Command{&cmd.BruteCli, &cmd.ExecCli}
 	app.Run(os.Args)
 }
