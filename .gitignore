@@ -22,6 +22,6 @@
 # vendor/
 /bin
 /.idea
-/src/Test
+/v1/Test
 
-/pkg/lib/
+/vendor/lib/
