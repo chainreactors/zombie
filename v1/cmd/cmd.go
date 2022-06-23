@@ -7,7 +7,7 @@ import (
 var BruteCli = cli.Command{
 	Name:    "Brute",
 	Action:  Brute,
-	Aliases: []string{"B"},
+	Aliases: []string{"B", "b"},
 	Flags: []cli.Flag{
 		StringFlag("username", "u", "", ""),
 		StringFlag("password", "p", "", ""),
@@ -30,10 +30,10 @@ var BruteCli = cli.Command{
 	},
 }
 
-var QueryCli = cli.Command{
-	Name:    "Query",
+var ExecCli = cli.Command{
+	Name:    "Exec",
 	Action:  Exec,
-	Aliases: []string{"Q"},
+	Aliases: []string{"E", "e"},
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    "username",
