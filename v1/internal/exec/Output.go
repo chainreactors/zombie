@@ -76,9 +76,9 @@ func QueryWrite3File(FileHandle *os.File, QDatach chan interface{}) {
 			utils.BrutedList = append(utils.BrutedList, finres)
 			var resstr string
 			if finres.Server == "ORACLE" {
-				resstr = fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\tinstance:%s\t%s\tsuccess\n", finres.Ip, finres.Port, finres.Username, finres.Password, finres.Additional, finres.Server)
+				resstr = fmt.Sprintf("%s:%d\t%s:%s\tinstance:%s\t%s\tsuccess", finres.Ip, finres.Port, finres.Username, finres.Password, finres.Additional, finres.Server)
 			} else {
-				resstr = fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t%s\n", finres.Ip, finres.Port, finres.Username, finres.Password, finres.Server, finres.Additional)
+				resstr = fmt.Sprintf("%s:%d\t%s\t%s:%s\tsuccess%s", finres.Ip, finres.Port, finres.Server, finres.Username, finres.Password, finres.Additional)
 			}
 			fmt.Println(resstr)
 			switch utils.FileFormat {

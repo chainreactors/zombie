@@ -145,7 +145,7 @@ func Brute(ctx *cli.Context) (err error) {
 		go core.Process(core.CountChan)
 	}
 
-	ipserverinfo = HoneyPotTest(ipserverinfo)
+	//ipserverinfo = HoneyPotTest(ipserverinfo)
 
 	if utils.Simple {
 		err = StartTaskSimple(UserList, PassList, ipserverinfo)
