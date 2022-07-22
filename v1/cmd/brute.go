@@ -38,7 +38,10 @@ func Brute(ctx *cli.Context) (err error) {
 	}
 
 	if ctx.IsSet("IP") {
-		IpdictSlice, _ := core.ReadIPDict(ctx.String("IP"))
+		IpdictSlice, err := core.ReadIPDict(ctx.String("IP"))
+		if err != nil {
+			return err
+		}
 		IpSlice = append(IpSlice, IpdictSlice...)
 	}
 	if !fromgt {
@@ -53,8 +56,7 @@ func Brute(ctx *cli.Context) (err error) {
 			if _, ok := utils.ServerPort[ServerName]; ok {
 				CurServer = ServerName
 			} else {
-				fmt.Println("the ExecAble isn't be supported")
-				os.Exit(0)
+				return fmt.Errorf("the ExecAble isn't be supported")
 			}
 
 		} else if strings.Contains(Ip, ":") {
@@ -62,20 +64,18 @@ func Brute(ctx *cli.Context) (err error) {
 			Sport := Temp[1]
 			port, err := strconv.Atoi(Sport)
 			if err != nil {
-				fmt.Println("Please check your address")
-				os.Exit(0)
+				return err
 			}
 
 			if _, ok := utils.PortServer[port]; ok {
 				CurServer = utils.PortServer[port]
 				fmt.Println("Use default server")
 			} else {
-				fmt.Println("Please input the type of ExecAble")
-				os.Exit(0)
+				return fmt.Errorf("Please input the type of ExecAble")
+
 			}
 		} else {
-			fmt.Println("Please input the type of ExecAble")
-			os.Exit(0)
+			return fmt.Errorf("Please input the type of ExecAble")
 		}
 
 		CurServer = strings.ToUpper(CurServer)
@@ -152,6 +152,9 @@ func Brute(ctx *cli.Context) (err error) {
 	} else {
 		err = StartTask(UserList, PassList, ipserverinfo)
 	}
+	if err != nil {
+		return err
+	}
 	utils.FileHandle.Close()
 
 	close(core.CountChan)
@@ -162,7 +165,7 @@ func Brute(ctx *cli.Context) (err error) {
 
 	core.OutPutRes(&reslist, &cblist, utils.File)
 
-	return err
+	return nil
 }
 
 func HoneyPotTest(IpServerList []utils.IpServerInfo) []utils.IpServerInfo {

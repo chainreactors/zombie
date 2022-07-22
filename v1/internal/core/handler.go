@@ -162,7 +162,7 @@ func ReadUserDict(userDict string) (UserList []string, err error) {
 func ReadIPDict(IpDict string) (IPList []string, err error) {
 	file, err := os.Open(IpDict)
 	if err != nil {
-		panic("please check your file")
+		return nil, err
 	}
 
 	defer file.Close()
