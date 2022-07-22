@@ -1,12 +1,20 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/urfave/cli/v2"
 )
 
 var BruteCli = cli.Command{
-	Name:    "Brute",
-	Action:  Brute,
+	Name: "Brute",
+	Action: func(context *cli.Context) error {
+		err := Brute(context)
+		if err != nil {
+			fmt.Println(err.Error())
+			return err
+		}
+		return nil
+	},
 	Aliases: []string{"B", "b"},
 	Flags: []cli.Flag{
 		StringFlag("username", "u", "", ""),

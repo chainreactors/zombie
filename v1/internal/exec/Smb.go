@@ -64,44 +64,43 @@ func SMBConnect(User string, Password string, info utils.IpInfo) (err error, ver
 	target := fmt.Sprintf("%v:%v", info.Ip, info.Port)
 
 	conn, err := net.DialTimeout("tcp", target, time.Duration(utils.Timeout)*time.Second)
-	if err == nil {
-		defer conn.Close()
-
-		//hash := "11e7993210372b9634119676e7401289"
-		//buf := make([]byte, len(hash)/2)
-		//hex.Decode(buf, []byte(hash))
-
-		d := &smb2.Dialer{}
-
-		if strings.HasPrefix(Password, "hash:") {
-			hash := Password[5:]
-			buf := make([]byte, len(hash)/2)
-			hex.Decode(buf, []byte(hash))
-			d.Initiator = &smb2.NTLMInitiator{
-				User:   UserName,
-				Domain: DoaminName,
-				Hash:   buf,
-			}
-		} else {
-			d.Initiator = &smb2.NTLMInitiator{
-				User:   UserName,
-				Domain: DoaminName,
-				//Hash: buf,
-				Password: Password,
-			}
-		}
-
-		_ = conn.SetDeadline(time.Now().Add(time.Duration(utils.Timeout) * time.Second))
-
-		s, _, err2 := d.Dial(conn)
-
-		if err2 == nil {
-			defer s.Logoff()
-			result = true
-			return err2, "", result
-		}
-		return err2, "", result
+	if err != nil {
+		return err, "", false
 	}
-	return err, "", result
+	defer conn.Close()
 
+	d := &smb2.Dialer{}
+
+	if strings.HasPrefix(Password, "hash:") {
+		hash := Password[5:]
+		buf := make([]byte, len(hash)/2)
+		hex.Decode(buf, []byte(hash))
+		d.Initiator = &smb2.NTLMInitiator{
+			User:   UserName,
+			Domain: DoaminName,
+			Hash:   buf,
+		}
+	} else {
+		d.Initiator = &smb2.NTLMInitiator{
+			User:   UserName,
+			Domain: DoaminName,
+			//Hash: buf,
+			Password: Password,
+		}
+	}
+
+	_ = conn.SetDeadline(time.Now().Add(time.Duration(utils.Timeout) * time.Second))
+
+	s, _, err := d.Dial(conn)
+	if err != nil {
+		return err, "", false
+
+	}
+
+	defer s.Logoff()
+
+	//share, err := s.Mount("C$")
+	//
+	//fmt.Println(err.Error())
+	return nil, "", true
 }
