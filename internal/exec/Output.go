@@ -1,9 +1,9 @@
 package exec
 
 import (
-	"Zombie/v1/pkg/utils"
 	"encoding/json"
 	"fmt"
+	"github.com/chainreactors/zombie/pkg/utils"
 	"os"
 )
 

@@ -1,9 +1,9 @@
 package exec
 
 import (
-	"Zombie/v1/pkg/utils"
 	"crypto/tls"
 	"fmt"
+	"github.com/chainreactors/zombie/pkg/utils"
 	"github.com/go-ldap/ldap/v3"
 )
 

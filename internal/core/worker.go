@@ -1,10 +1,10 @@
 package core
 
 import (
-	"Zombie/v1/internal/exec"
-	utils2 "Zombie/v1/pkg/utils"
 	"context"
 	"fmt"
+	"github.com/chainreactors/zombie/internal/exec"
+	"github.com/chainreactors/zombie/pkg/utils"
 	"sync"
 	"time"
 )
@@ -15,12 +15,12 @@ var NotHoney sync.Map
 
 type PoolPara struct {
 	Ctx      context.Context
-	Taskchan chan utils2.ScanTask
+	Taskchan chan utils.ScanTask
 	Wgs      *sync.WaitGroup
 }
 
 type HoneyPara struct {
-	Task utils2.ScanTask
+	Task utils.ScanTask
 }
 
 var FlagUserName string
@@ -52,11 +52,11 @@ func BruteWork(WorkerPara *PoolPara) {
 			if !ok {
 				return
 			}
-			if utils2.Proc != 0 {
+			if utils.Proc != 0 {
 				CountChan <- 1
 			}
 
-			res := utils2.BruteRes{}
+			res := utils.BruteRes{}
 			CurCon := ExecDispatch(task)
 
 			if CurCon == nil {
@@ -76,11 +76,11 @@ func BruteWork(WorkerPara *PoolPara) {
 			}
 			CurCon.DisConnect()
 			if res.Result {
-				output := utils2.OutputRes{
-					TargetInfo: utils2.TargetInfo{
-						IpServerInfo: utils2.IpServerInfo{
+				output := utils.OutputRes{
+					TargetInfo: utils.TargetInfo{
+						IpServerInfo: utils.IpServerInfo{
 							Server: task.Server,
-							IpInfo: utils2.IpInfo{
+							IpInfo: utils.IpInfo{
 								Ip:   task.Ip,
 								Port: task.Port,
 							},
@@ -96,16 +96,16 @@ func BruteWork(WorkerPara *PoolPara) {
 
 				FlagUserName = task.Username
 
-				if utils2.O2File {
-					utils2.TDatach <- output
+				if utils.O2File {
+					utils.TDatach <- output
 				}
 
-				if !utils2.Simple {
-					utils2.ChildCancel()
+				if !utils.Simple {
+					utils.ChildCancel()
 				}
 			}
 		// 加入连接超时，过长直接断开
-		case <-time.After(2 * time.Duration(utils2.Timeout) * time.Second):
+		case <-time.After(2 * time.Duration(utils.Timeout) * time.Second):
 			continue
 
 		}
@@ -119,7 +119,7 @@ func Process(ct chan int) {
 
 	for i := range ct {
 		pr += i
-		if pr%utils2.Proc == 0 {
+		if pr%utils.Proc == 0 {
 			fmt.Printf("(%d/%d)\n", pr, Summary)
 		}
 

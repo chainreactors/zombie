@@ -1,7 +1,7 @@
 package exec
 
 import (
-	"Zombie/v1/pkg/utils"
+	"github.com/chainreactors/zombie/pkg/utils"
 	"github.com/mitchellh/go-vnc"
 	"net"
 	"strconv"

@@ -1,11 +1,12 @@
 package exec
 
 import (
-	"Zombie/v1/pkg/utils"
 	"encoding/hex"
 	"fmt"
-
+	"github.com/chainreactors/zombie/pkg/utils"
 	"github.com/hirochachacha/go-smb2"
+
+	//"github.com/hirochachacha/go-smb2"
 	"net"
 	"strings"
 	"time"

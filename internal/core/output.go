@@ -1,20 +1,20 @@
 package core
 
 import (
-	"Zombie/v1/pkg/utils"
 	"encoding/json"
 	"fmt"
+	utils2 "github.com/chainreactors/zombie/pkg/utils"
 	"io/ioutil"
 	"path/filepath"
 	"strconv"
 	"strings"
 )
 
-func CleanRes(Filename string) (*[]utils.ScanTask, error) {
-	var eachJson []utils.OutputRes
+func CleanRes(Filename string) (*[]utils2.ScanTask, error) {
+	var eachJson []utils2.OutputRes
 	IPStore := make(map[string]int)
 	TestList, _ := GetUAList(Filename)
-	var CurtaskList []utils.ScanTask
+	var CurtaskList []utils2.ScanTask
 	if len(TestList) == 1 {
 		if strings.HasPrefix(TestList[0], "[") {
 			fmt.Println("start analysis json result")
@@ -25,9 +25,9 @@ func CleanRes(Filename string) (*[]utils.ScanTask, error) {
 				return nil, err
 			}
 			for _, info := range eachJson {
-				Curtask := utils.ScanTask{
-					TargetInfo: utils.TargetInfo{
-						IpServerInfo: utils.IpServerInfo{
+				Curtask := utils2.ScanTask{
+					TargetInfo: utils2.TargetInfo{
+						IpServerInfo: utils2.IpServerInfo{
 							Server: info.Server,
 						},
 						Username: info.Username,
@@ -55,9 +55,9 @@ func CleanRes(Filename string) (*[]utils.ScanTask, error) {
 			la := strings.Split(test, "\t")
 
 			if len(la) == 6 {
-				Curtask := utils.ScanTask{
-					TargetInfo: utils.TargetInfo{
-						IpServerInfo: utils.IpServerInfo{
+				Curtask := utils2.ScanTask{
+					TargetInfo: utils2.TargetInfo{
+						IpServerInfo: utils2.IpServerInfo{
 							Server: la[4],
 						},
 						Username: strings.Split(la[2], ":")[1],
@@ -89,19 +89,19 @@ func CleanRes(Filename string) (*[]utils.ScanTask, error) {
 	return &CurtaskList, nil
 }
 
-func OutPutRes(reslist *[]utils.OutputRes, cblist *[]utils.Codebook, file string) error {
+func OutPutRes(reslist *[]utils2.OutputRes, cblist *[]utils2.Codebook, file string) error {
 
 	dir, name := filepath.Split(file)
 
 	clean_file := dir + ".clean_" + name
 	codebook := dir + ".cb.log"
-	hanlder := utils.InitFile(clean_file)
+	hanlder := utils2.InitFile(clean_file)
 	outputlist := *reslist
 	for _, info := range outputlist {
 
 		resstr := fmt.Sprintf("%s:%d\t\tusername:%s\tpassword:%s\t%s\tsuccess\t\n", info.Ip, info.Port, info.Username, info.Password, info.Server)
 		//fmt.Println(resstr)
-		switch utils.FileFormat {
+		switch utils2.FileFormat {
 		case "raw":
 			hanlder.WriteString(resstr)
 		case "json":
@@ -118,8 +118,8 @@ func OutPutRes(reslist *[]utils.OutputRes, cblist *[]utils.Codebook, file string
 
 	}
 
-	var oldcb []utils.Codebook
-	if utils.CheckFileIsExist(codebook) {
+	var oldcb []utils2.Codebook
+	if utils2.CheckFileIsExist(codebook) {
 
 		cbytes, err := ioutil.ReadFile(codebook)
 		if err != nil {
@@ -147,15 +147,15 @@ func OutPutRes(reslist *[]utils.OutputRes, cblist *[]utils.Codebook, file string
 			return err
 		}
 
-		cbhandle := utils.InitFile(codebook)
+		cbhandle := utils2.InitFile(codebook)
 		cbhandle.Write(newcb)
 	}
 
 	return nil
 }
 
-func RemoveDuplicateCodeBook(cb []utils.Codebook) []utils.Codebook {
-	result := make([]utils.Codebook, 0, len(cb))
+func RemoveDuplicateCodeBook(cb []utils2.Codebook) []utils2.Codebook {
+	result := make([]utils2.Codebook, 0, len(cb))
 	temp := map[string]struct{}{}
 	for _, item := range cb {
 		if _, ok := temp[item.Username+item.Password+item.Server]; !ok {

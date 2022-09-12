@@ -1,10 +1,10 @@
 package exec
 
 import (
-	"Zombie/v1/pkg/utils"
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	utils2 "github.com/chainreactors/zombie/pkg/utils"
 	_ "github.com/lib/pq"
 	"os"
 	"strconv"
@@ -12,7 +12,7 @@ import (
 )
 
 type PostgresService struct {
-	utils.IpInfo
+	utils2.IpInfo
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Dbname   string `json:"Dbname"`
@@ -51,25 +51,25 @@ func (s *PostgresService) SetDbname(db string) {
 func (s *PostgresService) Output(res interface{}) {
 	finres := res.(PostgresService)
 	PostCollectInfo := ""
-	PostCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.Ip, utils.OutputType, finres.Version, finres.OS, finres.Count)
+	PostCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.Ip, utils2.OutputType, finres.Version, finres.OS, finres.Count)
 	PostCollectInfo += "\n"
 	fmt.Println(PostCollectInfo)
-	switch utils.FileFormat {
+	switch utils2.FileFormat {
 	case "raw":
-		utils.TDatach <- PostCollectInfo
+		utils2.TDatach <- PostCollectInfo
 	case "json":
 		jsons, errs := json.Marshal(res)
 		if errs != nil {
 			fmt.Println(errs.Error())
 			return
 		}
-		utils.TDatach <- jsons
+		utils2.TDatach <- jsons
 	}
 }
 
-func PostgresConnect(User string, Password string, info utils.IpInfo, dbname string) (err error, result bool, db *sql.DB) {
+func PostgresConnect(User string, Password string, info utils2.IpInfo, dbname string) (err error, result bool, db *sql.DB) {
 	dataSourceName := strings.Join([]string{
-		fmt.Sprintf("connect_timeout=%d", utils.Timeout),
+		fmt.Sprintf("connect_timeout=%d", utils2.Timeout),
 		fmt.Sprintf("dbname=%s", dbname),
 		fmt.Sprintf("host=%v", info.Ip),
 		fmt.Sprintf("password=%v", Password),
@@ -103,7 +103,7 @@ func PostgresQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[strin
 			Qresult, Columns = DoRowsMapper(rows)
 
 		} else {
-			if !utils.IsAuto {
+			if !utils2.IsAuto {
 				fmt.Println("please check your query.")
 			}
 

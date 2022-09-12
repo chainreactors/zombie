@@ -1,7 +1,7 @@
 package main
 
 import (
-	"Zombie/v1/cmd"
+	"github.com/chainreactors/zombie/cmd"
 	"github.com/urfave/cli/v2"
 	"os"
 )

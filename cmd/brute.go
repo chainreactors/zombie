@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"Zombie/v1/internal/core"
-	exec2 "Zombie/v1/internal/exec"
-	"Zombie/v1/pkg/utils"
 	"context"
 	"encoding/json"
 	"fmt"
+	core2 "github.com/chainreactors/zombie/internal/core"
+	exec2 "github.com/chainreactors/zombie/internal/exec"
+	utils2 "github.com/chainreactors/zombie/pkg/utils"
 	"github.com/panjf2000/ants/v2"
 	"github.com/urfave/cli/v2"
 	"io/ioutil"
@@ -22,9 +22,9 @@ import (
 func Brute(ctx *cli.Context) (err error) {
 	var CurServer string
 	var UserList, PassList, IpSlice []string
-	var IpList []utils.IpInfo
+	var IpList []utils2.IpInfo
 	var fromgt bool
-	var ipserverinfo []utils.IpServerInfo
+	var ipserverinfo []utils2.IpServerInfo
 
 	fromgt = ctx.IsSet("gt")
 
@@ -34,11 +34,11 @@ func Brute(ctx *cli.Context) (err error) {
 	//}
 
 	if ctx.IsSet("ip") {
-		IpSlice = append(IpSlice, core.GetIPList(ctx.String("ip"))...)
+		IpSlice = append(IpSlice, core2.GetIPList(ctx.String("ip"))...)
 	}
 
 	if ctx.IsSet("IP") {
-		IpdictSlice, err := core.ReadIPDict(ctx.String("IP"))
+		IpdictSlice, err := core2.ReadIPDict(ctx.String("IP"))
 		if err != nil {
 			return err
 		}
@@ -53,7 +53,7 @@ func Brute(ctx *cli.Context) (err error) {
 		Ip := IpSlice[0]
 		if ctx.IsSet("server") {
 			ServerName := strings.ToUpper(ctx.String("server"))
-			if _, ok := utils.ServerPort[ServerName]; ok {
+			if _, ok := utils2.ServerPort[ServerName]; ok {
 				CurServer = ServerName
 			} else {
 				return fmt.Errorf("the ExecAble isn't be supported")
@@ -67,8 +67,8 @@ func Brute(ctx *cli.Context) (err error) {
 				return err
 			}
 
-			if _, ok := utils.PortServer[port]; ok {
-				CurServer = utils.PortServer[port]
+			if _, ok := utils2.PortServer[port]; ok {
+				CurServer = utils2.PortServer[port]
 				fmt.Println("Use default server")
 			} else {
 				return fmt.Errorf("Please input the type of ExecAble")
@@ -80,7 +80,7 @@ func Brute(ctx *cli.Context) (err error) {
 
 		CurServer = strings.ToUpper(CurServer)
 
-		IpList = core.GetIpInfoList(IpSlice, CurServer)
+		IpList = core2.GetIpInfoList(IpSlice, CurServer)
 		ipserverinfo = GenerIPServerInfo(IpList, CurServer)
 	} else {
 		fmt.Println("[+] Read from gt result")
@@ -90,23 +90,23 @@ func Brute(ctx *cli.Context) (err error) {
 
 	if ctx.IsSet("uppair") {
 		uppair := ctx.String("uppair")
-		core.UPList, _ = core.GetUAList(uppair)
+		core2.UPList, _ = core2.GetUAList(uppair)
 	} else {
 
 		if ctx.IsSet("username") && !ctx.IsSet("userdict") {
 			username := ctx.String("username")
-			UserList = core.GetUserList(username)
+			UserList = core2.GetUserList(username)
 		} else if ctx.IsSet("userdict") {
-			UserList, _ = core.ReadUserDict(ctx.String("userdict"))
+			UserList, _ = core2.ReadUserDict(ctx.String("userdict"))
 		} else {
 			fmt.Println("[+] Use default user dict")
 		}
 
 		if ctx.IsSet("password") && !ctx.IsSet("passdict") {
 			password := ctx.String("password")
-			PassList = core.GetPassList(password)
+			PassList = core2.GetPassList(password)
 		} else if ctx.IsSet("passdict") {
-			PassList, _ = core.ReadPassDict(ctx.String("passdict"))
+			PassList, _ = core2.ReadPassDict(ctx.String("passdict"))
 		} else {
 			fmt.Println("[+] Use default password dict")
 		}
@@ -119,35 +119,35 @@ func Brute(ctx *cli.Context) (err error) {
 	}
 
 	if ctx.IsSet("instance") {
-		utils.Instance = core.GetUserList(ctx.String("instance"))
+		utils2.Instance = core2.GetUserList(ctx.String("instance"))
 	}
 
-	utils.Timeout = ctx.Int("timeout")
-	utils.Thread = ctx.Int("thread")
-	utils.Simple = ctx.Bool("simple")
-	utils.Proc = ctx.Int("proc")
-	utils.FileFormat = ctx.String("type")
-	utils.File = ctx.String("file")
-	utils.OutputType = "Brute"
+	utils2.Timeout = ctx.Int("timeout")
+	utils2.Thread = ctx.Int("thread")
+	utils2.Simple = ctx.Bool("simple")
+	utils2.Proc = ctx.Int("proc")
+	utils2.FileFormat = ctx.String("type")
+	utils2.File = ctx.String("file")
+	utils2.OutputType = "Brute"
 
-	if utils.File == "./.res.log" {
-		utils.File = getExcPath() + "/.res.log"
+	if utils2.File == "./.res.log" {
+		utils2.File = getExcPath() + "/.res.log"
 	}
 
-	if utils.File != "null" {
-		utils.FileHandle = utils.InitFile(utils.File)
-		go exec2.QueryWrite3File(utils.FileHandle, utils.TDatach)
+	if utils2.File != "null" {
+		utils2.FileHandle = utils2.InitFile(utils2.File)
+		go exec2.QueryWrite3File(utils2.FileHandle, utils2.TDatach)
 	}
 
-	core.Summary = len(UserList) * len(PassList) * len(IpList)
+	core2.Summary = len(UserList) * len(PassList) * len(IpList)
 
-	if utils.Proc != 0 {
-		go core.Process(core.CountChan)
+	if utils2.Proc != 0 {
+		go core2.Process(core2.CountChan)
 	}
 
 	//ipserverinfo = HoneyPotTest(ipserverinfo)
 
-	if utils.Simple {
+	if utils2.Simple {
 		err = StartTaskSimple(UserList, PassList, ipserverinfo)
 	} else {
 		err = StartTask(UserList, PassList, ipserverinfo)
@@ -155,33 +155,33 @@ func Brute(ctx *cli.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	utils.FileHandle.Close()
+	utils2.FileHandle.Close()
 
-	close(core.CountChan)
+	close(core2.CountChan)
 
 	fmt.Println("start analysis brute res")
 
-	cblist, reslist := exec2.CleanBruteRes(&utils.BrutedList)
+	cblist, reslist := exec2.CleanBruteRes(&utils2.BrutedList)
 
-	core.OutPutRes(&reslist, &cblist, utils.File)
+	core2.OutPutRes(&reslist, &cblist, utils2.File)
 
 	return nil
 }
 
-func HoneyPotTest(IpServerList []utils.IpServerInfo) []utils.IpServerInfo {
+func HoneyPotTest(IpServerList []utils2.IpServerInfo) []utils2.IpServerInfo {
 
-	tasklist := core.GenerateRandTask(IpServerList)
+	tasklist := core2.GenerateRandTask(IpServerList)
 
 	wgs := &sync.WaitGroup{}
 
-	scanPool, _ := ants.NewPoolWithFunc(utils.Thread, func(i interface{}) {
-		par := i.(core.HoneyPara)
-		core.HoneyTest(&par)
+	scanPool, _ := ants.NewPoolWithFunc(utils2.Thread, func(i interface{}) {
+		par := i.(core2.HoneyPara)
+		core2.HoneyTest(&par)
 		wgs.Done()
 	}, ants.WithExpiryDuration(2*time.Second))
 
 	for target := range tasklist {
-		PrePara := core.HoneyPara{
+		PrePara := core2.HoneyPara{
 			Task: target,
 		}
 
@@ -193,53 +193,53 @@ func HoneyPotTest(IpServerList []utils.IpServerInfo) []utils.IpServerInfo {
 	scanPool.Release()
 	fmt.Println("Honey Pot Check  done")
 
-	var aliveinfo []utils.IpServerInfo
-	core.NotHoney.Range(func(key, value interface{}) bool {
+	var aliveinfo []utils2.IpServerInfo
+	core2.NotHoney.Range(func(key, value interface{}) bool {
 		if value.(bool) == true {
-			aliveinfo = append(aliveinfo, key.(utils.ScanTask).IpServerInfo)
+			aliveinfo = append(aliveinfo, key.(utils2.ScanTask).IpServerInfo)
 		}
 		return true
 	})
 	return aliveinfo
 }
 
-func StartTask(UserList []string, PassList []string, IpServerList []utils.IpServerInfo) error {
+func StartTask(UserList []string, PassList []string, IpServerList []utils2.IpServerInfo) error {
 	rootContext, rootCancel := context.WithCancel(context.Background())
 	for _, ipinfo := range IpServerList {
 
 		fmt.Printf("Now Processing %s:%d, ExecAble: %s\n", ipinfo.Ip, ipinfo.Port, ipinfo.Server)
 
-		utils.ChildContext, utils.ChildCancel = context.WithCancel(rootContext)
+		utils2.ChildContext, utils2.ChildCancel = context.WithCancel(rootContext)
 
-		TaskList := core.GenerateTask(UserList, PassList, ipinfo)
+		TaskList := core2.GenerateTask(UserList, PassList, ipinfo)
 
 		wgs := &sync.WaitGroup{}
-		PrePara := core.PoolPara{
-			Ctx:      utils.ChildContext,
+		PrePara := core2.PoolPara{
+			Ctx:      utils2.ChildContext,
 			Taskchan: TaskList,
 			Wgs:      wgs,
 		}
 
-		scanPool, _ := ants.NewPoolWithFunc(utils.Thread, func(i interface{}) {
-			par := i.(core.PoolPara)
-			core.BruteWork(&par)
+		scanPool, _ := ants.NewPoolWithFunc(utils2.Thread, func(i interface{}) {
+			par := i.(core2.PoolPara)
+			core2.BruteWork(&par)
 		}, ants.WithExpiryDuration(2*time.Second))
 
-		for i := 0; i < utils.Thread; i++ {
+		for i := 0; i < utils2.Thread; i++ {
 			wgs.Add(1)
 			_ = scanPool.Invoke(PrePara)
 		}
 		wgs.Wait()
 
-		RandomTask := utils.ScanTask{
-			TargetInfo: utils.TargetInfo{
+		RandomTask := utils2.ScanTask{
+			TargetInfo: utils2.TargetInfo{
 				IpServerInfo: ipinfo,
-				Username:     core.FlagUserName,
-				Password:     utils.RandStringBytesMaskImprSrcUnsafe(12),
+				Username:     core2.FlagUserName,
+				Password:     utils2.RandStringBytesMaskImprSrcUnsafe(12),
 			},
 		}
 
-		CurCon := core.ExecDispatch(RandomTask)
+		CurCon := core2.ExecDispatch(RandomTask)
 
 		alive := CurCon.Connect()
 
@@ -252,13 +252,13 @@ func StartTask(UserList []string, PassList []string, IpServerList []utils.IpServ
 	fmt.Println("All Task done")
 
 	time.Sleep(1000 * time.Millisecond)
-	if utils.FileFormat == "json" {
-		final := utils.OutputRes{}
+	if utils2.FileFormat == "json" {
+		final := utils2.OutputRes{}
 		jsons, errs := json.Marshal(final) //转换成JSON返回的是byte[]
 		if errs != nil {
 			fmt.Println(errs.Error())
 		}
-		utils.FileHandle.WriteString(string(jsons) + "]")
+		utils2.FileHandle.WriteString(string(jsons) + "]")
 	}
 
 	rootCancel()
@@ -266,24 +266,24 @@ func StartTask(UserList []string, PassList []string, IpServerList []utils.IpServ
 	return nil
 }
 
-func StartTaskSimple(UserList []string, PassList []string, IpServerList []utils.IpServerInfo) error {
+func StartTaskSimple(UserList []string, PassList []string, IpServerList []utils2.IpServerInfo) error {
 	rootContext, rootCancel := context.WithCancel(context.Background())
 
-	TaskList := core.GenerateTaskSimple(UserList, PassList, IpServerList)
+	TaskList := core2.GenerateTaskSimple(UserList, PassList, IpServerList)
 
 	wgs := &sync.WaitGroup{}
-	PrePara := core.PoolPara{
+	PrePara := core2.PoolPara{
 		Ctx:      rootContext,
 		Taskchan: TaskList,
 		Wgs:      wgs,
 	}
 
-	scanPool, _ := ants.NewPoolWithFunc(utils.Thread, func(i interface{}) {
-		par := i.(core.PoolPara)
-		core.BruteWork(&par)
+	scanPool, _ := ants.NewPoolWithFunc(utils2.Thread, func(i interface{}) {
+		par := i.(core2.PoolPara)
+		core2.BruteWork(&par)
 	}, ants.WithExpiryDuration(2*time.Second))
 
-	for i := 0; i < utils.Thread; i++ {
+	for i := 0; i < utils2.Thread; i++ {
 		wgs.Add(1)
 		_ = scanPool.Invoke(PrePara)
 	}
@@ -293,13 +293,13 @@ func StartTaskSimple(UserList []string, PassList []string, IpServerList []utils.
 
 	fmt.Println("All Task done")
 
-	if utils.FileFormat == "json" {
-		final := utils.OutputRes{}
+	if utils2.FileFormat == "json" {
+		final := utils2.OutputRes{}
 		jsons, errs := json.Marshal(final) //转换成JSON返回的是byte[]
 		if errs != nil {
 			fmt.Println(errs.Error())
 		}
-		utils.FileHandle.WriteString(string(jsons) + "]")
+		utils2.FileHandle.WriteString(string(jsons) + "]")
 	}
 
 	rootCancel()
@@ -307,9 +307,9 @@ func StartTaskSimple(UserList []string, PassList []string, IpServerList []utils.
 	return nil
 }
 
-func GenerIPServerInfo(ipinfo []utils.IpInfo, server string) (ipserverinfo []utils.IpServerInfo) {
+func GenerIPServerInfo(ipinfo []utils2.IpInfo, server string) (ipserverinfo []utils2.IpServerInfo) {
 	for _, info := range ipinfo {
-		isinfo := utils.IpServerInfo{}
+		isinfo := utils2.IpServerInfo{}
 		isinfo.IpInfo = info
 		isinfo.Server = server
 		ipserverinfo = append(ipserverinfo, isinfo)
@@ -319,7 +319,7 @@ func GenerIPServerInfo(ipinfo []utils.IpInfo, server string) (ipserverinfo []uti
 }
 
 func GenFromCb(cbfile string, server string) (userlist, passlist []string) {
-	var cblist []utils.Codebook
+	var cblist []utils2.Codebook
 	cbbytes, err := ioutil.ReadFile(cbfile)
 	if err != nil {
 		println(cbfile + " open failed")
@@ -333,7 +333,7 @@ func GenFromCb(cbfile string, server string) (userlist, passlist []string) {
 	}
 
 	if server != "all" {
-		var temp []utils.Codebook
+		var temp []utils2.Codebook
 		for _, info := range cblist {
 			if strings.HasPrefix(server, "~") {
 				if info.Server == strings.ToUpper(server[1:]) {
@@ -356,13 +356,13 @@ func GenFromCb(cbfile string, server string) (userlist, passlist []string) {
 		passlist = append(passlist, info.Password)
 	}
 
-	userlist = utils.RemoveDuplicateElement(userlist)
-	passlist = utils.RemoveDuplicateElement(passlist)
+	userlist = utils2.RemoveDuplicateElement(userlist)
+	passlist = utils2.RemoveDuplicateElement(passlist)
 
 	return
 }
 
-func GenFromGT(gtfile string, server string) (ipserverinfo []utils.IpServerInfo) {
+func GenFromGT(gtfile string, server string) (ipserverinfo []utils2.IpServerInfo) {
 
 	bytes, err := ioutil.ReadFile(gtfile)
 	if err != nil {
@@ -377,7 +377,7 @@ func GenFromGT(gtfile string, server string) (ipserverinfo []utils.IpServerInfo)
 	}
 
 	if server != "all" {
-		var temp []utils.IpServerInfo
+		var temp []utils2.IpServerInfo
 
 		for _, info := range ipserverinfo {
 			if strings.HasPrefix(server, "~") {
