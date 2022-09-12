@@ -1,8 +1,8 @@
 package exec
 
 import (
-	"Zombie/v1/pkg/utils"
 	"fmt"
+	"github.com/chainreactors/zombie/pkg/utils"
 	"github.com/go-redis/redis"
 	"regexp"
 	"strings"

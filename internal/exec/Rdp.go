@@ -1,9 +1,9 @@
 package exec
 
 import (
-	"Zombie/v1/pkg/utils"
 	"fmt"
 	"github.com/chainreactors/grdp"
+	"github.com/chainreactors/zombie/pkg/utils"
 	"strings"
 )
 

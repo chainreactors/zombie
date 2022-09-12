@@ -1,9 +1,9 @@
 package core
 
 import (
-	"Zombie/v1/pkg/utils"
 	"bufio"
 	"fmt"
+	utils2 "github.com/chainreactors/zombie/pkg/utils"
 	"os"
 	"strconv"
 	"strings"
@@ -35,11 +35,11 @@ func GetIPList(ipname string) (IPList []string) {
 			}
 
 			if strings.Contains(ip, "/") {
-				start, fin := utils.GetIpRange(ip)
+				start, fin := utils2.GetIpRange(ip)
 				for i := start; i <= fin; i++ {
 					// 如果是广播地址或网络地址,则跳过
 					if (i)%256 != 255 && (i)%256 != 0 {
-						IPList = append(IPList, utils.Int2ip(i)+suffix)
+						IPList = append(IPList, utils2.Int2ip(i)+suffix)
 					}
 				}
 			} else {
@@ -55,11 +55,11 @@ func GetIPList(ipname string) (IPList []string) {
 		}
 
 		if strings.Contains(ipname, "/") {
-			start, fin := utils.GetIpRange(ipname)
+			start, fin := utils2.GetIpRange(ipname)
 			for i := start; i <= fin; i++ {
 				// 如果是广播地址或网络地址,则跳过
 				if (i)%256 != 255 && (i)%256 != 0 {
-					IPList = append(IPList, utils.Int2ip(i)+suffix)
+					IPList = append(IPList, utils2.Int2ip(i)+suffix)
 				}
 			}
 		} else {
@@ -114,9 +114,9 @@ func GetIpList(ipstring string) (IpList []string) {
 	return IpList
 }
 
-func GetIpInfoList(iplist []string, Server string) (IpInfoList []utils.IpInfo) {
+func GetIpInfoList(iplist []string, Server string) (IpInfoList []utils2.IpInfo) {
 	for _, ip := range iplist {
-		target := utils.IpInfo{}
+		target := utils2.IpInfo{}
 
 		if strings.Contains(ip, ":") {
 			SplitIp := strings.Split(ip, ":")
@@ -129,9 +129,9 @@ func GetIpInfoList(iplist []string, Server string) (IpInfoList []utils.IpInfo) {
 			target.Ip = SplitIp[0]
 			IpInfoList = append(IpInfoList, target)
 		} else {
-			target := utils.IpInfo{
+			target := utils2.IpInfo{
 				Ip:   ip,
-				Port: utils.ServerPort[Server],
+				Port: utils2.ServerPort[Server],
 			}
 			IpInfoList = append(IpInfoList, target)
 		}

@@ -1,8 +1,8 @@
 package exec
 
 import (
-	utils2 "Zombie/v1/pkg/utils"
 	"fmt"
+	"github.com/chainreactors/zombie/pkg/utils"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
@@ -13,7 +13,7 @@ import (
 )
 
 type SshService struct {
-	utils2.IpInfo
+	utils.IpInfo
 	Username string `json:"username"`
 	Password string `json:"password"`
 	MysqlInf
@@ -86,14 +86,14 @@ func (s *SshService) Query() bool {
 
 func (s *SshService) Output(res interface{}) {
 	finres := res.(string)
-	utils2.TDatach <- finres
+	utils.TDatach <- finres
 }
 
-func SSHConnect(User string, Password string, info utils2.IpInfo) (err error, result bool, connect *ssh.Client) {
+func SSHConnect(User string, Password string, info utils.IpInfo) (err error, result bool, connect *ssh.Client) {
 	config := &ssh.ClientConfig{
 		User: User,
 
-		Timeout: time.Duration(utils2.Timeout) * time.Second,
+		Timeout: time.Duration(utils.Timeout) * time.Second,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},

@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"Zombie/v1/internal/core"
-	"Zombie/v1/internal/exec"
-	"Zombie/v1/pkg/utils"
 	"encoding/json"
 	"fmt"
+	core2 "github.com/chainreactors/zombie/internal/core"
+	"github.com/chainreactors/zombie/internal/exec"
+	utils2 "github.com/chainreactors/zombie/pkg/utils"
 	"github.com/panjf2000/ants/v2"
 	"github.com/urfave/cli/v2"
 	"os"
@@ -17,12 +17,12 @@ import (
 
 func Exec(ctx *cli.Context) (err error) {
 	var CurServer string
-	var CurtaskList []utils.ScanTask
-	utils.Timeout = 2
+	var CurtaskList []utils2.ScanTask
+	utils2.Timeout = 2
 
 	//ctx.String("InputFile")
 	if ctx.IsSet("InputFile") {
-		taskList, err := core.CleanRes(ctx.String("InputFile"))
+		taskList, err := core2.CleanRes(ctx.String("InputFile"))
 		CurtaskList = *taskList
 		if err != nil {
 			return err
@@ -33,12 +33,12 @@ func Exec(ctx *cli.Context) (err error) {
 			os.Exit(0)
 		}
 
-		IpSlice := core.GetIpList(ctx.String("ip"))
+		IpSlice := core2.GetIpList(ctx.String("ip"))
 
 		Ip := IpSlice[0]
 		if ctx.IsSet("server") {
 			ServerName := strings.ToUpper(ctx.String("server"))
-			if _, ok := utils.ServerPort[ServerName]; ok {
+			if _, ok := utils2.ServerPort[ServerName]; ok {
 				CurServer = ctx.String("server")
 			} else {
 				fmt.Println("the ExecAble isn't be supported")
@@ -54,8 +54,8 @@ func Exec(ctx *cli.Context) (err error) {
 				os.Exit(0)
 			}
 
-			if _, ok := utils.PortServer[port]; ok {
-				CurServer = utils.PortServer[port]
+			if _, ok := utils2.PortServer[port]; ok {
+				CurServer = utils2.PortServer[port]
 				fmt.Println("Use default server")
 			} else {
 				fmt.Println("Please input the type of ExecAble")
@@ -68,11 +68,11 @@ func Exec(ctx *cli.Context) (err error) {
 
 		CurServer = strings.ToUpper(CurServer)
 
-		IpList := core.GetIpInfoList(IpSlice, CurServer)
+		IpList := core2.GetIpInfoList(IpSlice, CurServer)
 
-		Curtask := utils.ScanTask{
-			TargetInfo: utils.TargetInfo{
-				IpServerInfo: utils.IpServerInfo{
+		Curtask := utils2.ScanTask{
+			TargetInfo: utils2.TargetInfo{
+				IpServerInfo: utils2.IpServerInfo{
 					IpInfo: IpList[0],
 					Server: CurServer,
 				},
@@ -86,10 +86,10 @@ func Exec(ctx *cli.Context) (err error) {
 	}
 	//初始化文件
 	input := ctx.String("input")
-	utils.File = ctx.String("OutputFile")
-	utils.FileFormat = ctx.String("type")
-	utils.IsAuto = ctx.Bool("auto")
-	utils.Thread = ctx.Int("thread")
+	utils2.File = ctx.String("OutputFile")
+	utils2.FileFormat = ctx.String("type")
+	utils2.IsAuto = ctx.Bool("auto")
+	utils2.Thread = ctx.Int("thread")
 
 	//dir := "./res"
 	//exist, _ := Utils.PathExists(dir)
@@ -103,16 +103,16 @@ func Exec(ctx *cli.Context) (err error) {
 	//	}
 	//}
 
-	if utils.File != "null" {
-		utils.FileHandle = utils.InitFile(utils.File)
-		utils.OutputType = CurtaskList[0].Server
-		go exec.QueryWrite3File(utils.FileHandle, utils.TDatach)
+	if utils2.File != "null" {
+		utils2.FileHandle = utils2.InitFile(utils2.File)
+		utils2.OutputType = CurtaskList[0].Server
+		go exec.QueryWrite3File(utils2.FileHandle, utils2.TDatach)
 
 	}
 
 	wgs := &sync.WaitGroup{}
-	scanPool, _ := ants.NewPoolWithFunc(utils.Thread, func(i interface{}) {
-		par := i.(utils.ScanTask)
+	scanPool, _ := ants.NewPoolWithFunc(utils2.Thread, func(i interface{}) {
+		par := i.(utils2.ScanTask)
 		StartExec(par)
 		wgs.Done()
 	}, ants.WithExpiryDuration(2*time.Second))
@@ -142,21 +142,21 @@ func Exec(ctx *cli.Context) (err error) {
 	wgs.Wait()
 
 	time.Sleep(1000 * time.Millisecond)
-	if utils.FileFormat == "json" {
-		final := utils.OutputRes{}
+	if utils2.FileFormat == "json" {
+		final := utils2.OutputRes{}
 		jsons, errs := json.Marshal(final) //转换成JSON返回的是byte[]
 		if errs != nil {
 			fmt.Println(errs.Error())
 		}
-		utils.FileHandle.WriteString(string(jsons) + "}")
+		utils2.FileHandle.WriteString(string(jsons) + "}")
 	}
 	fmt.Println("All Task Done!!!!")
 
 	return err
 }
 
-func StartExec(task utils.ScanTask) {
-	CurCon := core.ExecDispatch(task)
+func StartExec(task utils2.ScanTask) {
+	CurCon := core2.ExecDispatch(task)
 
 	if CurCon == nil {
 		return
@@ -175,7 +175,7 @@ func StartExec(task utils.ScanTask) {
 
 	}
 
-	if utils.IsAuto {
+	if utils2.IsAuto {
 		CurCon.GetInfo()
 	} else {
 		CurCon.Query()

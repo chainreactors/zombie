@@ -1,13 +1,13 @@
 package core
 
 import (
-	"Zombie/v1/pkg/utils"
+	utils2 "github.com/chainreactors/zombie/pkg/utils"
 )
 
 var UPList []string
 
-func GenerateTask(UserList []string, PassList []string, info utils.IpServerInfo) chan utils.ScanTask {
-	TaskList := make(chan utils.ScanTask)
+func GenerateTask(UserList []string, PassList []string, info utils2.IpServerInfo) chan utils2.ScanTask {
+	TaskList := make(chan utils2.ScanTask)
 	var UserIsDefault bool
 	var PassIsDefault bool
 
@@ -23,7 +23,7 @@ func GenerateTask(UserList []string, PassList []string, info utils.IpServerInfo)
 
 		if len(UPList) == 0 {
 			if UserIsDefault {
-				if defaultuser, ok := utils.DefaultUserDict[info.Server]; ok {
+				if defaultuser, ok := utils2.DefaultUserDict[info.Server]; ok {
 					UserList = defaultuser
 				} else {
 					UserList = []string{"admin"}
@@ -31,13 +31,13 @@ func GenerateTask(UserList []string, PassList []string, info utils.IpServerInfo)
 			}
 
 			if PassIsDefault {
-				PassList = utils.DefaultPasswords[info.Server]
+				PassList = utils2.DefaultPasswords[info.Server]
 			}
 
 			for _, username := range UserList {
 				for _, password := range PassList {
-					NewTask := utils.ScanTask{
-						TargetInfo: utils.TargetInfo{
+					NewTask := utils2.ScanTask{
+						TargetInfo: utils2.TargetInfo{
 							IpServerInfo: info,
 							Username:     username,
 							Password:     password,
@@ -50,12 +50,12 @@ func GenerateTask(UserList []string, PassList []string, info utils.IpServerInfo)
 			//UPList = append(UPList, "root "+ Utils.RandStringBytesMaskImprSrcUnsafe(8))
 
 			for _, up := range UPList {
-				username, password, err := utils.GetUP(up)
+				username, password, err := utils2.GetUP(up)
 				if err != nil {
 					continue
 				}
-				NewTask := utils.ScanTask{
-					TargetInfo: utils.TargetInfo{
+				NewTask := utils2.ScanTask{
+					TargetInfo: utils2.TargetInfo{
 						IpServerInfo: info,
 						Username:     username,
 						Password:     password,
@@ -73,15 +73,15 @@ func GenerateTask(UserList []string, PassList []string, info utils.IpServerInfo)
 	return TaskList
 }
 
-func GenerateRandTask(ipinfo []utils.IpServerInfo) chan utils.ScanTask {
-	TaskList := make(chan utils.ScanTask)
+func GenerateRandTask(ipinfo []utils2.IpServerInfo) chan utils2.ScanTask {
+	TaskList := make(chan utils2.ScanTask)
 	go func() {
 		for _, info := range ipinfo {
-			NewTask := utils.ScanTask{
-				TargetInfo: utils.TargetInfo{
+			NewTask := utils2.ScanTask{
+				TargetInfo: utils2.TargetInfo{
 					IpServerInfo: info,
 					Username:     "admin",
-					Password:     utils.RandStringBytesMaskImprSrcUnsafe(12),
+					Password:     utils2.RandStringBytesMaskImprSrcUnsafe(12),
 				},
 			}
 			if info.Server == "ORACLE" {
@@ -94,9 +94,9 @@ func GenerateRandTask(ipinfo []utils.IpServerInfo) chan utils.ScanTask {
 	return TaskList
 }
 
-func GenerateTaskSimple(UserList []string, PassList []string, ipinfo []utils.IpServerInfo) chan utils.ScanTask {
+func GenerateTaskSimple(UserList []string, PassList []string, ipinfo []utils2.IpServerInfo) chan utils2.ScanTask {
 
-	TaskList := make(chan utils.ScanTask)
+	TaskList := make(chan utils2.ScanTask)
 	var UserIsDefault bool
 	var PassIsDefault bool
 
@@ -111,7 +111,7 @@ func GenerateTaskSimple(UserList []string, PassList []string, ipinfo []utils.IpS
 	go func() {
 		for _, info := range ipinfo {
 			if UserIsDefault {
-				if defaultuser, ok := utils.DefaultUserDict[info.Server]; ok {
+				if defaultuser, ok := utils2.DefaultUserDict[info.Server]; ok {
 					UserList = defaultuser
 				} else {
 					UserList = []string{"admin"}
@@ -119,7 +119,7 @@ func GenerateTaskSimple(UserList []string, PassList []string, ipinfo []utils.IpS
 			}
 
 			if PassIsDefault {
-				PassList = utils.DefaultPasswords[info.Server]
+				PassList = utils2.DefaultPasswords[info.Server]
 			}
 
 			Summary = len(PassList) * len(UserList) * len(ipinfo)
@@ -128,15 +128,15 @@ func GenerateTaskSimple(UserList []string, PassList []string, ipinfo []utils.IpS
 				//PassList = append(PassList, Utils.RandStringBytesMaskImprSrcUnsafe(8))
 				for _, username := range UserList {
 					for _, password := range PassList {
-						NewTask := utils.ScanTask{
-							TargetInfo: utils.TargetInfo{
+						NewTask := utils2.ScanTask{
+							TargetInfo: utils2.TargetInfo{
 								IpServerInfo: info,
 								Username:     username,
 								Password:     password,
 							},
 						}
 						if info.Server == "ORACLE" {
-							for _, ins := range utils.Instance {
+							for _, ins := range utils2.Instance {
 								NewTask.Instance = ins
 								TaskList <- NewTask
 							}
@@ -151,19 +151,19 @@ func GenerateTaskSimple(UserList []string, PassList []string, ipinfo []utils.IpS
 			} else {
 				//UPList = append(UPList, "root "+ Utils.RandStringBytesMaskImprSrcUnsafe(8))
 				for _, up := range UPList {
-					username, password, err := utils.GetUP(up)
+					username, password, err := utils2.GetUP(up)
 					if err != nil {
 						continue
 					}
-					NewTask := utils.ScanTask{
-						TargetInfo: utils.TargetInfo{
+					NewTask := utils2.ScanTask{
+						TargetInfo: utils2.TargetInfo{
 							IpServerInfo: info,
 							Username:     username,
 							Password:     password,
 						},
 					}
 					if info.Server == "ORACLE" {
-						for _, ins := range utils.Instance {
+						for _, ins := range utils2.Instance {
 							NewTask.Instance = ins
 							TaskList <- NewTask
 						}

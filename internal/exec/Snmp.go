@@ -1,8 +1,8 @@
 package exec
 
 import (
-	"Zombie/v1/pkg/utils"
 	"fmt"
+	utils2 "github.com/chainreactors/zombie/pkg/utils"
 	"github.com/gosnmp/gosnmp"
 	"log"
 	"net"
@@ -13,7 +13,7 @@ import (
 )
 
 type SnmpService struct {
-	utils.IpInfo
+	utils2.IpInfo
 	Password string
 	Cidr     []string
 	GateWay  []string
@@ -45,14 +45,14 @@ type SwitchInfo struct {
 	InterfaceSlice []string `json:"InterfaceSlice"`
 }
 
-func SnmpConnect(Password string, info utils.IpInfo) (err error, result bool, db *gosnmp.GoSNMP) {
+func SnmpConnect(Password string, info utils2.IpInfo) (err error, result bool, db *gosnmp.GoSNMP) {
 
 	g := &gosnmp.GoSNMP{
 		Target:             info.Ip,
 		Port:               uint16(info.Port),
 		Community:          Password,
 		Version:            gosnmp.Version2c,
-		Timeout:            time.Duration(utils.Timeout/2) * time.Second,
+		Timeout:            time.Duration(utils2.Timeout/2) * time.Second,
 		MaxOids:            gosnmp.MaxOids,
 		Retries:            3,
 		ExponentialTimeout: true,
@@ -175,8 +175,8 @@ func (s *SnmpService) GetInfo() bool {
 		}
 	}
 
-	FinIPSlice = utils.RemoveDuplicateElement(FinIPSlice)
-	FinCidrSlice = utils.RemoveDuplicateElement(FinCidrSlice)
+	FinIPSlice = utils2.RemoveDuplicateElement(FinIPSlice)
+	FinCidrSlice = utils2.RemoveDuplicateElement(FinCidrSlice)
 
 	//TODO: 改为直接输出
 	//f, err1 := os.Create("./res/" + s.Ip + "Cidr.txt")
@@ -198,7 +198,7 @@ func (s *SnmpService) GetInfo() bool {
 	s.Cidr = FinCidrSlice
 	s.GateWay = FinIPSlice
 
-	if utils.More {
+	if utils2.More {
 		s.SwitchInfo = *GetMoreInfo(s.SnmpCon)
 	}
 	return true
@@ -281,8 +281,8 @@ func HandleinetCidrRouteEntry(spcon *gosnmp.GoSNMP) (*CiderRoute, error) {
 		}
 
 	}
-	result.Cidr = utils.RemoveDuplicateElement(result.Cidr)
-	result.GateWay = utils.RemoveDuplicateElement(result.GateWay)
+	result.Cidr = utils2.RemoveDuplicateElement(result.Cidr)
+	result.GateWay = utils2.RemoveDuplicateElement(result.GateWay)
 
 	return &result, nil
 
