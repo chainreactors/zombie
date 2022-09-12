@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
-	"github.com/chainreactors/zombie/internal/exec"
+	"github.com/chainreactors/zombie/internal/plugin"
 	"github.com/chainreactors/zombie/pkg/utils"
 	"sync"
 	"time"
@@ -69,8 +69,8 @@ func BruteWork(WorkerPara *PoolPara) {
 			if !alive {
 				switch CurCon.(type) {
 
-				case *exec.RedisService:
-					res.Additional += CurCon.(*exec.RedisService).Additional
+				case *plugin.RedisService:
+					res.Additional += CurCon.(*plugin.RedisService).Additional
 				}
 				continue
 			}

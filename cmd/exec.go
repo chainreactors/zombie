@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	core2 "github.com/chainreactors/zombie/internal/core"
-	"github.com/chainreactors/zombie/internal/exec"
+	"github.com/chainreactors/zombie/internal/plugin"
 	utils2 "github.com/chainreactors/zombie/pkg/utils"
 	"github.com/panjf2000/ants/v2"
 	"github.com/urfave/cli/v2"
@@ -106,7 +106,7 @@ func Exec(ctx *cli.Context) (err error) {
 	if utils2.File != "null" {
 		utils2.FileHandle = utils2.InitFile(utils2.File)
 		utils2.OutputType = CurtaskList[0].Server
-		go exec.QueryWrite3File(utils2.FileHandle, utils2.TDatach)
+		go plugin.QueryWrite3File(utils2.FileHandle, utils2.TDatach)
 
 	}
 

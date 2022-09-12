@@ -1,4 +1,4 @@
-package exec
+package plugin
 
 //type MongoService struct {
 //	Utils.IpInfo
