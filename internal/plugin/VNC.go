@@ -1,4 +1,4 @@
-package exec
+package plugin
 
 import (
 	"github.com/chainreactors/zombie/pkg/utils"

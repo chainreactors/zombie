@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	core2 "github.com/chainreactors/zombie/internal/core"
-	exec2 "github.com/chainreactors/zombie/internal/exec"
+	exec2 "github.com/chainreactors/zombie/internal/plugin"
 	utils2 "github.com/chainreactors/zombie/pkg/utils"
 	"github.com/panjf2000/ants/v2"
 	"github.com/urfave/cli/v2"

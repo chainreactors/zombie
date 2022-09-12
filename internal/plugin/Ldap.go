@@ -1,4 +1,4 @@
-package exec
+package plugin
 
 import (
 	"crypto/tls"

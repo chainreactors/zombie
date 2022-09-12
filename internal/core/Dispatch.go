@@ -1,64 +1,64 @@
 package core
 
 import (
-	exec2 "github.com/chainreactors/zombie/internal/exec"
+	"github.com/chainreactors/zombie/internal/plugin"
 	"github.com/chainreactors/zombie/pkg/utils"
 	"strings"
 )
 
-func ExecDispatch(CurTask utils.ScanTask) exec2.ExecAble {
+func ExecDispatch(CurTask utils.ScanTask) plugin.ExecAble {
 	CurTask.Server = strings.ToUpper(CurTask.Server)
 	switch CurTask.Server {
 	case "POSTGRESQL":
-		return &exec2.PostgresService{
+		return &plugin.PostgresService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
 			Dbname:   "postgres",
 		}
 	case "MSSQL":
-		return &exec2.MssqlService{
+		return &plugin.MssqlService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
 		}
 	case "MYSQL":
-		return &exec2.MysqlService{
+		return &plugin.MysqlService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
 		}
 	case "ORACLE":
-		return &exec2.OracleService{
+		return &plugin.OracleService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
 		}
 	case "SNMP":
-		return &exec2.SnmpService{
+		return &plugin.SnmpService{
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
 		}
 	case "SSH":
-		return &exec2.SshService{
+		return &plugin.SshService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
 		}
 	case "RDP":
-		return &exec2.RdpService{
+		return &plugin.RdpService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
 		}
 	case "SMB":
-		return &exec2.SmbService{
+		return &plugin.SmbService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
 		}
 	case "FTP":
-		return &exec2.FtpService{
+		return &plugin.FtpService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
@@ -71,19 +71,19 @@ func ExecDispatch(CurTask utils.ScanTask) exec2.ExecAble {
 	//		IpInfo:   CurTask.Info,
 	//	}
 	case "VNC":
-		return &exec2.VNCService{
+		return &plugin.VNCService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
 		}
 	case "REDIS":
-		return &exec2.RedisService{
+		return &plugin.RedisService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
 		}
 	case "LDAP":
-		return &exec2.LdapService{
+		return &plugin.LdapService{
 			Username: CurTask.Username,
 			Password: CurTask.Password,
 			IpInfo:   CurTask.IpInfo,
