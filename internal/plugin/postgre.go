@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	utils2 "github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg/utils"
 	_ "github.com/lib/pq"
 	"os"
 	"strconv"
@@ -12,13 +12,11 @@ import (
 )
 
 type PostgresService struct {
-	utils2.IpInfo
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Dbname   string `json:"Dbname"`
+	*utils.Task
+	Dbname string `json:"Dbname"`
 	PostgreInf
-	Input  string
-	SqlCon *sql.DB
+	Input string
+	conn  *sql.DB
 }
 
 type PostgreInf struct {
@@ -30,9 +28,7 @@ type PostgreInf struct {
 var PostgresCollectInfo string
 
 func (s *PostgresService) GetInfo() bool {
-	defer s.SqlCon.Close()
-
-	res := GetPostBaseInfo(s.SqlCon)
+	res := GetPostBaseInfo(s.conn)
 	res.Count = GetPostgresSummary(s)
 	s.PostgreInf = *res
 	//将结果放入管道
@@ -51,47 +47,44 @@ func (s *PostgresService) SetDbname(db string) {
 func (s *PostgresService) Output(res interface{}) {
 	finres := res.(PostgresService)
 	PostCollectInfo := ""
-	PostCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.Ip, utils2.OutputType, finres.Version, finres.OS, finres.Count)
+	PostCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.IP.String(), utils.OutputType, finres.Version, finres.OS, finres.Count)
 	PostCollectInfo += "\n"
 	fmt.Println(PostCollectInfo)
-	switch utils2.FileFormat {
+	switch utils.FileFormat {
 	case "raw":
-		utils2.TDatach <- PostCollectInfo
+		utils.TDatach <- PostCollectInfo
 	case "json":
 		jsons, errs := json.Marshal(res)
 		if errs != nil {
 			fmt.Println(errs.Error())
 			return
 		}
-		utils2.TDatach <- jsons
+		utils.TDatach <- jsons
 	}
 }
 
-func PostgresConnect(User string, Password string, info utils2.IpInfo, dbname string) (err error, result bool, db *sql.DB) {
+func PostgresConnect(info *utils.Task, dbname string) (conn *sql.DB, err error) {
 	dataSourceName := strings.Join([]string{
-		fmt.Sprintf("connect_timeout=%d", utils2.Timeout),
+		fmt.Sprintf("connect_timeout=%d", utils.Timeout),
 		fmt.Sprintf("dbname=%s", dbname),
-		fmt.Sprintf("host=%v", info.Ip),
-		fmt.Sprintf("password=%v", Password),
+		fmt.Sprintf("host=%v", info.IP.String()),
+		fmt.Sprintf("password=%v", info.Password),
 		fmt.Sprintf("port=%v", info.Port),
 		"sslmode=disable",
-		fmt.Sprintf("user=%v", User),
+		fmt.Sprintf("user=%v", info.Username),
 	}, " ")
 
-	db, err = sql.Open("postgres", dataSourceName)
-
+	conn, err = sql.Open("postgres", dataSourceName)
 	if err != nil {
-		result = false
-		return err, result, nil
+		return nil, err
 	}
 
-	err = db.Ping()
-	if err == nil {
-		result = true
-
+	err = conn.Ping()
+	if err != nil {
+		return nil, err
 	}
 
-	return err, result, db
+	return conn, nil
 
 }
 
@@ -103,7 +96,7 @@ func PostgresQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[strin
 			Qresult, Columns = DoRowsMapper(rows)
 
 		} else {
-			if !utils2.IsAuto {
+			if !utils.IsAuto {
 				fmt.Println("please check your query.")
 			}
 
@@ -119,8 +112,8 @@ func PostgresQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[strin
 
 func (s *PostgresService) Query() bool {
 
-	defer s.SqlCon.Close()
-	err, Qresult, Columns := PostgresQuery(s.SqlCon, s.Input)
+	defer s.conn.Close()
+	err, Qresult, Columns := PostgresQuery(s.conn, s.Input)
 
 	if err != nil {
 		fmt.Println("something wrong")
@@ -132,18 +125,20 @@ func (s *PostgresService) Query() bool {
 	return true
 }
 
-func (s *PostgresService) Connect() bool {
-	err, _, db := PostgresConnect(s.Username, s.Password, s.IpInfo, s.Dbname)
-	if err == nil {
-		s.SqlCon = db
-		return true
+func (s *PostgresService) Connect() error {
+	conn, err := PostgresConnect(s.Task, s.Dbname)
+	if err != nil {
+		return err
 	}
-	return false
+	s.conn = conn
+	return nil
 }
 
-func (s *PostgresService) DisConnect() bool {
-	s.SqlCon.Close()
-	return false
+func (s *PostgresService) Close() error {
+	if s.conn != nil {
+		return s.conn.Close()
+	}
+	return NilConnError{s.Service}
 }
 
 func GetPostBaseInfo(SqlCon *sql.DB) *PostgreInf {
@@ -177,11 +172,10 @@ func GetPostBaseInfo(SqlCon *sql.DB) *PostgreInf {
 }
 
 func GetPostgresSummary(s *PostgresService) int {
-
 	var db []string
 	var sum int
 
-	err, Qresult, Columns := PostgresQuery(s.SqlCon, "SELECT datname FROM pg_database")
+	err, Qresult, Columns := PostgresQuery(s.conn, "SELECT datname FROM pg_database")
 
 	for _, items := range Qresult {
 		for _, cname := range Columns {
@@ -194,17 +188,14 @@ func GetPostgresSummary(s *PostgresService) int {
 		return 0
 	}
 
-	_, Qresult, Columns = PostgresQuery(s.SqlCon, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
-
+	_, Qresult, Columns = PostgresQuery(s.conn, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
 	CurIntSum := GetSummary(Qresult, Columns)
-
 	CurSum, err := strconv.Atoi(CurIntSum)
-
 	if err == nil {
 		sum += CurSum
 	}
 
-	s.SqlCon.Close()
+	s.conn.Close()
 
 	for _, dbname := range db {
 		if dbname == "postgres" {
@@ -212,21 +203,17 @@ func GetPostgresSummary(s *PostgresService) int {
 		}
 
 		s.SetDbname(dbname)
-		succ := s.Connect()
-		if succ {
-			_, Qresult, Columns = PostgresQuery(s.SqlCon, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
-
+		err := s.Connect()
+		if err == nil {
+			_, Qresult, Columns = PostgresQuery(s.conn, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
 			CurIntSum = GetSummary(Qresult, Columns)
-
 			CurSum, err = strconv.Atoi(CurIntSum)
-
 			if err == nil {
 				sum += CurSum
 			}
-			s.SqlCon.Close()
+			s.conn.Close()
 		}
 	}
 
 	return sum
-
 }

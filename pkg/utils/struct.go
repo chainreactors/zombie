@@ -2,12 +2,30 @@ package utils
 
 import (
 	"context"
+	"fmt"
+	"github.com/chainreactors/ipcs"
+	"strconv"
 )
 
-type IpInfo struct {
-	Ip       string `json:"IP"`
-	Port     int    `json:"Port"`
-	Instance string
+type Task struct {
+	*ipcs.Addr
+	Service    string `json:"Server"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
+	ExecString string `json:"exec"`
+	Instance   string
+	Timeout    int
+	Context    context.Context
+	Canceler   context.CancelFunc
+}
+
+func (r Task) Address() string {
+	return r.Addr.String()
+}
+
+func (r Task) UintPort() uint16 {
+	p, _ := strconv.Atoi(r.Port)
+	return uint16(p)
 }
 
 type Codebook struct {
@@ -16,37 +34,21 @@ type Codebook struct {
 	Server   string `json:"server"`
 }
 
-type IpServerInfo struct {
-	IpInfo
-	Server string `json:"Server"`
-}
-
-type ScanTask struct {
-	TargetInfo
-	Input string
-}
-
-type TargetInfo struct {
-	IpServerInfo
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type OutputRes struct {
-	TargetInfo
+type Result struct {
+	*Task
+	OK         bool
+	Err        error
 	Additional string `json:"additional"`
 }
 
-type BruteRes struct {
-	Result     bool
-	Additional string
+func (r Result) String() string {
+	return fmt.Sprintf("[+] %s\t%s\t%s\n", r.Address(), r.Username, r.Password)
 }
 
 var (
 	Thread  int
 	Simple  bool
 	Timeout int
-	Proc    int
 )
 
 var File string
@@ -54,7 +56,7 @@ var OutputType string
 var IsAuto, More bool
 var FileFormat string
 var Instance []string
-var BrutedList []OutputRes
+var BrutedList []Result
 var ChildContext context.Context
 var ChildCancel context.CancelFunc
 
@@ -63,40 +65,38 @@ var (
 )
 
 var (
-	PortServer = map[int]string{
-		21:    "FTP",
-		22:    "SSH",
-		445:   "SMB",
-		1433:  "MSSQL",
-		3306:  "MYSQL",
-		5432:  "POSTGRESQL",
-		6379:  "REDIS",
-		9200:  "ES",
-		27017: "MONGO",
-		5900:  "VNC",
-		8080:  "TOMCAT",
-		161:   "SNMP",
-		3389:  "RDP",
-		1521:  "ORACLE",
-	}
-	ServerPort = map[string]int{
-		"FTP":        21,
-		"SSH":        22,
-		"SMB":        445,
-		"MSSQL":      1433,
-		"MYSQL":      3306,
-		"POSTGRESQL": 5432,
-		"REDIS":      6379,
-		"ES":         9200,
-		"MONGO":      27017,
-		"VNC":        5900,
-		"TOMCAT":     8080,
-		"RDP":        3389,
-		"SNMP":       161,
-		"ORACLE":     1521,
+	ServicePortMap = map[string]string{
+		"FTP":        "21",
+		"SSH":        "22",
+		"SMB":        "445",
+		"MSSQL":      "1433",
+		"MYSQL":      "3306",
+		"POSTGRESQL": "5432",
+		"REDIS":      "6379",
+		"ES":         "9200",
+		"MONGO":      "27017",
+		"VNC":        "5900",
+		"TOMCAT":     "8080",
+		"RDP":        "3389",
+		"SNMP":       "161",
+		"ORACLE":     "1521",
+		"21":         "FTP",
+		"22":         "SSH",
+		"445":        "SMB",
+		"1433":       "MSSQL",
+		"3306":       "MYSQL",
+		"5432":       "POSTGRESQL",
+		"6379":       "REDIS",
+		"9200":       "ES",
+		"27017":      "MONGO",
+		"5900":       "VNC",
+		"8080":       "TOMCAT",
+		"161":        "SNMP",
+		"3389":       "RDP",
+		"1521":       "ORACLE",
 	}
 
-	DefaultUserDict = map[string][]string{
+	DefaultUsernames = map[string][]string{
 		"FTP":        {"ftp", "admin", "www", "wwwroot"},
 		"MYSQL":      {"root", "mysql"},
 		"MSSQL":      {"sa", "sql"},

@@ -2,7 +2,7 @@ package plugin
 
 import (
 	"fmt"
-	utils2 "github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg/utils"
 	"github.com/gosnmp/gosnmp"
 	"log"
 	"net"
@@ -13,13 +13,12 @@ import (
 )
 
 type SnmpService struct {
-	utils2.IpInfo
-	Password string
-	Cidr     []string
-	GateWay  []string
-	Input    string
+	*utils.Task
+	Cidr    []string
+	GateWay []string
+	Input   string
 	SwitchInfo
-	SnmpCon *gosnmp.GoSNMP
+	conn *gosnmp.GoSNMP
 }
 
 type CiderRoute struct {
@@ -45,46 +44,41 @@ type SwitchInfo struct {
 	InterfaceSlice []string `json:"InterfaceSlice"`
 }
 
-func SnmpConnect(Password string, info utils2.IpInfo) (err error, result bool, db *gosnmp.GoSNMP) {
-
+func SnmpConnect(info *utils.Task) (conn *gosnmp.GoSNMP, err error) {
 	g := &gosnmp.GoSNMP{
-		Target:             info.Ip,
-		Port:               uint16(info.Port),
-		Community:          Password,
+		Target:             info.IP.String(),
+		Port:               info.UintPort(),
+		Community:          info.Password,
 		Version:            gosnmp.Version2c,
-		Timeout:            time.Duration(utils2.Timeout/2) * time.Second,
+		Timeout:            time.Duration(utils.Timeout/2) * time.Second,
 		MaxOids:            gosnmp.MaxOids,
 		Retries:            3,
 		ExponentialTimeout: true,
 	}
 	err = g.Connect()
-
 	if err != nil {
 		//log.Println("Connect() err: %v", err)
-		return err, false, nil
+		return nil, err
 	}
-	GetRes, err := g.Get([]string{".1.3.6.1.2.1.1.1.0"})
+	//GetRes, err := g.Get([]string{".1.3.6.1.2.1.1.1.0"})
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	if err != nil {
-		result = false
-	} else {
+	//variable := GetRes.Variables[0]
+	//if variable.Value != nil {
+	//	result = true
+	//}
 
-		variable := GetRes.Variables[0]
-		if variable.Value != nil {
-			result = true
-		}
-
-	}
-
-	return err, result, g
+	return conn, nil
 }
 
 func (s *SnmpService) Query() bool {
-	defer s.SnmpCon.Conn.Close()
+	defer s.conn.Conn.Close()
 
 	if strings.HasPrefix(s.Input, "Walk") {
 		input := strings.Replace(s.Input, "Walk", "", 1)
-		GetRes, err := s.SnmpCon.BulkWalkAll(input)
+		GetRes, err := s.conn.BulkWalkAll(input)
 		if err != nil {
 			return false
 		}
@@ -107,7 +101,7 @@ func (s *SnmpService) Query() bool {
 		}
 
 	} else {
-		GetRes, err := s.SnmpCon.Get([]string{s.Input})
+		GetRes, err := s.conn.Get([]string{s.Input})
 		if err != nil {
 			return false
 		}
@@ -135,19 +129,20 @@ func (s *SnmpService) SetQuery(query string) {
 	s.Input = query
 }
 
-func (s *SnmpService) Connect() bool {
-
-	_, result, sn := SnmpConnect(s.Password, s.IpInfo)
-	if sn != nil && result {
-		s.SnmpCon = sn
-		return true
+func (s *SnmpService) Connect() error {
+	conn, err := SnmpConnect(s.Task)
+	if err != nil {
+		return err
 	}
-	return false
+	s.conn = conn
+	return nil
 }
 
-func (s *SnmpService) DisConnect() bool {
-	s.SnmpCon.Conn.Close()
-	return false
+func (s *SnmpService) Close() error {
+	if s.conn != nil {
+		return s.conn.Conn.Close()
+	}
+	return NilConnError{s.Service}
 }
 
 func (s *SnmpService) Output(res interface{}) {
@@ -155,8 +150,8 @@ func (s *SnmpService) Output(res interface{}) {
 }
 
 func (s *SnmpService) GetInfo() bool {
-	cidr, _ := HandleinetCidrRouteEntry(s.SnmpCon)
-	submask, _ := HandleIpSubmask(s.SnmpCon)
+	cidr, _ := HandleinetCidrRouteEntry(s.conn)
+	submask, _ := HandleIpSubmask(s.conn)
 	var FinCidrSlice []string
 	var FinIPSlice []string
 
@@ -175,8 +170,8 @@ func (s *SnmpService) GetInfo() bool {
 		}
 	}
 
-	FinIPSlice = utils2.RemoveDuplicateElement(FinIPSlice)
-	FinCidrSlice = utils2.RemoveDuplicateElement(FinCidrSlice)
+	FinIPSlice = utils.RemoveDuplicateElement(FinIPSlice)
+	FinCidrSlice = utils.RemoveDuplicateElement(FinCidrSlice)
 
 	//TODO: 改为直接输出
 	//f, err1 := os.Create("./res/" + s.Ip + "Cidr.txt")
@@ -198,8 +193,8 @@ func (s *SnmpService) GetInfo() bool {
 	s.Cidr = FinCidrSlice
 	s.GateWay = FinIPSlice
 
-	if utils2.More {
-		s.SwitchInfo = *GetMoreInfo(s.SnmpCon)
+	if utils.More {
+		s.SwitchInfo = *GetMoreInfo(s.conn)
 	}
 	return true
 }
@@ -281,8 +276,8 @@ func HandleinetCidrRouteEntry(spcon *gosnmp.GoSNMP) (*CiderRoute, error) {
 		}
 
 	}
-	result.Cidr = utils2.RemoveDuplicateElement(result.Cidr)
-	result.GateWay = utils2.RemoveDuplicateElement(result.GateWay)
+	result.Cidr = utils.RemoveDuplicateElement(result.Cidr)
+	result.GateWay = utils.RemoveDuplicateElement(result.GateWay)
 
 	return &result, nil
 

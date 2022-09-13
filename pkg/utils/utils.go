@@ -5,13 +5,13 @@ import (
 	"strings"
 )
 
-func UpdatePass(CurTask ScanTask) ScanTask {
-	if strings.Contains(CurTask.Password, "%user%") {
-		CurTask.Password = strings.Replace(CurTask.Password, "%user%", CurTask.Username, 1)
-	}
-
-	return CurTask
-}
+//func UpdatePass(CurTask ScanTask) ScanTask {
+//	if strings.Contains(CurTask.Password, "%user%") {
+//		CurTask.Password = strings.Replace(CurTask.Password, "%user%", CurTask.Username, 1)
+//	}
+//
+//	return CurTask
+//}
 
 func GetUP(up string) (user, pass string, err error) {
 	ualist := strings.Split(up, " ")

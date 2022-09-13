@@ -9,51 +9,49 @@ import (
 )
 
 type OracleService struct {
-	utils2.IpInfo
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Input    string
-	SqlCon   *sql.DB
+	*utils2.Task
+	Input string
+	conn  *sql.DB
 }
 
 func (s *OracleService) Query() bool {
 	panic("implement me")
 }
 
-func OracleConnect(User string, Password string, info utils2.IpInfo) (err error, result bool, db *sql.DB) {
+func OracleConnect(info *utils2.Task) (conn *sql.DB, err error) {
 
-	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%d/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", User, Password, info.Ip, info.Port, info.Instance, utils2.Timeout, utils2.Timeout)
+	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%d/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", info.Username, info.Password, info.IP.String(), info.Port, info.Instance, utils2.Timeout, utils2.Timeout)
 
-	db, err = sql.Open("oracle", dataSourceName)
-
+	conn, err = sql.Open("oracle", dataSourceName)
 	if err != nil {
-		result = false
-		return err, result, nil
+		return nil, err
 	}
 
-	db.SetMaxOpenConns(60)
-	db.SetMaxIdleConns(60)
+	//conn.SetMaxOpenConns(60)
+	//conn.SetMaxIdleConns(60)
 
-	err = db.Ping()
-
-	if err == nil {
-		result = true
+	err = conn.Ping()
+	if err != nil {
+		return nil, err
 	}
-	return err, result, db
+
+	return conn, nil
 }
 
-func (s *OracleService) Connect() bool {
-	err, _, db := OracleConnect(s.Username, s.Password, s.IpInfo)
-	if err == nil {
-		s.SqlCon = db
-		return true
+func (s *OracleService) Connect() error {
+	conn, err := OracleConnect(s.Task)
+	if err != nil {
+		return err
 	}
-	return false
+	s.conn = conn
+	return err
 }
 
-func (s *OracleService) DisConnect() bool {
-	s.SqlCon.Close()
-	return false
+func (s *OracleService) Close() error {
+	if s.conn != nil {
+		return s.conn.Close()
+	}
+	return NilConnError{s.Service}
 }
 
 func (s *OracleService) SetQuery(query string) {
@@ -84,7 +82,7 @@ func (s *OracleService) Output(res interface{}) {
 }
 
 func (s *OracleService) GetInfo() bool {
-	defer s.SqlCon.Close()
+	defer s.conn.Close()
 
 	return true
 }

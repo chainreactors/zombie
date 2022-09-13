@@ -1,128 +1,145 @@
 package cmd
 
 import (
-	"fmt"
-	"github.com/urfave/cli/v2"
+	"github.com/chainreactors/logs"
+	"github.com/chainreactors/zombie/internal/core"
+	"github.com/jessevdk/go-flags"
 )
 
-var BruteCli = cli.Command{
-	Name: "Brute",
-	Action: func(context *cli.Context) error {
-		err := Brute(context)
-		if err != nil {
-			fmt.Println(err.Error())
-			return err
-		}
-		return nil
-	},
-	Aliases: []string{"B", "b"},
-	Flags: []cli.Flag{
-		StringFlag("username", "u", "", ""),
-		StringFlag("password", "p", "", ""),
-		StringFlag("userdict", "U", "", ""),
-		StringFlag("passdict", "P", "", ""),
-		StringFlag("uppair", "UP", "", ""),
-		StringFlag("instance", "i", "orcl", ""),
-		SimpleStringFlag("ip", "", ""),
-		SimpleStringFlag("IP", "", ""),
-		SimpleStringFlag("gt", "", ""),
-		SimpleStringFlag("cb", "", ""),
-		SimpleStringFlag("ss", "all", ""),
-		StringFlag("file", "f", "./.res.log", ""),
-		StringFlag("server", "s", "", ""),
-		IntSimpleFlag("timeout", 2, ""),
-		IntFlag("thread", "t", "", 60),
-		BoolFlag("simple", "e", true, ""),
-		IntSimpleFlag("proc", 0, ""),
-		SimpleStringFlag("type", "raw", ""),
-	},
-}
+//var BruteCli = cli.Command{
+//	Name: "Brute",
+//	Action: func(context *cli.Context) error {
+//		err := Brute(context)
+//		if err != nil {
+//			fmt.Println(err.Error())
+//			return err
+//		}
+//		return nil
+//	},
+//	Aliases: []string{"B", "b"},
+//	Flags: []cli.Flag{
+//		StringFlag("username", "u", "", ""),
+//		StringFlag("password", "p", "", ""),
+//		StringFlag("userdict", "U", "", ""),
+//		StringFlag("passdict", "P", "", ""),
+//		StringFlag("uppair", "UP", "", ""),
+//		StringFlag("instance", "i", "orcl", ""),
+//		SimpleStringFlag("ip", "", ""),
+//		SimpleStringFlag("IP", "", ""),
+//		SimpleStringFlag("gt", "", ""),
+//		SimpleStringFlag("cb", "", ""),
+//		SimpleStringFlag("ss", "all", ""),
+//		StringFlag("file", "f", "./.res.log", ""),
+//		StringFlag("server", "s", "", ""),
+//		IntSimpleFlag("timeout", 2, ""),
+//		IntFlag("thread", "t", "", 60),
+//		BoolFlag("simple", "e", true, ""),
+//		IntSimpleFlag("proc", 0, ""),
+//		SimpleStringFlag("type", "raw", ""),
+//	},
+//}
+//
+//var ExecCli = cli.Command{
+//	Name:    "Exec",
+//	Action:  Exec,
+//	Aliases: []string{"E", "e"},
+//	Flags: []cli.Flag{
+//		&cli.StringFlag{
+//			Name:    "username",
+//			Aliases: []string{"u"},
+//			Value:   "",
+//			Usage:   "",
+//		},
+//		&cli.StringFlag{
+//			Name:    "password",
+//			Aliases: []string{"p"},
+//			Value:   "",
+//			Usage:   "",
+//		},
+//		&cli.StringFlag{
+//			Name:  "ip",
+//			Value: "",
+//			Usage: "",
+//		},
+//		&cli.StringFlag{
+//			Name:    "input",
+//			Aliases: []string{"i"},
+//			Value:   "",
+//			Usage:   "",
+//		},
+//		StringFlag("InputFile", "F", "", ""),
+//		StringFlag("OutputFile", "f", "./ExecRes.log", ""),
+//		StringFlag("server", "s", "", ""),
+//		BoolFlag("auto", "a", false, ""),
+//		SimpleStringFlag("type", "raw", ""),
+//		BoolSimpleFlag("more", false, ""),
+//		IntFlag("thread", "t", "", 60),
+//	},
+//}
+//
+//func StringFlag(name, alases, value, usage string) *cli.StringFlag {
+//	return &cli.StringFlag{
+//		Name:    name,
+//		Aliases: []string{alases},
+//		Value:   value,
+//		Usage:   usage,
+//	}
+//}
+//
+//func SimpleStringFlag(name, value, usage string) *cli.StringFlag {
+//	return &cli.StringFlag{
+//		Name:  name,
+//		Value: value,
+//		Usage: usage,
+//	}
+//}
+//
+//func BoolSimpleFlag(name string, value bool, usage string) *cli.BoolFlag {
+//	return &cli.BoolFlag{
+//		Name:  name,
+//		Value: value,
+//		Usage: usage,
+//	}
+//}
+//
+//func BoolFlag(name, alases string, value bool, usage string) *cli.BoolFlag {
+//	return &cli.BoolFlag{
+//		Name:    name,
+//		Aliases: []string{alases},
+//		Value:   value,
+//		Usage:   usage,
+//	}
+//}
+//
+//func IntSimpleFlag(name string, value int, usage string) *cli.IntFlag {
+//	return &cli.IntFlag{
+//		Name:  name,
+//		Value: value,
+//		Usage: usage,
+//	}
+//}
+//
+//func IntFlag(name, alases, usage string, value int) *cli.IntFlag {
+//	return &cli.IntFlag{
+//		Name:    name,
+//		Aliases: []string{alases},
+//		Value:   value,
+//		Usage:   usage,
+//	}
+//}
 
-var ExecCli = cli.Command{
-	Name:    "Exec",
-	Action:  Exec,
-	Aliases: []string{"E", "e"},
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:    "username",
-			Aliases: []string{"u"},
-			Value:   "",
-			Usage:   "",
-		},
-		&cli.StringFlag{
-			Name:    "password",
-			Aliases: []string{"p"},
-			Value:   "",
-			Usage:   "",
-		},
-		&cli.StringFlag{
-			Name:  "ip",
-			Value: "",
-			Usage: "",
-		},
-		&cli.StringFlag{
-			Name:    "input",
-			Aliases: []string{"i"},
-			Value:   "",
-			Usage:   "",
-		},
-		StringFlag("InputFile", "F", "", ""),
-		StringFlag("OutputFile", "f", "./ExecRes.log", ""),
-		StringFlag("server", "s", "", ""),
-		BoolFlag("auto", "a", false, ""),
-		SimpleStringFlag("type", "raw", ""),
-		BoolSimpleFlag("more", false, ""),
-		IntFlag("thread", "t", "", 60),
-	},
-}
-
-func StringFlag(name, alases, value, usage string) *cli.StringFlag {
-	return &cli.StringFlag{
-		Name:    name,
-		Aliases: []string{alases},
-		Value:   value,
-		Usage:   usage,
+func Zombie() {
+	var opts core.Option
+	_, err := flags.Parse(&opts)
+	if err != nil {
+		logs.Log.Error(err.Error())
+		return
 	}
-}
-
-func SimpleStringFlag(name, value, usage string) *cli.StringFlag {
-	return &cli.StringFlag{
-		Name:  name,
-		Value: value,
-		Usage: usage,
+	runner, err := core.PrepareRunner(&opts)
+	if err != nil {
+		logs.Log.Error(err.Error())
+		return
 	}
-}
 
-func BoolSimpleFlag(name string, value bool, usage string) *cli.BoolFlag {
-	return &cli.BoolFlag{
-		Name:  name,
-		Value: value,
-		Usage: usage,
-	}
-}
-
-func BoolFlag(name, alases string, value bool, usage string) *cli.BoolFlag {
-	return &cli.BoolFlag{
-		Name:    name,
-		Aliases: []string{alases},
-		Value:   value,
-		Usage:   usage,
-	}
-}
-
-func IntSimpleFlag(name string, value int, usage string) *cli.IntFlag {
-	return &cli.IntFlag{
-		Name:  name,
-		Value: value,
-		Usage: usage,
-	}
-}
-
-func IntFlag(name, alases, usage string, value int) *cli.IntFlag {
-	return &cli.IntFlag{
-		Name:    name,
-		Aliases: []string{alases},
-		Value:   value,
-		Usage:   usage,
-	}
+	runner.Run()
 }

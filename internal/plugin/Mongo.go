@@ -1,7 +1,7 @@
 package plugin
 
 //type MongoService struct {
-//	Utils.IpInfo
+//	Utils.Target
 //	Username string `json:"username"`
 //	Password string `json:"password"`
 //	Input    string
@@ -17,7 +17,7 @@ package plugin
 //
 //func (s *MongoService) Connect() bool {
 //
-//	err, res, client := MongoConnect(s.Username, s.Password, s.IpInfo)
+//	err, res, client := MongoConnect(s.Username, s.Password, s.Target)
 //
 //	if err == nil {
 //		err = client.Ping(context.TODO(), nil)
@@ -33,7 +33,7 @@ package plugin
 //
 //}
 
-//func (s *MongoService) DisConnect() bool {
+//func (s *MongoService) Close() bool {
 //	return false
 //}
 //
@@ -45,7 +45,7 @@ package plugin
 //
 //}
 //
-//func MongoConnect(User string, Password string, info Utils.IpInfo) (err error, result bool, client *mongo.Client) {
+//func MongoConnect(User string, Password string, info Utils.Target) (err error, result bool, client *mongo.Client) {
 //	var url string
 //
 //	if Password == "" {
