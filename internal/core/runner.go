@@ -134,7 +134,7 @@ func (r *Runner) RunWithClusterBomb() {
 			}
 			r.OutputCh <- result
 		} else {
-			logs.Log.Debugf(" %s\t%s\tfailed, %s", req.String(), req.Username, req.Password, result.Err.Error())
+			logs.Log.Debugf(" %s\t%s\t%s failed, %s", req.String(), req.Username, req.Password, result.Err.Error())
 		}
 		wg.Done()
 	})
@@ -187,7 +187,6 @@ Loop:
 			} else {
 				break Loop
 			}
-
 		}
 	}
 }

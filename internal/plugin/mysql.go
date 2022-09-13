@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	utils2 "github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg/utils"
 	_ "github.com/go-sql-driver/mysql"
 	"strings"
 )
 
 type MysqlService struct {
-	*utils2.Task
+	*utils.Task
 	MysqlInf
 	Input string
 	conn  *sql.DB
@@ -41,7 +41,7 @@ func MysqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]s
 			Qresult, Columns = DoRowsMapper(rows)
 
 		} else {
-			if !utils2.IsAuto {
+			if !utils.IsAuto {
 				fmt.Println("please check your query.")
 			}
 			return err, Qresult, Columns
@@ -54,9 +54,9 @@ func MysqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]s
 	return err, Qresult, Columns
 }
 
-func MysqlConnect(info *utils2.Task) (conn *sql.DB, err error) {
+func MysqlConnect(info *utils.Task) (conn *sql.DB, err error) {
 	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&charset=utf8", info.Username,
-		info.Password, info.IP.String(), info.Port, utils2.Timeout, utils2.Timeout, utils2.Timeout)
+		info.Password, info.IP.String(), info.Port, info.Timeout, info.Timeout, info.Timeout)
 	conn, err = sql.Open("mysql", dataSourceName)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (s *MysqlService) GetInfo() bool {
 func (s *MysqlService) Output(res interface{}) {
 	finres := res.(MysqlService)
 	MysqlCollectInfo := ""
-	MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v\n", finres.IP.String(), utils2.OutputType, finres.Version, finres.OS, finres.Count)
+	MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v\n", finres.IP.String(), utils.OutputType, finres.Version, finres.OS, finres.Count)
 	MysqlCollectInfo += fmt.Sprintf("general_log: %v\tgeneral_log_file: %v\n", finres.GeneralLog, finres.GeneralLogFile)
 	MysqlCollectInfo += fmt.Sprintf("plugin_dir: %v\tsecure_file_priv: %v\n", finres.PluginPath, finres.SecureFilePriv)
 	for _, info := range finres.vb {
@@ -120,16 +120,16 @@ func (s *MysqlService) Output(res interface{}) {
 	}
 	MysqlCollectInfo += "\n"
 	fmt.Println(MysqlCollectInfo)
-	switch utils2.FileFormat {
+	switch utils.FileFormat {
 	case "raw":
-		utils2.TDatach <- MysqlCollectInfo
+		utils.TDatach <- MysqlCollectInfo
 	case "json":
 		jsons, errs := json.Marshal(finres)
 		if errs != nil {
 			fmt.Println(errs.Error())
 			return
 		}
-		utils2.TDatach <- jsons
+		utils.TDatach <- jsons
 
 	}
 
@@ -249,7 +249,7 @@ func GetMysqlVulnableInfo(SqlCon *sql.DB, res *MysqlInf) *MysqlInf {
 func HandleMysqlValuable(Qresult []map[string]string) []MysqlValuable {
 	var fin []MysqlValuable
 	for _, items := range Qresult {
-		if utils2.SliceLike(utils2.ValueableSlice, items["column_name"]) {
+		if utils.SliceLike(utils.ValueableSlice, items["column_name"]) {
 			temp := MysqlValuable{
 				STName:     items["concat(table_schema,\"->\",table_name)"],
 				ColumnName: items["column_name"],

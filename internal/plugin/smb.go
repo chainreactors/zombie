@@ -84,7 +84,7 @@ func SMBConnect(info *utils.Task) (sess *smb2.Session, err error) {
 		}
 	}
 
-	_ = conn.SetDeadline(time.Now().Add(time.Duration(utils.Timeout) * time.Second))
+	_ = conn.SetDeadline(time.Now().Add(time.Duration(info.Timeout) * time.Second))
 
 	s, _, err := d.Dial(conn)
 	if err != nil {

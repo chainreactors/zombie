@@ -1,10 +1,10 @@
 package plugin
 
 import (
-	"crypto/tls"
 	"fmt"
 	"github.com/chainreactors/zombie/pkg/utils"
-	"github.com/go-ldap/ldap/v3"
+	ldap "github.com/go-ldap/ldap/v3"
+	"time"
 )
 
 type LdapService struct {
@@ -18,16 +18,12 @@ func (s *LdapService) Query() bool {
 }
 
 func LdapConnect(info *utils.Task) (con *ldap.Conn, err error) {
-	enableTLS := true
-
 	var conn *ldap.Conn
 	connectAddr := fmt.Sprintf(info.Address())
 
-	if enableTLS {
-		conn, err = ldap.DialTLS("tcp", connectAddr, &tls.Config{InsecureSkipVerify: true})
-	} else {
-		conn, err = ldap.Dial("tcp", connectAddr)
-	}
+	ldap.DefaultTimeout = time.Duration(info.Timeout)
+	conn, err = ldap.Dial("tcp", connectAddr)
+
 	if err != nil {
 		return nil, err
 	}

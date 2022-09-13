@@ -45,20 +45,10 @@ func (r Result) String() string {
 	return fmt.Sprintf("[+] %s\t%s\t%s\n", r.Address(), r.Username, r.Password)
 }
 
-var (
-	Thread  int
-	Simple  bool
-	Timeout int
-)
-
-var File string
 var OutputType string
 var IsAuto, More bool
 var FileFormat string
-var Instance []string
 var BrutedList []Result
-var ChildContext context.Context
-var ChildCancel context.CancelFunc
 
 var (
 	ValueableSlice = []string{"PWD", "PASS", "PASSWORD", "CERT", "EMAIL", "MOBILE", "PAPER"}
