@@ -10,12 +10,10 @@ import (
 )
 
 type MysqlService struct {
-	utils2.IpInfo
-	Username string `json:"username"`
-	Password string `json:"password"`
+	*utils2.Task
 	MysqlInf
-	Input  string
-	SqlCon *sql.DB
+	Input string
+	conn  *sql.DB
 }
 
 type MysqlInf struct {
@@ -56,55 +54,54 @@ func MysqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]s
 	return err, Qresult, Columns
 }
 
-func MysqlConnect(User string, Password string, info utils2.IpInfo) (err error, result bool, db *sql.DB) {
-	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&charset=utf8", User,
-		Password, info.Ip, info.Port, utils2.Timeout, utils2.Timeout, utils2.Timeout)
-	db, err = sql.Open("mysql", dataSourceName)
-
+func MysqlConnect(info *utils2.Task) (conn *sql.DB, err error) {
+	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&charset=utf8", info.Username,
+		info.Password, info.IP.String(), info.Port, utils2.Timeout, utils2.Timeout, utils2.Timeout)
+	conn, err = sql.Open("mysql", dataSourceName)
 	if err != nil {
-		result = false
-		return err, result, nil
+		return nil, err
 	}
 
-	db.SetMaxOpenConns(60)
-	db.SetMaxIdleConns(60)
+	//conn.SetMaxOpenConns(60)
+	//conn.SetMaxIdleConns(60)
 
-	err = db.Ping()
-
-	if err == nil {
-		result = true
+	err = conn.Ping()
+	if err != nil {
+		return nil, err
 	}
-	return err, result, db
+	return conn, err
 }
 
-func (s *MysqlService) Connect() bool {
-	err, _, db := MysqlConnect(s.Username, s.Password, s.IpInfo)
-	if err == nil {
-		s.SqlCon = db
-		return true
+func (s *MysqlService) Connect() error {
+	conn, err := MysqlConnect(s.Task)
+	if err != nil {
+		return err
 	}
-	return false
+	s.conn = conn
+	return nil
 }
 
-func (s *MysqlService) DisConnect() bool {
-	s.SqlCon.Close()
-	return false
+func (s *MysqlService) Close() error {
+	if s.conn != nil {
+		return s.conn.Close()
+	}
+	return NilConnError{s.Service}
 }
 
 func (s *MysqlService) GetInfo() bool {
-	defer s.SqlCon.Close()
+	defer s.conn.Close()
 
-	res := GetMysqlBaseInfo(s.SqlCon)
+	res := GetMysqlBaseInfo(s.conn)
 
 	if res == nil {
 		return false
 	}
 
-	res.Count = GetMysqlSummary(s.SqlCon)
+	res.Count = GetMysqlSummary(s.conn)
 
-	res = GetMysqlVulnableInfo(s.SqlCon, res)
-	res = GetMysqlGeneralLog(s.SqlCon, res)
-	res.vb = *FindValuableTable(s.SqlCon)
+	res = GetMysqlVulnableInfo(s.conn, res)
+	res = GetMysqlGeneralLog(s.conn, res)
+	res.vb = *FindValuableTable(s.conn)
 	s.MysqlInf = *res
 
 	//将结果放入管道
@@ -115,7 +112,7 @@ func (s *MysqlService) GetInfo() bool {
 func (s *MysqlService) Output(res interface{}) {
 	finres := res.(MysqlService)
 	MysqlCollectInfo := ""
-	MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v\n", finres.Ip, utils2.OutputType, finres.Version, finres.OS, finres.Count)
+	MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v\n", finres.IP.String(), utils2.OutputType, finres.Version, finres.OS, finres.Count)
 	MysqlCollectInfo += fmt.Sprintf("general_log: %v\tgeneral_log_file: %v\n", finres.GeneralLog, finres.GeneralLogFile)
 	MysqlCollectInfo += fmt.Sprintf("plugin_dir: %v\tsecure_file_priv: %v\n", finres.PluginPath, finres.SecureFilePriv)
 	for _, info := range finres.vb {
@@ -139,7 +136,7 @@ func (s *MysqlService) Output(res interface{}) {
 }
 
 func (s *MysqlService) Query() bool {
-	err, Qresult, Columns := MysqlQuery(s.SqlCon, s.Input)
+	err, Qresult, Columns := MysqlQuery(s.conn, s.Input)
 
 	if err != nil {
 		fmt.Println("something wrong")

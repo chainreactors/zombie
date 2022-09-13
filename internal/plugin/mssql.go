@@ -4,19 +4,17 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	utils2 "github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg/utils"
 	_ "github.com/denisenkom/go-mssqldb"
 	"strconv"
 	"strings"
 )
 
 type MssqlService struct {
-	utils2.IpInfo
-	Username string `json:"username"`
-	Password string `json:"password"`
+	*utils.Task
 	MssqlInf
-	Input  string
-	SqlCon *sql.DB
+	Input string
+	conn  *sql.DB
 }
 
 type MssqlValuable struct {
@@ -35,29 +33,25 @@ type MssqlInf struct {
 
 var MssqlCollectInfo string
 
-func MssqlConnect(User string, Password string, info utils2.IpInfo) (err error, result bool, db *sql.DB) {
-	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", info.Ip,
-		info.Port, User, Password, "master", utils2.Timeout)
+func MssqlConnect(info *utils.Task) (conn *sql.DB, err error) {
+	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", info.IP.String(),
+		info.Port, info.Username, info.Password, "master", utils.Timeout)
 
 	//time.Duration(Utils.Timeout)*time.Second
-	db, err = sql.Open("mssql", dataSourceName)
-
+	conn, err = sql.Open("mssql", dataSourceName)
 	if err != nil {
-		result = false
-		return err, result, nil
+		return nil, err
 	}
 
-	err = db.Ping()
-
-	if err == nil {
-		result = true
+	err = conn.Ping()
+	if err != nil {
+		return nil, err
 	}
 
-	return err, result, db
+	return conn, nil
 }
 
 func MssqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
-
 	err = SqlCon.Ping()
 	if err == nil {
 		rows, err := SqlCon.Query(Query)
@@ -65,7 +59,7 @@ func MssqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]s
 			Qresult, Columns = DoRowsMapper(rows)
 
 		} else {
-			if !utils2.IsAuto {
+			if !utils.IsAuto {
 				fmt.Println("please check your query.")
 			}
 			return err, Qresult, Columns
@@ -79,9 +73,7 @@ func MssqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]s
 }
 
 func (s *MssqlService) Query() bool {
-
-	defer s.SqlCon.Close()
-	err, Qresult, Columns := MssqlQuery(s.SqlCon, s.Input)
+	err, Qresult, Columns := MssqlQuery(s.conn, s.Input)
 
 	if err != nil {
 		fmt.Println("something wrong")
@@ -97,24 +89,26 @@ func (s *MssqlService) SetQuery(query string) {
 	s.Input = query
 }
 
-func (s *MssqlService) Connect() bool {
-	err, _, db := MssqlConnect(s.Username, s.Password, s.IpInfo)
-	if err == nil {
-		s.SqlCon = db
-		return true
+func (s *MssqlService) Connect() error {
+	conn, err := MssqlConnect(s.Task)
+	if err != nil {
+		return err
 	}
-	return false
+	s.conn = conn
+	return nil
 }
 
-func (s *MssqlService) DisConnect() bool {
-	s.SqlCon.Close()
-	return false
+func (s *MssqlService) Close() error {
+	if s.conn != nil {
+		return s.conn.Close()
+	}
+	return NilConnError{s.Service}
 }
 
 func (s *MssqlService) GetInfo() bool {
-	defer s.SqlCon.Close()
+	defer s.conn.Close()
 
-	res := GetMssqlBaseInfo(s.SqlCon)
+	res := GetMssqlBaseInfo(s.conn)
 
 	if res == nil {
 		return false
@@ -122,10 +116,10 @@ func (s *MssqlService) GetInfo() bool {
 
 	MssqlCollectInfo = ""
 
-	res.Count = GetMssqlSummary(s.SqlCon)
+	res.Count = GetMssqlSummary(s.conn)
 
-	res = GetMssqlVulnableInfo(s.SqlCon, res)
-	res.vb = *FindMssqlValuableTable(s.SqlCon)
+	res = GetMssqlVulnableInfo(s.conn, res)
+	res.vb = *FindMssqlValuableTable(s.conn)
 	s.MssqlInf = *res
 	//将结果放入管道
 	s.Output(*s)
@@ -136,7 +130,7 @@ func (s *MssqlService) GetInfo() bool {
 func (s *MssqlService) Output(res interface{}) {
 	finres := res.(MssqlService)
 	MsCollectInfo := ""
-	MsCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.Ip, utils2.OutputType, finres.Version, finres.OS, finres.Count)
+	MsCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.IP.String(), utils.OutputType, finres.Version, finres.OS, finres.Count)
 	MsCollectInfo += fmt.Sprintf("\nSP_OACREATE: %v", finres.SP_OACREATE)
 	MsCollectInfo += fmt.Sprintf("\nxp_cmdshell: %v\n", finres.XpCmdShell)
 	for _, info := range finres.vb {
@@ -144,9 +138,9 @@ func (s *MssqlService) Output(res interface{}) {
 	}
 	MsCollectInfo += "\n"
 	fmt.Println(MsCollectInfo)
-	switch utils2.FileFormat {
+	switch utils.FileFormat {
 	case "raw":
-		utils2.TDatach <- MsCollectInfo
+		utils.TDatach <- MsCollectInfo
 	case "json":
 
 		jsons, errs := json.Marshal(res)
@@ -154,7 +148,7 @@ func (s *MssqlService) Output(res interface{}) {
 			fmt.Println(errs.Error())
 			return
 		}
-		utils2.TDatach <- jsons
+		utils.TDatach <- jsons
 	}
 }
 
@@ -265,7 +259,7 @@ func FindMssqlValuableTable(SqlCon *sql.DB) *[]MssqlValuable {
 func HandleMssqlValuable(Qresult []map[string]string, Columns []string) []MssqlValuable {
 	var fin []MssqlValuable
 	for _, items := range Qresult {
-		if utils2.SliceLike(utils2.ValueableSlice, items["COLUMN_NAME"]) {
+		if utils.SliceLike(utils.ValueableSlice, items["COLUMN_NAME"]) {
 			temp := MssqlValuable{
 				STName:     items[Columns[0]],
 				ColumnName: items[Columns[1]],

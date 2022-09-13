@@ -13,34 +13,34 @@ import (
 )
 
 type SshService struct {
-	utils.IpInfo
-	Username string `json:"username"`
-	Password string `json:"password"`
+	*utils.Task
 	MysqlInf
-	Cmd    string
-	SshCon *ssh.Client
+	Cmd  string
+	conn *ssh.Client
 }
 
-func (s *SshService) Connect() bool {
-	err, _, conn := SSHConnect(s.Username, s.Password, s.IpInfo)
-	if err == nil {
-		s.SshCon = conn
-		return true
+func (s *SshService) Connect() error {
+	conn, err := SSHConnect(s.Task)
+	if err != nil {
+		return err
 	}
-	return false
+	s.conn = conn
+	return nil
 }
 
-func (s *SshService) DisConnect() bool {
-	s.SshCon.Close()
-	return false
+func (s *SshService) Close() error {
+	if s.conn != nil {
+		return s.conn.Close()
+	}
+	return NilConnError{s.Service}
 }
 
 func (s *SshService) GetInfo() bool {
 
 	if s.Cmd != "" {
-		session, err := s.SshCon.NewSession()
+		session, err := s.conn.NewSession()
 		defer session.Close()
-		defer s.SshCon.Close()
+		defer s.conn.Close()
 		cmd := "ping -c 5 " + s.Cmd
 		buf, err := session.Output(cmd)
 
@@ -55,7 +55,7 @@ func (s *SshService) GetInfo() bool {
 		reslist := strings.Split(FindRes, " ")
 		if reslist[1] == "received" {
 			if reslist[0] != "0" {
-				fmt.Printf("%v can reach %v\n", s.Ip, s.Cmd)
+				fmt.Printf("%v can reach %v\n", s.IP.String(), s.Cmd)
 			}
 		}
 	} else {
@@ -70,16 +70,15 @@ func (s *SshService) SetQuery(cmd string) {
 }
 
 func (s *SshService) Query() bool {
-
-	session, err := s.SshCon.NewSession()
+	session, err := s.conn.NewSession()
 	defer session.Close()
-	defer s.SshCon.Close()
+	defer s.conn.Close()
 	buf, err := session.Output(s.Cmd)
 
 	if err != nil {
 		return false
 	}
-	res := fmt.Sprintf(s.Ip + ":\n" + string(buf) + "\n")
+	res := fmt.Sprintf(s.IP.String() + ":\n" + string(buf) + "\n")
 	s.Output(res)
 	return true
 }
@@ -89,37 +88,40 @@ func (s *SshService) Output(res interface{}) {
 	utils.TDatach <- finres
 }
 
-func SSHConnect(User string, Password string, info utils.IpInfo) (err error, result bool, connect *ssh.Client) {
+func SSHConnect(info *utils.Task) (conn *ssh.Client, err error) {
 	config := &ssh.ClientConfig{
-		User: User,
-
+		User:    info.Username,
 		Timeout: time.Duration(utils.Timeout) * time.Second,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
 	}
 
-	if strings.HasPrefix(Password, "pk:") {
+	if strings.HasPrefix(info.Password, "pk:") {
 		config.Auth = []ssh.AuthMethod{
-			publicKeyAuthFunc(Password[3:]),
+			publicKeyAuthFunc(info.Password[3:]),
 		}
 	} else {
 		config.Auth = []ssh.AuthMethod{
-			ssh.Password(Password),
+			ssh.Password(info.Password),
 		}
 	}
 
-	client, err := ssh.Dial("tcp", fmt.Sprintf("%v:%v", info.Ip, info.Port), config)
-	if err == nil {
-		session, err := client.NewSession()
-		defer session.Close()
-		errRet := session.Run("whoami")
-		if err == nil && errRet == nil {
-			result = true
-		}
-		connect = client
+	conn, err = ssh.Dial("tcp", info.Address(), config)
+	if err != nil {
+		return nil, err
 	}
-	return err, result, connect
+	//session, err := client.NewSession()
+	//if err != nil {
+	//
+	//}
+	//defer session.Close()
+	//errRet := session.Run("whoami")
+	//if err == nil && errRet == nil {
+	//	result = true
+	//}
+	//connect = client
+	return conn, nil
 }
 
 func publicKeyAuthFunc(kPath string) ssh.AuthMethod {

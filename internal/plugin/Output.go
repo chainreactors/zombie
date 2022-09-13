@@ -30,22 +30,22 @@ func GetSummary(Qresult []map[string]string, Columns []string) string {
 	return ""
 }
 
-func CleanBruteRes(BruList *[]utils.OutputRes) (CleanedList []utils.Codebook, CleanedRes []utils.OutputRes) {
+func CleanBruteRes(BruList *[]utils.Result) (CleanedList []utils.Codebook, CleanedRes []utils.Result) {
 	IPStore := make(map[string]int)
 	for _, res := range *BruList {
-		address := fmt.Sprintf("%v:%v:%v", res.Ip, res.Port, res.Username)
+		address := fmt.Sprintf("%v:%v:%v", res.IP.String(), res.Port, res.Username)
 		if _, ok := IPStore[address]; ok {
 			continue
 		}
 
-		if res.Password == "" && (res.Server == "SMB" || res.Server == "RDP") {
+		if res.Password == "" && (res.Service == "SMB" || res.Service == "RDP") {
 			IPStore[address] = 1
 			continue
 		}
 		cb := utils.Codebook{
 			Username: res.Username,
 			Password: res.Password,
-			Server:   res.Server,
+			Server:   res.Service,
 		}
 		CleanedList = append(CleanedList, cb)
 		CleanedRes = append(CleanedRes, res)
@@ -72,13 +72,13 @@ func QueryWrite3File(FileHandle *os.File, QDatach chan interface{}) {
 	for res := range QDatach {
 		switch utils.OutputType {
 		case "Brute":
-			finres := res.(utils.OutputRes)
+			finres := res.(utils.Result)
 			utils.BrutedList = append(utils.BrutedList, finres)
 			var resstr string
-			if finres.Server == "ORACLE" {
-				resstr = fmt.Sprintf("%s:%d\t%s:%s\tinstance:%s\t%s\tsuccess", finres.Ip, finres.Port, finres.Username, finres.Password, finres.Additional, finres.Server)
+			if finres.Service == "ORACLE" {
+				resstr = fmt.Sprintf("%s\t%s:%s\tinstance:%s\t%s\tsuccess", finres.Address(), finres.Username, finres.Password, finres.Additional, finres.Service)
 			} else {
-				resstr = fmt.Sprintf("%s:%d\t%s\t%s:%s\tsuccess%s", finres.Ip, finres.Port, finres.Server, finres.Username, finres.Password, finres.Additional)
+				resstr = fmt.Sprintf("%s\t%s\t%s:%s\tsuccess%s", finres.Address(), finres.Service, finres.Username, finres.Password, finres.Additional)
 			}
 			fmt.Println(resstr)
 			switch utils.FileFormat {

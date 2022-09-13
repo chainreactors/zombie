@@ -6,87 +6,64 @@ import (
 	"strings"
 )
 
-func ExecDispatch(CurTask utils.ScanTask) plugin.ExecAble {
-	CurTask.Server = strings.ToUpper(CurTask.Server)
-	switch CurTask.Server {
+func PluginDispatch(task *utils.Task) plugin.Plugin {
+	task.Service = strings.ToUpper(task.Service)
+	switch task.Service {
 	case "POSTGRESQL":
 		return &plugin.PostgresService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
-			Dbname:   "postgres",
+			Task:   task,
+			Dbname: "postgres",
 		}
 	case "MSSQL":
 		return &plugin.MssqlService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
+			Task: task,
 		}
 	case "MYSQL":
 		return &plugin.MysqlService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
+			Task: task,
 		}
 	case "ORACLE":
 		return &plugin.OracleService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
+			Task: task,
 		}
 	case "SNMP":
 		return &plugin.SnmpService{
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
+			Task: task,
 		}
 	case "SSH":
 		return &plugin.SshService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
+			Task: task,
 		}
 	case "RDP":
 		return &plugin.RdpService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
+			Task: task,
 		}
 	case "SMB":
 		return &plugin.SmbService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
+			Task: task,
 		}
 	case "FTP":
 		return &plugin.FtpService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
+			Task: task,
 		}
 
 	//case "MONGO":
-	//	return &ExecAble.MongoService{
-	//		Username: CurTask.Username,
-	//		Password: CurTask.Password,
-	//		IpInfo:   CurTask.Info,
+	//	return &Plugin.MongoService{
+	//		Username: task.Username,
+	//		Password: task.Password,
+	//		Target:   task.Info,
 	//	}
 	case "VNC":
 		return &plugin.VNCService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
+			Task: task,
 		}
 	case "REDIS":
 		return &plugin.RedisService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
+			Task: task,
 		}
 	case "LDAP":
 		return &plugin.LdapService{
-			Username: CurTask.Username,
-			Password: CurTask.Password,
-			IpInfo:   CurTask.IpInfo,
+			Task: task,
 		}
 
 	default:

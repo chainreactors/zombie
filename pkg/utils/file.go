@@ -108,9 +108,9 @@ func InitFile(Filename string) *os.File {
 	return CurfileHandle
 }
 
-func ReadFromGt(gtres string) (HdRes []IpServerInfo) {
-	return HdRes
-}
+//func ReadFromGt(gtres string) (HdRes []IpServerInfo) {
+//	return HdRes
+//}
 
 func HasStdin() bool {
 	stat, err := os.Stdin.Stat()

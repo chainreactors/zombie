@@ -16,12 +16,15 @@ require (
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/panjf2000/ants/v2 v2.4.3
 	github.com/sijms/go-ora/v2 v2.2.15
-	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29
 )
 
 require (
-	github.com/chainreactors/grdp v0.0.0-20220523130340-cb6039da6de3
+	github.com/chainreactors/grdp v0.0.1
+	github.com/chainreactors/ipcs v0.0.13
+	github.com/chainreactors/logs v0.5.0
+	github.com/chainreactors/words v0.0.1
+	github.com/jessevdk/go-flags v1.5.0
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
 )
