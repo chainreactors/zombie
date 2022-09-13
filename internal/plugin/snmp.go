@@ -50,7 +50,7 @@ func SnmpConnect(info *utils.Task) (conn *gosnmp.GoSNMP, err error) {
 		Port:               info.UintPort(),
 		Community:          info.Password,
 		Version:            gosnmp.Version2c,
-		Timeout:            time.Duration(utils.Timeout/2) * time.Second,
+		Timeout:            time.Duration(info.Timeout/2) * time.Second,
 		MaxOids:            gosnmp.MaxOids,
 		Retries:            3,
 		ExponentialTimeout: true,

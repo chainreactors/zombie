@@ -46,17 +46,17 @@ func (s *VNCService) Output(res interface{}) {
 
 }
 
-func VNCConnect(info *utils.Task) (conn *vnc.ClientConn, err error) {
-	target := info.Address()
+func VNCConnect(task *utils.Task) (conn *vnc.ClientConn, err error) {
+	target := task.Address()
 
-	tcpconn, err := net.DialTimeout("tcp", target, time.Duration(utils.Timeout)*time.Second)
+	tcpconn, err := net.DialTimeout("tcp", target, time.Duration(task.Timeout)*time.Second)
 	if err != nil {
 		return nil, err
 	}
 
 	config := vnc.ClientConfig{
 		Auth: []vnc.ClientAuth{
-			&vnc.PasswordAuth{Password: info.Password},
+			&vnc.PasswordAuth{Password: task.Password},
 		},
 	}
 	conn, err = vnc.Client(tcpconn, &config)

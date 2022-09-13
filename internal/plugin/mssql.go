@@ -31,11 +31,9 @@ type MssqlInf struct {
 	vb          []MssqlValuable
 }
 
-var MssqlCollectInfo string
-
-func MssqlConnect(info *utils.Task) (conn *sql.DB, err error) {
-	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", info.IP.String(),
-		info.Port, info.Username, info.Password, "master", utils.Timeout)
+func MssqlConnect(task *utils.Task) (conn *sql.DB, err error) {
+	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", task.IP.String(),
+		task.Port, task.Username, task.Password, "master", task.Timeout)
 
 	//time.Duration(Utils.Timeout)*time.Second
 	conn, err = sql.Open("mssql", dataSourceName)
@@ -113,8 +111,6 @@ func (s *MssqlService) GetInfo() bool {
 	if res == nil {
 		return false
 	}
-
-	MssqlCollectInfo = ""
 
 	res.Count = GetMssqlSummary(s.conn)
 

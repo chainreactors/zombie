@@ -48,7 +48,7 @@ func (s *RedisService) Output(res interface{}) {
 
 func RedisConnect(task *utils.Task) (client *redis.Client, err error) {
 	opt := redis.Options{Addr: task.Address(),
-		Password: task.Password, DB: 0, DialTimeout: time.Duration(utils.Timeout) * time.Second}
+		Password: task.Password, DB: 0, DialTimeout: time.Duration(task.Timeout) * time.Second}
 	client = redis.NewClient(&opt)
 	_, err = client.Ping().Result()
 	if err != nil {

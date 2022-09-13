@@ -65,7 +65,7 @@ func (s *PostgresService) Output(res interface{}) {
 
 func PostgresConnect(info *utils.Task, dbname string) (conn *sql.DB, err error) {
 	dataSourceName := strings.Join([]string{
-		fmt.Sprintf("connect_timeout=%d", utils.Timeout),
+		fmt.Sprintf("connect_timeout=%d", info.Timeout),
 		fmt.Sprintf("dbname=%s", dbname),
 		fmt.Sprintf("host=%v", info.IP.String()),
 		fmt.Sprintf("password=%v", info.Password),

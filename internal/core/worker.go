@@ -4,8 +4,6 @@ import (
 	"github.com/chainreactors/zombie/pkg/utils"
 )
 
-var FlagUserName string
-
 //func HoneyTest(WorkerPara *HoneyPara) {
 //	CurCon := PluginDispatch(WorkerPara.Task)
 //	if CurCon == nil {

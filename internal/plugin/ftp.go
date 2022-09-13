@@ -13,12 +13,12 @@ type FtpService struct {
 	Ftpcon *ftp.ServerConn
 }
 
-func FtpConnect(info *utils.Task) (conn *ftp.ServerConn, err error) {
-	conn, err = ftp.DialTimeout(fmt.Sprintf(info.Address()), time.Duration(utils.Timeout)*time.Second)
+func FtpConnect(task *utils.Task) (conn *ftp.ServerConn, err error) {
+	conn, err = ftp.DialTimeout(fmt.Sprintf(task.Address()), time.Duration(task.Timeout)*time.Second)
 	if err != nil {
 		return nil, err
 	}
-	err = conn.Login(info.Username, info.Password)
+	err = conn.Login(task.Username, task.Password)
 	if err != nil {
 		return nil, err
 	}

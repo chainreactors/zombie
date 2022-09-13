@@ -4,12 +4,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	utils2 "github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg/utils"
 	_ "github.com/sijms/go-ora/v2"
 )
 
 type OracleService struct {
-	*utils2.Task
+	*utils.Task
 	Input string
 	conn  *sql.DB
 }
@@ -18,9 +18,8 @@ func (s *OracleService) Query() bool {
 	panic("implement me")
 }
 
-func OracleConnect(info *utils2.Task) (conn *sql.DB, err error) {
-
-	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%d/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", info.Username, info.Password, info.IP.String(), info.Port, info.Instance, utils2.Timeout, utils2.Timeout)
+func OracleConnect(info *utils.Task) (conn *sql.DB, err error) {
+	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%d/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", info.Username, info.Password, info.IP.String(), info.Port, info.Instance, info.Timeout, info.Timeout)
 
 	conn, err = sql.Open("oracle", dataSourceName)
 	if err != nil {
@@ -66,7 +65,7 @@ func (s *OracleService) Output(res interface{}) {
 	//MysqlCollectInfo += fmt.Sprintf("plugin_dir: %v\tsecure_file_priv: %v\n", finres.PluginPath, finres.SecureFilePriv)
 	//MysqlCollectInfo += "\n"
 	//fmt.Println(MysqlCollectInfo)
-	switch utils2.FileFormat {
+	switch utils.FileFormat {
 	case "raw":
 		//Utils.TDatach <- MysqlCollectInfo
 	case "json":
@@ -75,7 +74,7 @@ func (s *OracleService) Output(res interface{}) {
 			fmt.Println(errs.Error())
 			return
 		}
-		utils2.TDatach <- jsons
+		utils.TDatach <- jsons
 
 	}
 

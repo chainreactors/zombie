@@ -39,8 +39,6 @@ func (s *SshService) GetInfo() bool {
 
 	if s.Cmd != "" {
 		session, err := s.conn.NewSession()
-		defer session.Close()
-		defer s.conn.Close()
 		cmd := "ping -c 5 " + s.Cmd
 		buf, err := session.Output(cmd)
 
@@ -88,26 +86,26 @@ func (s *SshService) Output(res interface{}) {
 	utils.TDatach <- finres
 }
 
-func SSHConnect(info *utils.Task) (conn *ssh.Client, err error) {
+func SSHConnect(task *utils.Task) (conn *ssh.Client, err error) {
 	config := &ssh.ClientConfig{
-		User:    info.Username,
-		Timeout: time.Duration(utils.Timeout) * time.Second,
+		User:    task.Username,
+		Timeout: time.Duration(task.Timeout) * time.Second,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
 	}
 
-	if strings.HasPrefix(info.Password, "pk:") {
+	if strings.HasPrefix(task.Password, "pk:") {
 		config.Auth = []ssh.AuthMethod{
-			publicKeyAuthFunc(info.Password[3:]),
+			publicKeyAuthFunc(task.Password[3:]),
 		}
 	} else {
 		config.Auth = []ssh.AuthMethod{
-			ssh.Password(info.Password),
+			ssh.Password(task.Password),
 		}
 	}
 
-	conn, err = ssh.Dial("tcp", info.Address(), config)
+	conn, err = ssh.Dial("tcp", task.Address(), config)
 	if err != nil {
 		return nil, err
 	}
