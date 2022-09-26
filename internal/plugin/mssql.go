@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"github.com/chainreactors/zombie/pkg/utils"
 	_ "github.com/denisenkom/go-mssqldb"
@@ -30,7 +29,7 @@ type MssqlInf struct {
 }
 
 func MssqlConnect(task *utils.Task) (conn *sql.DB, err error) {
-	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", task.IP.String(),
+	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", task.IP,
 		task.Port, task.Username, task.Password, "master", task.Timeout)
 
 	//time.Duration(Utils.Timeout)*time.Second
@@ -47,26 +46,26 @@ func MssqlConnect(task *utils.Task) (conn *sql.DB, err error) {
 	return conn, nil
 }
 
-func MssqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
-	err = SqlCon.Ping()
-	if err == nil {
-		rows, err := SqlCon.Query(Query)
-		if err == nil {
-			Qresult, Columns = DoRowsMapper(rows)
-
-		} else {
-			if !utils.IsAuto {
-				fmt.Println("please check your query.")
-			}
-			return err, Qresult, Columns
-		}
-	} else {
-		fmt.Println("connect failed,please check your input.")
-		return err, Qresult, Columns
-	}
-
-	return err, Qresult, Columns
-}
+//func MssqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
+//	err = SqlCon.Ping()
+//	if err == nil {
+//		rows, err := SqlCon.Query(Query)
+//		if err == nil {
+//			Qresult, Columns = DoRowsMapper(rows)
+//
+//		} else {
+//			if !utils.IsAuto {
+//				fmt.Println("please check your query.")
+//			}
+//			return err, Qresult, Columns
+//		}
+//	} else {
+//		fmt.Println("connect failed,please check your input.")
+//		return err, Qresult, Columns
+//	}
+//
+//	return err, Qresult, Columns
+//}
 
 func (s *MssqlService) Query() bool {
 	//err, Qresult, Columns := MssqlQuery(s.conn, s.Input)
@@ -122,28 +121,28 @@ func (s *MssqlService) GetInfo() bool {
 }
 
 func (s *MssqlService) Output(res interface{}) {
-	finres := res.(MssqlService)
-	MsCollectInfo := ""
-	MsCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.IP.String(), utils.OutputType, finres.Version, finres.OS, finres.Count)
-	MsCollectInfo += fmt.Sprintf("\nSP_OACREATE: %v", finres.SP_OACREATE)
-	MsCollectInfo += fmt.Sprintf("\nxp_cmdshell: %v\n", finres.XpCmdShell)
-	for _, info := range finres.vb {
-		MsCollectInfo += fmt.Sprintf("%v:%v\t", info.STName, info.ColumnName)
-	}
-	MsCollectInfo += "\n"
-	fmt.Println(MsCollectInfo)
-	switch utils.FileFormat {
-	case "raw":
-		utils.TDatach <- MsCollectInfo
-	case "json":
-
-		jsons, errs := json.Marshal(res)
-		if errs != nil {
-			fmt.Println(errs.Error())
-			return
-		}
-		utils.TDatach <- jsons
-	}
+	//finres := res.(MssqlService)
+	//MsCollectInfo := ""
+	//MsCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.IP, utils.OutputType, finres.Version, finres.OS, finres.Count)
+	//MsCollectInfo += fmt.Sprintf("\nSP_OACREATE: %v", finres.SP_OACREATE)
+	//MsCollectInfo += fmt.Sprintf("\nxp_cmdshell: %v\n", finres.XpCmdShell)
+	//for _, info := range finres.vb {
+	//	MsCollectInfo += fmt.Sprintf("%v:%v\t", info.STName, info.ColumnName)
+	//}
+	//MsCollectInfo += "\n"
+	//fmt.Println(MsCollectInfo)
+	//switch utils.FileFormat {
+	//case "raw":
+	//	utils.TDatach <- MsCollectInfo
+	//case "json":
+	//
+	//	jsons, errs := json.Marshal(res)
+	//	if errs != nil {
+	//		fmt.Println(errs.Error())
+	//		return
+	//	}
+	//	utils.TDatach <- jsons
+	//}
 }
 
 //func GetMssqlSummary(SqlCon *sql.DB) int {

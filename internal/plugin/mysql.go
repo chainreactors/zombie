@@ -2,9 +2,9 @@ package plugin
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -31,31 +31,38 @@ type MysqlValuable struct {
 	ColumnName string
 }
 
-func MysqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
+//func MysqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
+//
+//	err = SqlCon.Ping()
+//	if err == nil {
+//		rows, err := SqlCon.Query(Query)
+//		if err == nil {
+//			Qresult, Columns = DoRowsMapper(rows)
+//
+//		} else {
+//			if !utils.IsAuto {
+//				fmt.Println("please check your query.")
+//			}
+//			return err, Qresult, Columns
+//		}
+//	} else {
+//		fmt.Println("connect failed,please check your input.")
+//		return err, Qresult, Columns
+//	}
+//
+//	return err, Qresult, Columns
+//}
 
-	err = SqlCon.Ping()
-	if err == nil {
-		rows, err := SqlCon.Query(Query)
-		if err == nil {
-			Qresult, Columns = DoRowsMapper(rows)
+type nilLog struct {
+}
 
-		} else {
-			if !utils.IsAuto {
-				fmt.Println("please check your query.")
-			}
-			return err, Qresult, Columns
-		}
-	} else {
-		fmt.Println("connect failed,please check your input.")
-		return err, Qresult, Columns
-	}
+func (l nilLog) Print(v ...interface{}) {
 
-	return err, Qresult, Columns
 }
 
 func MysqlConnect(info *utils.Task) (conn *sql.DB, err error) {
 	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&charset=utf8", info.Username,
-		info.Password, info.IP.String(), info.Port, info.Timeout, info.Timeout, info.Timeout)
+		info.Password, info.IP, info.Port, info.Timeout, info.Timeout, info.Timeout)
 	conn, err = sql.Open("mysql", dataSourceName)
 	if err != nil {
 		return nil, err
@@ -72,6 +79,7 @@ func MysqlConnect(info *utils.Task) (conn *sql.DB, err error) {
 }
 
 func (s *MysqlService) Connect() error {
+	mysql.SetLogger(nilLog{})
 	conn, err := MysqlConnect(s.Task)
 	if err != nil {
 		return err
@@ -109,28 +117,28 @@ func (s *MysqlService) GetInfo() bool {
 }
 
 func (s *MysqlService) Output(res interface{}) {
-	finres := res.(MysqlService)
-	MysqlCollectInfo := ""
-	MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v\n", finres.IP.String(), utils.OutputType, finres.Version, finres.OS, finres.Count)
-	MysqlCollectInfo += fmt.Sprintf("general_log: %v\tgeneral_log_file: %v\n", finres.GeneralLog, finres.GeneralLogFile)
-	MysqlCollectInfo += fmt.Sprintf("plugin_dir: %v\tsecure_file_priv: %v\n", finres.PluginPath, finres.SecureFilePriv)
-	for _, info := range finres.vb {
-		MysqlCollectInfo += fmt.Sprintf("%v:%v\t", info.STName, info.ColumnName)
-	}
-	MysqlCollectInfo += "\n"
-	fmt.Println(MysqlCollectInfo)
-	switch utils.FileFormat {
-	case "raw":
-		utils.TDatach <- MysqlCollectInfo
-	case "json":
-		jsons, errs := json.Marshal(finres)
-		if errs != nil {
-			fmt.Println(errs.Error())
-			return
-		}
-		utils.TDatach <- jsons
-
-	}
+	//finres := res.(MysqlService)
+	//MysqlCollectInfo := ""
+	//MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v\n", finres.IP, utils.OutputType, finres.Version, finres.OS, finres.Count)
+	//MysqlCollectInfo += fmt.Sprintf("general_log: %v\tgeneral_log_file: %v\n", finres.GeneralLog, finres.GeneralLogFile)
+	//MysqlCollectInfo += fmt.Sprintf("plugin_dir: %v\tsecure_file_priv: %v\n", finres.PluginPath, finres.SecureFilePriv)
+	//for _, info := range finres.vb {
+	//	MysqlCollectInfo += fmt.Sprintf("%v:%v\t", info.STName, info.ColumnName)
+	//}
+	//MysqlCollectInfo += "\n"
+	//fmt.Println(MysqlCollectInfo)
+	//switch utils.FileFormat {
+	//case "raw":
+	//	utils.TDatach <- MysqlCollectInfo
+	//case "json":
+	//	jsons, errs := json.Marshal(finres)
+	//	if errs != nil {
+	//		fmt.Println(errs.Error())
+	//		return
+	//	}
+	//	utils.TDatach <- jsons
+	//
+	//}
 
 }
 

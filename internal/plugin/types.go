@@ -2,6 +2,20 @@ package plugin
 
 import "fmt"
 
+const (
+	FTP = iota
+	LDAP
+	MSSQL
+	MYSQL
+	ORACLE
+	POSTGRESQL
+	RDP
+	SMB
+	SNMP
+	SSH
+	VNC
+)
+
 type Plugin interface {
 	Query() bool
 	GetInfo() bool

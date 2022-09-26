@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"github.com/chainreactors/zombie/pkg/utils"
 	_ "github.com/lib/pq"
@@ -43,29 +42,29 @@ func (s *PostgresService) SetDbname(db string) {
 }
 
 func (s *PostgresService) Output(res interface{}) {
-	finres := res.(PostgresService)
-	PostCollectInfo := ""
-	PostCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.IP.String(), utils.OutputType, finres.Version, finres.OS, finres.Count)
-	PostCollectInfo += "\n"
-	fmt.Println(PostCollectInfo)
-	switch utils.FileFormat {
-	case "raw":
-		utils.TDatach <- PostCollectInfo
-	case "json":
-		jsons, errs := json.Marshal(res)
-		if errs != nil {
-			fmt.Println(errs.Error())
-			return
-		}
-		utils.TDatach <- jsons
-	}
+	//finres := res.(PostgresService)
+	//PostCollectInfo := ""
+	//PostCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.IP, utils.OutputType, finres.Version, finres.OS, finres.Count)
+	//PostCollectInfo += "\n"
+	//fmt.Println(PostCollectInfo)
+	//switch utils.FileFormat {
+	//case "raw":
+	//	utils.TDatach <- PostCollectInfo
+	//case "json":
+	//	jsons, errs := json.Marshal(res)
+	//	if errs != nil {
+	//		fmt.Println(errs.Error())
+	//		return
+	//	}
+	//	utils.TDatach <- jsons
+	//}
 }
 
 func PostgresConnect(info *utils.Task, dbname string) (conn *sql.DB, err error) {
 	dataSourceName := strings.Join([]string{
 		fmt.Sprintf("connect_timeout=%d", info.Timeout),
 		fmt.Sprintf("dbname=%s", dbname),
-		fmt.Sprintf("host=%v", info.IP.String()),
+		fmt.Sprintf("host=%v", info.IP),
 		fmt.Sprintf("password=%v", info.Password),
 		fmt.Sprintf("port=%v", info.Port),
 		"sslmode=disable",
@@ -86,27 +85,27 @@ func PostgresConnect(info *utils.Task, dbname string) (conn *sql.DB, err error) 
 
 }
 
-func PostgresQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
-	err = SqlCon.Ping()
-	if err == nil {
-		rows, err := SqlCon.Query(Query)
-		if err == nil {
-			Qresult, Columns = DoRowsMapper(rows)
-
-		} else {
-			if !utils.IsAuto {
-				fmt.Println("please check your query.")
-			}
-
-			return err, Qresult, Columns
-		}
-	} else {
-		fmt.Println("connect failed,please check your input.")
-		return err, Qresult, Columns
-	}
-
-	return err, Qresult, Columns
-}
+//func PostgresQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
+//	err = SqlCon.Ping()
+//	if err == nil {
+//		rows, err := SqlCon.Query(Query)
+//		if err == nil {
+//			Qresult, Columns = DoRowsMapper(rows)
+//
+//		} else {
+//			if !utils.IsAuto {
+//				fmt.Println("please check your query.")
+//			}
+//
+//			return err, Qresult, Columns
+//		}
+//	} else {
+//		fmt.Println("connect failed,please check your input.")
+//		return err, Qresult, Columns
+//	}
+//
+//	return err, Qresult, Columns
+//}
 
 func (s *PostgresService) Query() bool {
 
