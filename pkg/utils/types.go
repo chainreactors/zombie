@@ -9,14 +9,14 @@ import (
 
 type Task struct {
 	*ipcs.Addr
-	Service    string `json:"Server"`
-	Username   string `json:"username"`
-	Password   string `json:"password"`
-	ExecString string `json:"exec"`
-	Instance   string
-	Timeout    int
-	Context    context.Context
-	Canceler   context.CancelFunc
+	Service    string             `json:"service"`
+	Username   string             `json:"username"`
+	Password   string             `json:"password"`
+	ExecString string             `json:"exec"`
+	Instance   string             `json:"-"`
+	Timeout    int                `json:"-"`
+	Context    context.Context    `json:"-"`
+	Canceler   context.CancelFunc `json:"-"`
 }
 
 func (r Task) Address() string {
@@ -26,12 +26,6 @@ func (r Task) Address() string {
 func (r Task) UintPort() uint16 {
 	p, _ := strconv.Atoi(r.Port)
 	return uint16(p)
-}
-
-type Codebook struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Server   string `json:"server"`
 }
 
 type Result struct {
@@ -48,11 +42,12 @@ func (r Result) String() string {
 var OutputType string
 var IsAuto, More bool
 var FileFormat string
-var BrutedList []Result
 
-var (
-	ValueableSlice = []string{"PWD", "PASS", "PASSWORD", "CERT", "EMAIL", "MOBILE", "PAPER"}
-)
+//var BrutedList []Result
+
+//var (
+//	ValueableSlice = []string{"PWD", "PASS", "PASSWORD", "CERT", "EMAIL", "MOBILE", "PAPER"}
+//)
 
 var (
 	ServicePortMap = map[string]string{

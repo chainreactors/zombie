@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"github.com/chainreactors/zombie/pkg/utils"
 	_ "github.com/lib/pq"
-	"os"
-	"strconv"
 	"strings"
 )
 
@@ -28,11 +26,11 @@ type PostgreInf struct {
 var PostgresCollectInfo string
 
 func (s *PostgresService) GetInfo() bool {
-	res := GetPostBaseInfo(s.conn)
-	res.Count = GetPostgresSummary(s)
-	s.PostgreInf = *res
-	//将结果放入管道
-	s.Output(*s)
+	//res := GetPostBaseInfo(s.conn)
+	//res.Count = GetPostgresSummary(s)
+	//s.PostgreInf = *res
+	////将结果放入管道
+	//s.Output(*s)
 	return true
 }
 
@@ -112,15 +110,15 @@ func PostgresQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[strin
 
 func (s *PostgresService) Query() bool {
 
-	defer s.conn.Close()
-	err, Qresult, Columns := PostgresQuery(s.conn, s.Input)
-
-	if err != nil {
-		fmt.Println("something wrong")
-		os.Exit(0)
-	} else {
-		OutPutQuery(Qresult, Columns, true)
-	}
+	//defer s.conn.Close()
+	//err, Qresult, Columns := PostgresQuery(s.conn, s.Input)
+	//
+	//if err != nil {
+	//	fmt.Println("something wrong")
+	//	os.Exit(0)
+	//} else {
+	//	OutPutQuery(Qresult, Columns, true)
+	//}
 
 	return true
 }
@@ -141,79 +139,79 @@ func (s *PostgresService) Close() error {
 	return NilConnError{s.Service}
 }
 
-func GetPostBaseInfo(SqlCon *sql.DB) *PostgreInf {
-
-	res := PostgreInf{}
-
-	err, Qresult, Columns := PostgresQuery(SqlCon, "SHOW server_version;")
-
-	if err != nil {
-		fmt.Println("something wrong")
-		return nil
-	}
-
-	VerOs := GetSummary(Qresult, Columns)
-
-	VerOs = strings.Replace(VerOs, "(", "", 1)
-	VerOs = strings.Replace(VerOs, ")", "", 1)
-
-	VerOsList := strings.Split(VerOs, " ")
-
-	if len(VerOsList) < 2 {
-		fmt.Println("something wrong in split")
-
-		return nil
-	}
-
-	res.Version = VerOsList[0]
-	res.OS = VerOsList[1]
-
-	return &res
-}
-
-func GetPostgresSummary(s *PostgresService) int {
-	var db []string
-	var sum int
-
-	err, Qresult, Columns := PostgresQuery(s.conn, "SELECT datname FROM pg_database")
-
-	for _, items := range Qresult {
-		for _, cname := range Columns {
-			db = append(db, items[cname])
-		}
-	}
-
-	if err != nil {
-		fmt.Println("something wrong")
-		return 0
-	}
-
-	_, Qresult, Columns = PostgresQuery(s.conn, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
-	CurIntSum := GetSummary(Qresult, Columns)
-	CurSum, err := strconv.Atoi(CurIntSum)
-	if err == nil {
-		sum += CurSum
-	}
-
-	s.conn.Close()
-
-	for _, dbname := range db {
-		if dbname == "postgres" {
-			continue
-		}
-
-		s.SetDbname(dbname)
-		err := s.Connect()
-		if err == nil {
-			_, Qresult, Columns = PostgresQuery(s.conn, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
-			CurIntSum = GetSummary(Qresult, Columns)
-			CurSum, err = strconv.Atoi(CurIntSum)
-			if err == nil {
-				sum += CurSum
-			}
-			s.conn.Close()
-		}
-	}
-
-	return sum
-}
+//func GetPostBaseInfo(SqlCon *sql.DB) *PostgreInf {
+//
+//	res := PostgreInf{}
+//
+//	err, Qresult, Columns := PostgresQuery(SqlCon, "SHOW server_version;")
+//
+//	if err != nil {
+//		fmt.Println("something wrong")
+//		return nil
+//	}
+//
+//	VerOs := GetSummary(Qresult, Columns)
+//
+//	VerOs = strings.Replace(VerOs, "(", "", 1)
+//	VerOs = strings.Replace(VerOs, ")", "", 1)
+//
+//	VerOsList := strings.Split(VerOs, " ")
+//
+//	if len(VerOsList) < 2 {
+//		fmt.Println("something wrong in split")
+//
+//		return nil
+//	}
+//
+//	res.Version = VerOsList[0]
+//	res.OS = VerOsList[1]
+//
+//	return &res
+//}
+//
+//func GetPostgresSummary(s *PostgresService) int {
+//	var db []string
+//	var sum int
+//
+//	err, Qresult, Columns := PostgresQuery(s.conn, "SELECT datname FROM pg_database")
+//
+//	for _, items := range Qresult {
+//		for _, cname := range Columns {
+//			db = append(db, items[cname])
+//		}
+//	}
+//
+//	if err != nil {
+//		fmt.Println("something wrong")
+//		return 0
+//	}
+//
+//	_, Qresult, Columns = PostgresQuery(s.conn, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
+//	CurIntSum := GetSummary(Qresult, Columns)
+//	CurSum, err := strconv.Atoi(CurIntSum)
+//	if err == nil {
+//		sum += CurSum
+//	}
+//
+//	s.conn.Close()
+//
+//	for _, dbname := range db {
+//		if dbname == "postgres" {
+//			continue
+//		}
+//
+//		s.SetDbname(dbname)
+//		err := s.Connect()
+//		if err == nil {
+//			_, Qresult, Columns = PostgresQuery(s.conn, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
+//			CurIntSum = GetSummary(Qresult, Columns)
+//			CurSum, err = strconv.Atoi(CurIntSum)
+//			if err == nil {
+//				sum += CurSum
+//			}
+//			s.conn.Close()
+//		}
+//	}
+//
+//	return sum
+//}
