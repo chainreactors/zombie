@@ -30,13 +30,12 @@ func Brute(task *utils.Task) *utils.Result {
 			Err:  err,
 			OK:   false,
 		}
-	} else {
-		defer conn.Close()
-		return &utils.Result{
-			Task: task,
-			Err:  err,
-			OK:   true,
-		}
+	}
+	defer conn.Close()
+	return &utils.Result{
+		Task: task,
+		Err:  err,
+		OK:   true,
 	}
 }
 

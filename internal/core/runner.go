@@ -100,7 +100,7 @@ type Runner struct {
 	Timeout    int
 	ExecString string
 	Mod        string
-	First      bool
+	FirstOnly  bool
 	OutputCh   chan *utils.Result
 }
 
@@ -119,22 +119,21 @@ func (r *Runner) RunWithPitchfork() {
 	//for _, addr := range r.Addrs{
 	//	 for _, user := range r.Users{}
 	//}
-
 }
 
 func (r *Runner) RunWithClusterBomb() {
 	rootContext, _ := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
 	pool, _ := ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
-		req := i.(*utils.Task)
-		result := Brute(req)
+		task := i.(*utils.Task)
+		result := Brute(task)
 		if result.OK {
-			if r.First {
-				req.Canceler()
+			if r.FirstOnly {
+				task.Canceler()
 			}
 			r.OutputCh <- result
 		} else {
-			logs.Log.Debugf(" %s\t%s\t%s failed, %s", req.String(), req.Username, req.Password, result.Err.Error())
+			logs.Log.Debugf(" %s\t%s\t%s failed, %s", task.String(), task.Username, task.Password, result.Err.Error())
 		}
 		wg.Done()
 	})
@@ -142,15 +141,19 @@ func (r *Runner) RunWithClusterBomb() {
 	for _, addr := range r.Addrs {
 		ctx, canceler := context.WithCancel(rootContext)
 		ch := r.clusterBombGenerate(rootContext, canceler, addr)
-		select {
-		case req := <-ch:
-			wg.Add(1)
-			err := pool.Invoke(req)
-			if err != nil {
-				logs.Log.Error(err.Error())
+	loop:
+		for {
+			select {
+			case task, ok := <-ch:
+				if ok {
+					wg.Add(1)
+					_ = pool.Invoke(task)
+				} else {
+					break loop
+				}
+			case <-ctx.Done():
+				break loop
 			}
-		case <-ctx.Done():
-			continue
 		}
 	}
 	wg.Wait()
