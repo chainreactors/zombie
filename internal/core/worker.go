@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/chainreactors/zombie/internal/plugin"
 	"github.com/chainreactors/zombie/pkg/utils"
 )
 
@@ -21,7 +22,7 @@ import (
 //}
 
 func Brute(task *utils.Task) *utils.Result {
-	conn := PluginDispatch(task)
+	conn := plugin.PluginDispatch(task)
 
 	err := conn.Connect()
 	if err != nil {

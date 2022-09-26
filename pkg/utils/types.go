@@ -3,12 +3,13 @@ package utils
 import (
 	"context"
 	"fmt"
-	"github.com/chainreactors/ipcs"
 	"strconv"
+	"strings"
 )
 
 type Task struct {
-	*ipcs.Addr
+	IP         string             `json:"ip"`
+	Port       string             `json:"port"`
 	Service    string             `json:"service"`
 	Username   string             `json:"username"`
 	Password   string             `json:"password"`
@@ -19,12 +20,20 @@ type Task struct {
 	Canceler   context.CancelFunc `json:"-"`
 }
 
-func (r Task) Address() string {
-	return r.Addr.String()
+func (t *Task) Address() string {
+	return t.IP + ":" + t.Port
 }
 
-func (r Task) UintPort() uint16 {
-	p, _ := strconv.Atoi(r.Port)
+func (t *Task) URI() string {
+	return strings.ToLower(t.Service) + "://" + t.Address()
+}
+
+func (t *Task) URL() string {
+	return fmt.Sprintf("%s://%s:%s@%s:%s", t.Service, t.Username, t.Password, t.IP, t.Port)
+}
+
+func (t *Task) UintPort() uint16 {
+	p, _ := strconv.Atoi(t.Port)
 	return uint16(p)
 }
 
@@ -105,3 +114,19 @@ var (
 		"REDIS":      {"123456", "admin", "admin123", "root", "", "pass123", "pass@123", "password", "123123", "654321", "111111", "123", "1", "admin@123", "Admin@123", "admin123!@#", "%user%", "%user%1", "%user%111", "%user%123", "%user%@123", "%user%_123", "%user%#123", "%user%@111", "%user%@2019", "%user%@123#4", "P@ssw0rd!", "P@ssw0rd", "Passw0rd", "qwe123", "12345678", "test", "test123", "123qwe!@#", "123456789", "123321", "666666", "a123456.", "123456~a", "123456!a", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "#EDC2wsX", "We1c0me!", "abc123", "abc123456", "1qaz@WSX", "a11111", "a12345", "Aa1234", "Aa1234.", "Aa12345", "a123456", "a123123", "Aa123123", "Aa123456", "Aa12345.", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#", "Aa123456!", "A123456s!"},
 	}
 )
+
+func UseDefaultPassword(service string) []string {
+	if pwds, ok := DefaultPasswords[service]; ok {
+		return pwds
+	} else {
+		return []string{"admin"}
+	}
+}
+
+func UseDefaultUser(service string) []string {
+	if users, ok := DefaultUsernames[service]; ok {
+		return users
+	} else {
+		return []string{"admin"}
+	}
+}

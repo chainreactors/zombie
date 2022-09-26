@@ -1,49 +1,47 @@
-package core
+package plugin
 
 import (
-	"github.com/chainreactors/zombie/internal/plugin"
 	"github.com/chainreactors/zombie/pkg/utils"
-	"strings"
 )
 
-func PluginDispatch(task *utils.Task) plugin.Plugin {
-	task.Service = strings.ToUpper(task.Service)
+func PluginDispatch(task *utils.Task) Plugin {
+	//task.Service = strings.ToUpper(task.Service)
 	switch task.Service {
 	case "POSTGRESQL":
-		return &plugin.PostgresService{
+		return &PostgresService{
 			Task:   task,
 			Dbname: "postgres",
 		}
 	case "MSSQL":
-		return &plugin.MssqlService{
+		return &MssqlService{
 			Task: task,
 		}
 	case "MYSQL":
-		return &plugin.MysqlService{
+		return &MysqlService{
 			Task: task,
 		}
 	case "ORACLE":
-		return &plugin.OracleService{
+		return &OracleService{
 			Task: task,
 		}
 	case "SNMP":
-		return &plugin.SnmpService{
+		return &SnmpService{
 			Task: task,
 		}
 	case "SSH":
-		return &plugin.SshService{
+		return &SshService{
 			Task: task,
 		}
 	case "RDP":
-		return &plugin.RdpService{
+		return &RdpService{
 			Task: task,
 		}
 	case "SMB":
-		return &plugin.SmbService{
+		return &SmbService{
 			Task: task,
 		}
 	case "FTP":
-		return &plugin.FtpService{
+		return &FtpService{
 			Task: task,
 		}
 
@@ -54,15 +52,15 @@ func PluginDispatch(task *utils.Task) plugin.Plugin {
 	//		Target:   task.Info,
 	//	}
 	case "VNC":
-		return &plugin.VNCService{
+		return &VNCService{
 			Task: task,
 		}
 	case "REDIS":
-		return &plugin.RedisService{
+		return &RedisService{
 			Task: task,
 		}
 	case "LDAP":
-		return &plugin.LdapService{
+		return &LdapService{
 			Task: task,
 		}
 

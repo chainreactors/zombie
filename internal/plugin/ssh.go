@@ -53,7 +53,7 @@ func (s *SshService) GetInfo() bool {
 		reslist := strings.Split(FindRes, " ")
 		if reslist[1] == "received" {
 			if reslist[0] != "0" {
-				fmt.Printf("%v can reach %v\n", s.IP.String(), s.Cmd)
+				fmt.Printf("%v can reach %v\n", s.IP, s.Cmd)
 			}
 		}
 	} else {
@@ -76,14 +76,14 @@ func (s *SshService) Query() bool {
 	if err != nil {
 		return false
 	}
-	res := fmt.Sprintf(s.IP.String() + ":\n" + string(buf) + "\n")
+	res := fmt.Sprintf(s.IP + ":\n" + string(buf) + "\n")
 	s.Output(res)
 	return true
 }
 
 func (s *SshService) Output(res interface{}) {
-	finres := res.(string)
-	utils.TDatach <- finres
+	//finres := res.(string)
+	//utils.TDatach <- finres
 }
 
 func SSHConnect(task *utils.Task) (conn *ssh.Client, err error) {
@@ -109,16 +109,7 @@ func SSHConnect(task *utils.Task) (conn *ssh.Client, err error) {
 	if err != nil {
 		return nil, err
 	}
-	//session, err := client.NewSession()
-	//if err != nil {
-	//
-	//}
-	//defer session.Close()
-	//errRet := session.Run("whoami")
-	//if err == nil && errRet == nil {
-	//	result = true
-	//}
-	//connect = client
+
 	return conn, nil
 }
 

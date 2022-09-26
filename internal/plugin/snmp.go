@@ -46,7 +46,7 @@ type SwitchInfo struct {
 
 func SnmpConnect(info *utils.Task) (conn *gosnmp.GoSNMP, err error) {
 	g := &gosnmp.GoSNMP{
-		Target:             info.IP.String(),
+		Target:             info.IP,
 		Port:               info.UintPort(),
 		Community:          info.Password,
 		Version:            gosnmp.Version2c,

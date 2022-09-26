@@ -2,12 +2,14 @@ package core
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/chainreactors/ipcs"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/words"
 	"github.com/chainreactors/zombie/pkg/utils"
 	"github.com/panjf2000/ants/v2"
+	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
@@ -20,14 +22,25 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 		return nil, err
 	}
 
-	var users, pwds []string
-	var addrs ipcs.Addrs
 	if opt.Debug {
 		logs.Log.Level = logs.Debug
 	}
-	if opt.GogoFile != "" {
 
+	var targets []*Target
+	var users, pwds []string
+	var addrs ipcs.Addrs
+	if opt.GogoFile != "" {
+		// load gogo result
+		content, err := ioutil.ReadFile(opt.GogoFile)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(content, &targets)
+		if err != nil {
+			return nil, err
+		}
 	} else {
+		// load target
 		var ipslice []string
 		if opt.IP != "" {
 			ipslice = strings.Split(opt.IP, ",")
@@ -50,6 +63,7 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 		}
 	}
 
+	// load username
 	if opt.Username != "" {
 		users = strings.Split(opt.Username, ",")
 	} else if opt.UsernameFile != "" {
@@ -58,12 +72,9 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 			return nil, err
 		}
 		users = words.NewWorderWithFile(userf).All()
-	} else if tmp, ok := utils.DefaultUsernames[opt.ServiceName]; ok {
-		users = tmp
-	} else {
-		users = []string{"admin"}
 	}
 
+	// load password
 	if opt.Password != "" {
 		pwds = strings.Split(opt.Password, ",")
 	} else if opt.PasswordFile != "" {
@@ -72,21 +83,17 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 			return nil, err
 		}
 		pwds = words.NewWorderWithFile(pwdf).All()
-	} else if tmp, ok := utils.DefaultPasswords[opt.ServiceName]; ok {
-		pwds = tmp
-	} else {
-		pwds = []string{"admin"}
 	}
 
 	runner := &Runner{
-		Users:      users,
-		Pwds:       pwds,
-		Addrs:      addrs,
-		Service:    opt.ServiceName,
-		Threads:    opt.Threads,
-		Timeout:    opt.Timeout,
-		ExecString: "",
-		Mod:        opt.Mod,
+		Users:   users,
+		Pwds:    pwds,
+		Addrs:   addrs,
+		Targets: targets,
+		Service: opt.ServiceName,
+		Threads: opt.Threads,
+		Timeout: opt.Timeout,
+		Mod:     opt.Mod,
 	}
 	return runner, nil
 }
@@ -95,6 +102,7 @@ type Runner struct {
 	Users      []string
 	Pwds       []string
 	Addrs      ipcs.Addrs
+	Targets    []*Target
 	Service    string
 	Threads    int
 	Timeout    int
@@ -106,11 +114,11 @@ type Runner struct {
 
 func (r *Runner) Run() {
 	go r.Outputting()
-
+	ch := r.targetGenerate()
 	switch r.Mod {
 	case "pitchfork":
 	case "clusterbomb":
-		r.RunWithClusterBomb()
+		r.RunWithClusterBomb(ch)
 	}
 }
 
@@ -121,7 +129,7 @@ func (r *Runner) RunWithPitchfork() {
 	//}
 }
 
-func (r *Runner) RunWithClusterBomb() {
+func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	rootContext, _ := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
 	pool, _ := ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
@@ -133,14 +141,14 @@ func (r *Runner) RunWithClusterBomb() {
 			}
 			r.OutputCh <- result
 		} else {
-			logs.Log.Debugf(" %s\t%s\t%s failed, %s", task.String(), task.Username, task.Password, result.Err.Error())
+			logs.Log.Debugf(" %s\t%s\t%s ,failed, %s", task.URI(), task.Username, task.Password, result.Err.Error())
 		}
 		wg.Done()
 	})
 
-	for _, addr := range r.Addrs {
+	for target := range targets {
 		ctx, canceler := context.WithCancel(rootContext)
-		ch := r.clusterBombGenerate(rootContext, canceler, addr)
+		ch := r.clusterBombGenerate(target, canceler)
 	loop:
 		for {
 			select {
@@ -159,19 +167,55 @@ func (r *Runner) RunWithClusterBomb() {
 	wg.Wait()
 }
 
-func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.CancelFunc, addr *ipcs.Addr) chan *utils.Task {
+func (r *Runner) clusterBombGenerate(target *Target, canceler context.CancelFunc) chan *utils.Task {
 	ch := make(chan *utils.Task)
+	var users, pwds []string
+	if r.Users == nil {
+		users = utils.UseDefaultUser(target.Service)
+	} else {
+		users = r.Users
+	}
+
+	if r.Pwds == nil {
+		pwds = utils.UseDefaultPassword(target.Service)
+	} else {
+		pwds = r.Pwds
+	}
+
 	go func() {
-		for _, user := range r.Users {
-			for _, pwd := range r.Pwds {
+		for _, user := range users {
+			for _, pwd := range pwds {
 				ch <- &utils.Task{
-					Addr:       addr,
-					Service:    r.Service,
+					IP:         target.IP,
+					Port:       target.Port,
+					Service:    target.Service,
 					Username:   user,
 					Password:   pwd,
 					ExecString: r.ExecString,
-					Context:    ctx,
-					Canceler:   canceler,
+					//Context:    ctx,
+					Canceler: canceler,
+				}
+			}
+		}
+		close(ch)
+	}()
+	return ch
+}
+
+func (r *Runner) targetGenerate() chan *Target {
+	ch := make(chan *Target)
+	go func() {
+		if r.Targets != nil {
+			for _, t := range r.Targets {
+				t.Service = strings.ToUpper(t.Service)
+				ch <- t
+			}
+		} else {
+			for _, addr := range r.Addrs {
+				ch <- &Target{
+					IP:      addr.IP.String(),
+					Port:    addr.Port,
+					Service: r.Service,
 				}
 			}
 		}

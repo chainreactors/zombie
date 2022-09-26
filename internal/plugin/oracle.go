@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"github.com/chainreactors/zombie/pkg/utils"
 	_ "github.com/sijms/go-ora/v2"
@@ -19,7 +18,7 @@ func (s *OracleService) Query() bool {
 }
 
 func OracleConnect(info *utils.Task) (conn *sql.DB, err error) {
-	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%d/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", info.Username, info.Password, info.IP.String(), info.Port, info.Instance, info.Timeout, info.Timeout)
+	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%d/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", info.Username, info.Password, info.IP, info.Port, info.Instance, info.Timeout, info.Timeout)
 
 	conn, err = sql.Open("oracle", dataSourceName)
 	if err != nil {
@@ -58,25 +57,25 @@ func (s *OracleService) SetQuery(query string) {
 }
 
 func (s *OracleService) Output(res interface{}) {
-	finres := res.(OracleService)
-	//MysqlCollectInfo := ""
-	//MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v\n", finres.Ip, Utils.OutputType, finres.Version, finres.OS, finres.Count)
-	//MysqlCollectInfo += fmt.Sprintf("general_log: %v\tgeneral_log_file: %v\n", finres.GeneralLog, finres.GeneralLogFile)
-	//MysqlCollectInfo += fmt.Sprintf("plugin_dir: %v\tsecure_file_priv: %v\n", finres.PluginPath, finres.SecureFilePriv)
-	//MysqlCollectInfo += "\n"
-	//fmt.Println(MysqlCollectInfo)
-	switch utils.FileFormat {
-	case "raw":
-		//Utils.TDatach <- MysqlCollectInfo
-	case "json":
-		jsons, errs := json.Marshal(finres)
-		if errs != nil {
-			fmt.Println(errs.Error())
-			return
-		}
-		utils.TDatach <- jsons
-
-	}
+	//finres := res.(OracleService)
+	////MysqlCollectInfo := ""
+	////MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v\n", finres.Ip, Utils.OutputType, finres.Version, finres.OS, finres.Count)
+	////MysqlCollectInfo += fmt.Sprintf("general_log: %v\tgeneral_log_file: %v\n", finres.GeneralLog, finres.GeneralLogFile)
+	////MysqlCollectInfo += fmt.Sprintf("plugin_dir: %v\tsecure_file_priv: %v\n", finres.PluginPath, finres.SecureFilePriv)
+	////MysqlCollectInfo += "\n"
+	////fmt.Println(MysqlCollectInfo)
+	//switch utils.FileFormat {
+	//case "raw":
+	//	//Utils.TDatach <- MysqlCollectInfo
+	//case "json":
+	//	jsons, errs := json.Marshal(finres)
+	//	if errs != nil {
+	//		fmt.Println(errs.Error())
+	//		return
+	//	}
+	//	utils.TDatach <- jsons
+	//
+	//}
 
 }
 
