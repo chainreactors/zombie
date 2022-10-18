@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/chainreactors/files"
 	"github.com/chainreactors/ipcs"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/words"
@@ -85,6 +86,18 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 		pwds = words.NewWorderWithFile(pwdf).All()
 	}
 
+	var file *files.File
+	outfunc := logs.Log.Console
+	if opt.OutputFile != "" {
+		file, err = files.NewFile(opt.OutputFile, false, true, true)
+		if err != nil {
+			return nil, err
+		}
+		outfunc = func(s string) {
+			file.SafeWrite(s)
+		}
+	}
+
 	runner := &Runner{
 		Users:    users,
 		Pwds:     pwds,
@@ -94,6 +107,8 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 		Threads:  opt.Threads,
 		Timeout:  opt.Timeout,
 		Mod:      opt.Mod,
+		File:     file,
+		OutFunc:  outfunc,
 	}
 	return runner, nil
 }
@@ -111,6 +126,8 @@ type Runner struct {
 	Mod        string
 	FirstOnly  bool
 	OutputCh   chan *utils.Result
+	File       *files.File
+	OutFunc    func(string)
 }
 
 func (r *Runner) Run() {
@@ -228,14 +245,13 @@ func (r *Runner) targetGenerate() chan *Target {
 }
 
 func (r *Runner) Outputting() {
-Loop:
 	for {
 		select {
 		case result, ok := <-r.OutputCh:
 			if ok {
-				logs.Log.Console(result.String())
+				r.OutFunc(result.String())
 			} else {
-				break Loop
+				logs.Log.Debug(result.Err.Error())
 			}
 		}
 	}

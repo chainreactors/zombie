@@ -5,12 +5,12 @@ import (
 )
 
 type Option struct {
-	IP            string `short:"i"`
-	IPFile        string `short:"I"`
+	IP            string `short:"i" long:"ip"`
+	IPFile        string `short:"I" long:"IP"`
 	Username      string `short:"u" long:"user"`
-	UsernameFile  string `short:"U"`
+	UsernameFile  string `short:"U" long:"USER"`
 	Password      string `short:"p" long:"pass"`
-	PasswordFile  string `short:"P"`
+	PasswordFile  string `short:"P" long:"PWD"`
 	GogoFile      string `long:"go"`
 	ServiceName   string `short:"s" long:"service"`
 	FilterService string `short:"S" long:"filter-service"`
@@ -23,9 +23,6 @@ type Option struct {
 }
 
 func (o Option) Validate() error {
-	//if _, ok := utils.ServicePortMap[strings.ToUpper(o.ServiceName)]; !ok {
-	//	return fmt.Errorf("not support %s plugin", o.ServiceName)
-	//}
 	return nil
 }
 
