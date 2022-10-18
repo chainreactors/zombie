@@ -2,10 +2,11 @@ package plugin
 
 import (
 	"github.com/chainreactors/zombie/pkg/utils"
+	"strings"
 )
 
-func PluginDispatch(task *utils.Task) Plugin {
-	//task.Service = strings.ToUpper(task.Service)
+func Dispatch(task *utils.Task) Plugin {
+	task.Service = strings.ToUpper(task.Service)
 	switch task.Service {
 	case "POSTGRESQL":
 		return &PostgresService{
