@@ -8,6 +8,7 @@ import (
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/words"
 	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg/utils/slice"
 	"github.com/panjf2000/ants/v2"
 	"io/ioutil"
 	"os"
@@ -17,7 +18,6 @@ import (
 
 func PrepareRunner(opt *Option) (*Runner, error) {
 	var err error
-	opt.ServiceName = strings.ToUpper(opt.ServiceName)
 	if err = opt.Validate(); err != nil {
 		return nil, err
 	}
@@ -86,14 +86,14 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 	}
 
 	runner := &Runner{
-		Users:   users,
-		Pwds:    pwds,
-		Addrs:   addrs,
-		Targets: targets,
-		Service: opt.ServiceName,
-		Threads: opt.Threads,
-		Timeout: opt.Timeout,
-		Mod:     opt.Mod,
+		Users:    users,
+		Pwds:     pwds,
+		Addrs:    addrs,
+		Targets:  targets,
+		Services: strings.Split(opt.ServiceName, ","),
+		Threads:  opt.Threads,
+		Timeout:  opt.Timeout,
+		Mod:      opt.Mod,
 	}
 	return runner, nil
 }
@@ -103,7 +103,8 @@ type Runner struct {
 	Pwds       []string
 	Addrs      ipcs.Addrs
 	Targets    []*Target
-	Service    string
+	Services   []string
+	Generator  chan *Target
 	Threads    int
 	Timeout    int
 	ExecString string
@@ -192,8 +193,7 @@ func (r *Runner) clusterBombGenerate(target *Target, canceler context.CancelFunc
 					Username:   user,
 					Password:   pwd,
 					ExecString: r.ExecString,
-					//Context:    ctx,
-					Canceler: canceler,
+					Canceler:   canceler,
 				}
 			}
 		}
@@ -207,15 +207,18 @@ func (r *Runner) targetGenerate() chan *Target {
 	go func() {
 		if r.Targets != nil {
 			for _, t := range r.Targets {
-				t.Service = strings.ToUpper(t.Service)
-				ch <- t
+				if slice.Contains(r.Services, t.Service) {
+					ch <- t
+				}
 			}
 		} else {
 			for _, addr := range r.Addrs {
-				ch <- &Target{
-					IP:      addr.IP.String(),
-					Port:    addr.Port,
-					Service: r.Service,
+				for _, service := range r.Services {
+					ch <- &Target{
+						IP:      addr.IP.String(),
+						Port:    addr.Port,
+						Service: service,
+					}
 				}
 			}
 		}

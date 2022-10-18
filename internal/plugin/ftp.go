@@ -9,8 +9,8 @@ import (
 
 type FtpService struct {
 	*utils.Task
-	Input  string
-	Ftpcon *ftp.ServerConn
+	Input string
+	conn  *ftp.ServerConn
 }
 
 func FtpConnect(task *utils.Task) (conn *ftp.ServerConn, err error) {
@@ -38,7 +38,7 @@ func (s *FtpService) Connect() error {
 	if err != nil {
 		return err
 	}
-	s.Ftpcon = conn
+	s.conn = conn
 	return nil
 }
 
@@ -51,8 +51,8 @@ func (s *FtpService) Output(res interface{}) {
 }
 
 func (s *FtpService) Close() error {
-	if s.Ftpcon != nil {
-		return s.Ftpcon.Quit()
+	if s.conn != nil {
+		return s.conn.Quit()
 	}
 	return NilConnError{s.Service}
 }
