@@ -15,7 +15,8 @@ type Option struct {
 	ServiceName   string `short:"s" long:"service"`
 	FilterService string `short:"S" long:"filter-service"`
 	OutputFile    string `short:"f" long:"file"`
-	OutputType    string `short:"o" long:"output"`
+	FileFormat    string `short:"O" long:"file-format" default:"json"`
+	OutputFormat  string `short:"o" long:"format" default:"string"`
 	Threads       int    `short:"t" default:"100"`
 	Timeout       int    `short:"d" long:"timeout" default:"2"`
 	Mod           string `short:"m" default:"clusterbomb"`

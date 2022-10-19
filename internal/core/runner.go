@@ -87,7 +87,7 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 	}
 
 	var file *files.File
-	outfunc := logs.Log.Console
+	var outfunc func(string)
 	if opt.OutputFile != "" {
 		file, err = files.NewFile(opt.OutputFile, false, true, true)
 		if err != nil {
@@ -104,9 +104,7 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 		Addrs:    addrs,
 		Targets:  targets,
 		Services: strings.Split(opt.ServiceName, ","),
-		Threads:  opt.Threads,
-		Timeout:  opt.Timeout,
-		Mod:      opt.Mod,
+		Option:   opt,
 		File:     file,
 		OutFunc:  outfunc,
 	}
@@ -114,20 +112,19 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 }
 
 type Runner struct {
-	Users      []string
-	Pwds       []string
-	Addrs      ipcs.Addrs
-	Targets    []*Target
-	Services   []string
-	Generator  chan *Target
-	Threads    int
-	Timeout    int
+	Users     []string
+	Pwds      []string
+	Addrs     ipcs.Addrs
+	Targets   []*Target
+	Services  []string
+	Generator chan *Target
+	OutputCh  chan *utils.Result
+	File      *files.File
+	OutFunc   func(string)
+
 	ExecString string
-	Mod        string
 	FirstOnly  bool
-	OutputCh   chan *utils.Result
-	File       *files.File
-	OutFunc    func(string)
+	*Option
 }
 
 func (r *Runner) Run() {
@@ -249,7 +246,10 @@ func (r *Runner) Outputting() {
 		select {
 		case result, ok := <-r.OutputCh:
 			if ok {
-				r.OutFunc(result.String())
+				if r.File != nil {
+					r.OutFunc(result.Format(r.Option.FileFormat))
+				}
+				logs.Log.Console(result.Format(r.Option.OutputFormat))
 			} else {
 				logs.Log.Debug(result.Err.Error())
 			}
