@@ -2,7 +2,9 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/chainreactors/logs"
 	"strconv"
 	"strings"
 )
@@ -44,8 +46,28 @@ type Result struct {
 	Additional string `json:"additional"`
 }
 
-func (r Result) String() string {
+func (r *Result) String() string {
 	return fmt.Sprintf("[+] %s\t%s\t%s\n", r.Address(), r.Username, r.Password)
+}
+
+func (r *Result) Json() string {
+	bs, err := json.Marshal(r)
+	if err != nil {
+		logs.Log.Error(err.Error())
+		return ""
+	}
+	return string(bs) + "\n"
+}
+
+func (r *Result) Format(form string) string {
+	switch form {
+	case "json":
+		return r.Json()
+	case "csv":
+		return ""
+	default:
+		return r.String()
+	}
 }
 
 var OutputType string
