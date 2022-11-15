@@ -15,6 +15,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
 func PrepareRunner(opt *Option) (*Runner, error) {
@@ -100,13 +101,14 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 	}
 
 	runner := &Runner{
-		Users:   users,
-		Pwds:    pwds,
-		Addrs:   addrs,
-		Targets: targets,
-		Option:  opt,
-		File:    file,
-		OutFunc: outfunc,
+		Users:    users,
+		Pwds:     pwds,
+		Addrs:    addrs,
+		Targets:  targets,
+		Option:   opt,
+		File:     file,
+		OutFunc:  outfunc,
+		OutputCh: make(chan *utils.Result),
 	}
 	if opt.ServiceName != "" {
 		runner.Services = strings.Split(opt.ServiceName, ",")
@@ -115,16 +117,16 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 }
 
 type Runner struct {
-	Users     []string
-	Pwds      []string
-	Addrs     ipcs.Addrs
-	Targets   []*Target
-	Services  []string
-	Generator chan *Target
-	OutputCh  chan *utils.Result
-	File      *files.File
-	OutFunc   func(string)
-
+	Users      []string
+	Pwds       []string
+	Addrs      ipcs.Addrs
+	Targets    []*Target
+	Services   []string
+	Generator  chan *Target
+	OutputCh   chan *utils.Result
+	File       *files.File
+	OutFunc    func(string)
+	Done       bool
 	ExecString string
 	FirstOnly  bool
 	*Option
@@ -183,6 +185,11 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 		}
 	}
 	wg.Wait()
+	for len(r.OutputCh) == 0 {
+		close(r.OutputCh)
+		break
+	}
+	time.Sleep(100)
 }
 
 func (r *Runner) clusterBombGenerate(target *Target, canceler context.CancelFunc) chan *utils.Task {
@@ -249,6 +256,7 @@ func (r *Runner) targetGenerate() chan *Target {
 }
 
 func (r *Runner) Outputting() {
+loop:
 	for {
 		select {
 		case result, ok := <-r.OutputCh:
@@ -258,7 +266,7 @@ func (r *Runner) Outputting() {
 				}
 				logs.Log.Console(result.Format(r.Option.OutputFormat))
 			} else {
-				logs.Log.Debug(result.Err.Error())
+				break loop
 			}
 		}
 	}
