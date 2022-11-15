@@ -19,6 +19,7 @@ import (
 
 func PrepareRunner(opt *Option) (*Runner, error) {
 	var err error
+
 	if err = opt.Validate(); err != nil {
 		return nil, err
 	}
@@ -60,7 +61,7 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 		if strings.Contains(ipslice[0], ":") {
 			addrs = ipcs.NewAddrs(ipslice)
 		} else {
-			addrs = ipcs.NewAddrsWithDefaultPort(ipslice, utils.ServicePortMap[opt.ServiceName])
+			addrs = ipcs.NewAddrsWithDefaultPort(ipslice, utils.ServicePortMap[strings.ToUpper(opt.ServiceName)])
 		}
 	}
 
@@ -99,14 +100,16 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 	}
 
 	runner := &Runner{
-		Users:    users,
-		Pwds:     pwds,
-		Addrs:    addrs,
-		Targets:  targets,
-		Services: strings.Split(opt.ServiceName, ","),
-		Option:   opt,
-		File:     file,
-		OutFunc:  outfunc,
+		Users:   users,
+		Pwds:    pwds,
+		Addrs:   addrs,
+		Targets: targets,
+		Option:  opt,
+		File:    file,
+		OutFunc: outfunc,
+	}
+	if opt.ServiceName != "" {
+		runner.Services = strings.Split(opt.ServiceName, ",")
 	}
 	return runner, nil
 }
@@ -221,7 +224,11 @@ func (r *Runner) targetGenerate() chan *Target {
 	go func() {
 		if r.Targets != nil {
 			for _, t := range r.Targets {
-				if slice.Contains(r.Services, t.Service) {
+				if r.Services != nil {
+					if slice.Contains(r.Services, t.Service) {
+						ch <- t
+					}
+				} else {
 					ch <- t
 				}
 			}
