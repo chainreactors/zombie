@@ -2,6 +2,8 @@ github.com/Azure/go-ntlmssp v0.0.0-20211209120228-48547f28849e h1:ZU22z/2YRFLyf/
 github.com/Azure/go-ntlmssp v0.0.0-20211209120228-48547f28849e/go.mod h1:chxPXzSsl7ZWRAuOIE23GDNzjWuZquvFlgA8xmpunjU=
 github.com/chainreactors/files v0.2.0 h1:LeN97o4VxIvK9ZACjXfdRTR+N7puXuWyQO5GarCkMLM=
 github.com/chainreactors/files v0.2.0/go.mod h1:/Xa9YXhjBlaC33JTD6ZTJFig6pcplak2IDcovf42/6A=
+github.com/chainreactors/files v0.2.4 h1:R0iCqjWLcwwLoSi87FpgUlpxZAd+W4ZLQF3lkoLWZi0=
+github.com/chainreactors/files v0.2.4/go.mod h1:/Xa9YXhjBlaC33JTD6ZTJFig6pcplak2IDcovf42/6A=
 github.com/chainreactors/grdp v0.0.1 h1:jYpho/QDZuVX0PoG5XlbEZI2j0zu6LHoN3tFsaH0Wcg=
 github.com/chainreactors/grdp v0.0.1/go.mod h1:feYq/dx8ewSzG5vbruBuqX5d/FCKii26d02LKSiz/V4=
 github.com/chainreactors/ipcs v0.0.13 h1:TZww7XRr4qZPWqy9DjBzcJgxtSUwT4TAbcho4156bRI=

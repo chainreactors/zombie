@@ -20,6 +20,7 @@ require (
 )
 
 require (
+	github.com/chainreactors/files v0.2.4 // indirect
 	github.com/chainreactors/grdp v0.0.1
 	github.com/chainreactors/ipcs v0.0.13
 	github.com/chainreactors/logs v0.5.0
