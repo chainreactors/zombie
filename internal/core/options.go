@@ -18,7 +18,7 @@ type Option struct {
 	FileFormat    string `short:"O" long:"file-format" default:"json"`
 	OutputFormat  string `short:"o" long:"format" default:"string"`
 	Threads       int    `short:"t" default:"100"`
-	Timeout       int    `short:"d" long:"timeout" default:"2"`
+	Timeout       int    `short:"d" long:"timeout" default:"5"`
 	Mod           string `short:"m" default:"clusterbomb"`
 	Debug         bool   `long:"debug"`
 }

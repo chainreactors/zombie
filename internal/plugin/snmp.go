@@ -150,52 +150,52 @@ func (s *SnmpService) Output(res interface{}) {
 }
 
 func (s *SnmpService) GetInfo() bool {
-	cidr, _ := HandleinetCidrRouteEntry(s.conn)
-	submask, _ := HandleIpSubmask(s.conn)
-	var FinCidrSlice []string
-	var FinIPSlice []string
-
-	if submask != nil && len(submask.Cidr) != 0 {
-		FinCidrSlice = append(FinCidrSlice, submask.Cidr...)
-		if len(submask.IP) != 0 {
-			FinIPSlice = append(FinIPSlice, submask.IP...)
-		}
-	}
-
-	if cidr != nil && len(cidr.Cidr) != 0 {
-		//fmt.Println(ip + " has CidrRoute")
-		FinCidrSlice = append(FinCidrSlice, cidr.Cidr...)
-		if len(submask.IP) != 0 {
-			FinIPSlice = append(FinIPSlice, cidr.GateWay...)
-		}
-	}
-
-	FinIPSlice = utils.RemoveDuplicateElement(FinIPSlice)
-	FinCidrSlice = utils.RemoveDuplicateElement(FinCidrSlice)
-
-	//TODO: 改为直接输出
-	//f, err1 := os.Create("./res/" + s.Ip + "Cidr.txt")
-	//if err1 != nil {
-	//	panic(err1)
+	//cidr, _ := HandleinetCidrRouteEntry(s.conn)
+	//submask, _ := HandleIpSubmask(s.conn)
+	//var FinCidrSlice []string
+	//var FinIPSlice []string
+	//
+	//if submask != nil && len(submask.Cidr) != 0 {
+	//	FinCidrSlice = append(FinCidrSlice, submask.Cidr...)
+	//	if len(submask.IP) != 0 {
+	//		FinIPSlice = append(FinIPSlice, submask.IP...)
+	//	}
 	//}
-	for _, resip := range FinCidrSlice {
-		fmt.Println(resip)
-	}
-
-	//f2, err2 := os.Create("./res/" + s.Ip + "AliveIP.txt")
-	//if err2 != nil {
-	//	panic(err2)
+	//
+	//if cidr != nil && len(cidr.Cidr) != 0 {
+	//	//fmt.Println(ip + " has CidrRoute")
+	//	FinCidrSlice = append(FinCidrSlice, cidr.Cidr...)
+	//	if len(submask.IP) != 0 {
+	//		FinIPSlice = append(FinIPSlice, cidr.GateWay...)
+	//	}
 	//}
-	for _, sub := range FinIPSlice {
-		fmt.Println(sub)
-	}
-
-	s.Cidr = FinCidrSlice
-	s.GateWay = FinIPSlice
-
-	if utils.More {
-		s.SwitchInfo = *GetMoreInfo(s.conn)
-	}
+	//
+	//FinIPSlice = utils.RemoveDuplicateElement(FinIPSlice)
+	//FinCidrSlice = utils.RemoveDuplicateElement(FinCidrSlice)
+	//
+	////TODO: 改为直接输出
+	////f, err1 := os.Create("./res/" + s.Ip + "Cidr.txt")
+	////if err1 != nil {
+	////	panic(err1)
+	////}
+	//for _, resip := range FinCidrSlice {
+	//	fmt.Println(resip)
+	//}
+	//
+	////f2, err2 := os.Create("./res/" + s.Ip + "AliveIP.txt")
+	////if err2 != nil {
+	////	panic(err2)
+	////}
+	//for _, sub := range FinIPSlice {
+	//	fmt.Println(sub)
+	//}
+	//
+	//s.Cidr = FinCidrSlice
+	//s.GateWay = FinIPSlice
+	//
+	//if utils.More {
+	//	s.SwitchInfo = *GetMoreInfo(s.conn)
+	//}
 	return true
 }
 
