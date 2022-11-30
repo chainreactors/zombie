@@ -20,6 +20,7 @@ type Task struct {
 	Timeout    int                `json:"-"`
 	Context    context.Context    `json:"-"`
 	Canceler   context.CancelFunc `json:"-"`
+	OutputCh   chan *Result       `json:"-"`
 }
 
 func (t *Task) Address() string {
@@ -47,7 +48,7 @@ type Result struct {
 }
 
 func (r *Result) String() string {
-	return fmt.Sprintf("[+] %s\t%s\t%s\n", r.Address(), r.Username, r.Password)
+	return fmt.Sprintf("[+] %s://%s\t%s\t%s\n", r.Service, r.Address(), r.Username, r.Password)
 }
 
 func (r *Result) Json() string {
@@ -70,12 +71,6 @@ func (r *Result) Format(form string) string {
 	}
 }
 
-var OutputType string
-var IsAuto, More bool
-var FileFormat string
-
-//var BrutedList []Result
-
 //var (
 //	ValueableSlice = []string{"PWD", "PASS", "PASSWORD", "CERT", "EMAIL", "MOBILE", "PAPER"}
 //)
@@ -93,23 +88,23 @@ var (
 		"MONGO":      "27017",
 		"VNC":        "5900",
 		"TOMCAT":     "8080",
-		"RDP":        "3389",
-		"SNMP":       "161",
-		"ORACLE":     "1521",
-		"21":         "FTP",
-		"22":         "SSH",
-		"445":        "SMB",
-		"1433":       "MSSQL",
-		"3306":       "MYSQL",
-		"5432":       "POSTGRESQL",
-		"6379":       "REDIS",
-		"9200":       "ES",
-		"27017":      "MONGO",
-		"5900":       "VNC",
-		"8080":       "TOMCAT",
-		"161":        "SNMP",
-		"3389":       "RDP",
-		"1521":       "ORACLE",
+		//"RDP":        "3389",
+		"SNMP":   "161",
+		"ORACLE": "1521",
+		"21":     "FTP",
+		"22":     "SSH",
+		"445":    "SMB",
+		"1433":   "MSSQL",
+		"3306":   "MYSQL",
+		"5432":   "POSTGRESQL",
+		"6379":   "REDIS",
+		"9200":   "ES",
+		"27017":  "MONGO",
+		"5900":   "VNC",
+		"8080":   "TOMCAT",
+		"161":    "SNMP",
+		"3389":   "RDP",
+		"1521":   "ORACLE",
 	}
 
 	DefaultUsernames = map[string][]string{

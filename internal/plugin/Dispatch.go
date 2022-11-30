@@ -33,10 +33,10 @@ func Dispatch(task *utils.Task) Plugin {
 		return &SshService{
 			Task: task,
 		}
-	case "RDP":
-		return &RdpService{
-			Task: task,
-		}
+	//case "RDP":
+	//	return &RdpService{
+	//		Task: task,
+	//	}
 	case "SMB":
 		return &SmbService{
 			Task: task,

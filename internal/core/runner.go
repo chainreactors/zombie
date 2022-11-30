@@ -154,21 +154,37 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	var wg sync.WaitGroup
 	pool, _ := ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*utils.Task)
-		result := Brute(task)
-		if result.OK {
-			if r.FirstOnly {
-				task.Canceler()
+		ctx, cancel := context.WithTimeout(task.Context, time.Duration(task.Timeout)*time.Second)
+		go func() {
+			err := Brute(task)
+			if err != nil {
+				r.OutputCh <- &utils.Result{
+					Task: task,
+					Err:  err,
+				}
+			} else {
+				r.OutputCh <- &utils.Result{
+					Task: task,
+					OK:   true,
+				}
 			}
-			r.OutputCh <- result
-		} else {
-			logs.Log.Debugf(" %s\t%s\t%s ,failed, %s", task.URI(), task.Username, task.Password, result.Err.Error())
+			cancel()
+		}()
+
+		select {
+		case <-ctx.Done():
+		case <-time.After(time.Duration(task.Timeout+1) * time.Second):
+			r.OutputCh <- &utils.Result{
+				Task: task,
+				Err:  fmt.Errorf("timeout"),
+			}
 		}
 		wg.Done()
 	})
 
 	for target := range targets {
 		ctx, canceler := context.WithCancel(rootContext)
-		ch := r.clusterBombGenerate(target, canceler)
+		ch := r.clusterBombGenerate(ctx, target, canceler)
 	loop:
 		for {
 			select {
@@ -192,7 +208,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	time.Sleep(100)
 }
 
-func (r *Runner) clusterBombGenerate(target *Target, canceler context.CancelFunc) chan *utils.Task {
+func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target, canceler context.CancelFunc) chan *utils.Task {
 	ch := make(chan *utils.Task)
 	var users, pwds []string
 	if r.Users == nil {
@@ -210,13 +226,19 @@ func (r *Runner) clusterBombGenerate(target *Target, canceler context.CancelFunc
 	go func() {
 		for _, user := range users {
 			for _, pwd := range pwds {
+				if _, ok := utils.ServicePortMap[target.Service]; !ok {
+					logs.Log.Debugf("unknown service " + target.Service)
+					continue
+				}
 				ch <- &utils.Task{
 					IP:         target.IP,
 					Port:       target.Port,
 					Service:    target.Service,
 					Username:   user,
 					Password:   pwd,
+					Timeout:    r.Timeout,
 					ExecString: r.ExecString,
+					Context:    ctx,
 					Canceler:   canceler,
 				}
 			}
@@ -261,10 +283,16 @@ loop:
 		select {
 		case result, ok := <-r.OutputCh:
 			if ok {
-				if r.File != nil {
-					r.OutFunc(result.Format(r.Option.FileFormat))
+
+				if result.OK {
+					if r.File != nil {
+						r.OutFunc(result.Format(r.Option.FileFormat))
+					}
+					logs.Log.Console(result.Format(r.Option.OutputFormat))
+				} else {
+					logs.Log.Debugf(" %s\t%s\t%s ,failed, %s", result.URI(), result.Username, result.Password, result.Err.Error())
 				}
-				logs.Log.Console(result.Format(r.Option.OutputFormat))
+
 			} else {
 				break loop
 			}
