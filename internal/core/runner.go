@@ -97,21 +97,23 @@ func PrepareRunner(opt *Option) (*Runner, error) {
 		}
 		outfunc = func(s string) {
 			file.SafeWrite(s)
+			file.SafeSync()
 		}
 	}
 
 	runner := &Runner{
-		Users:    users,
-		Pwds:     pwds,
-		Addrs:    addrs,
-		Targets:  targets,
-		Option:   opt,
-		File:     file,
-		OutFunc:  outfunc,
-		OutputCh: make(chan *utils.Result),
+		Users:     users,
+		Pwds:      pwds,
+		Addrs:     addrs,
+		Targets:   targets,
+		Option:    opt,
+		File:      file,
+		FirstOnly: true,
+		OutFunc:   outfunc,
+		OutputCh:  make(chan *utils.Result),
 	}
 	if opt.ServiceName != "" {
-		runner.Services = strings.Split(opt.ServiceName, ",")
+		runner.Services = strings.Split(strings.ToUpper(opt.ServiceName), ",")
 	}
 	return runner, nil
 }
@@ -167,6 +169,9 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 					Task: task,
 					OK:   true,
 				}
+				if r.FirstOnly {
+					task.Canceler()
+				}
 			}
 			cancel()
 		}()
@@ -178,6 +183,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 				Task: task,
 				Err:  fmt.Errorf("timeout"),
 			}
+			cancel()
 		}
 		wg.Done()
 	})
@@ -195,12 +201,11 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 				} else {
 					break loop
 				}
-			case <-ctx.Done():
-				break loop
 			}
 		}
 	}
 	wg.Wait()
+
 	for len(r.OutputCh) == 0 {
 		close(r.OutputCh)
 		break
@@ -224,13 +229,15 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target, cancel
 	}
 
 	go func() {
+	Loop:
 		for _, user := range users {
 			for _, pwd := range pwds {
 				if _, ok := utils.ServicePortMap[target.Service]; !ok {
 					logs.Log.Debugf("unknown service " + target.Service)
 					continue
 				}
-				ch <- &utils.Task{
+				select {
+				case ch <- &utils.Task{
 					IP:         target.IP,
 					Port:       target.Port,
 					Service:    target.Service,
@@ -240,6 +247,10 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target, cancel
 					ExecString: r.ExecString,
 					Context:    ctx,
 					Canceler:   canceler,
+				}:
+					continue
+				case <-ctx.Done():
+					break Loop
 				}
 			}
 		}
@@ -253,6 +264,7 @@ func (r *Runner) targetGenerate() chan *Target {
 	go func() {
 		if r.Targets != nil {
 			for _, t := range r.Targets {
+				t.Service = strings.ToUpper(t.Service)
 				if r.Services != nil {
 					if slice.Contains(r.Services, t.Service) {
 						ch <- t
