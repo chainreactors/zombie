@@ -7,13 +7,13 @@ import (
 )
 
 func Zombie() {
-	var opts core.Option
-	_, err := flags.Parse(&opts)
+	var opt core.Option
+	_, err := flags.Parse(&opt)
 	if err != nil {
 		logs.Log.Error(err.Error())
 		return
 	}
-	runner, err := core.PrepareRunner(&opts)
+	runner, err := opt.Prepare()
 	if err != nil {
 		logs.Log.Error(err.Error())
 		return
