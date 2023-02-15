@@ -120,21 +120,25 @@ var (
 	}
 
 	DefaultPasswords = map[string][]string{
-		"FTP":        {"123456", "admin", "admin123", "root", "q1w2e3r4", "", "password", "111111", "123", "1", "admin@123", "Admin@123", "admin123!@#", "P@ssw0rd!", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"MYSQL":      {"123456", "admin", "admin123", "root", "", "password", "111111", "123", "1", "admin@123", "Admin@123", "admin123!@#", "P@ssw0rd!", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"MSSQL":      {"123456", "admin", "admin123", "root", "", "password", "111111", "123", "1", "admin@123", "Admin@123", "admin123!@#", "P@ssw0rd!", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"SMB":        {"123456", "admin", "admin123", "password", "111111", "123", "1", "admin@123", "Admin@123", "admin123!@#", "P@ssw0rd!", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#", "sa123456"},
-		"RDP":        {"123456", "admin", "admin123", "password", "111111", "123", "1", "admin@123", "Admin@123", "admin123!@#", "P@ssw0rd!", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"POSTGRESQL": {"123456", "admin", "admin123", "root", "", "password", "111111", "123", "1", "admin@123", "Admin@123", "admin123!@#", "P@ssw0rd!", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"SSH":        {"123456", "admin", "admin123", "root", "password", "111111", "123", "1", "admin@123", "Admin@123", "admin123!@#", "P@ssw0rd!", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#", "admin@huawei.com"},
-		"MONGO":      {"123456", "admin", "admin123", "root", "", "password", "111111", "123", "1", "admin@123", "Admin@123", "admin123!@#", "P@ssw0rd!", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"REDIS":      {"123456", "admin", "admin123", "root", "", "password", "111111", "123", "1", "admin@123", "Admin@123", "admin123!@#", "P@ssw0rd!", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
+		"FTP":        {"123456", "admin", "admin123", "root", "q1w2e3r4", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
+		"MYSQL":      {"123456", "admin", "admin123", "root", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
+		"MSSQL":      {"123456", "admin", "admin123", "root", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
+		"SMB":        {"123456", "admin", "admin123", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#", "sa123456"},
+		"RDP":        {"123456", "admin", "admin123", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
+		"POSTGRESQL": {"123456", "admin", "admin123", "root", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
+		"SSH":        {"123456", "admin", "admin123", "root", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#", "admin@huawei.com"},
+		"MONGO":      {"123456", "admin", "admin123", "root", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
+		"REDIS":      {"123456", "admin", "admin123", "root", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
 	}
 )
 
-func UseDefaultPassword(service string) []string {
+func UseDefaultPassword(service string, top int) []string {
 	if pwds, ok := DefaultPasswords[service]; ok {
-		return pwds
+		if top > len(pwds) {
+			return pwds
+		} else {
+			return pwds[:top]
+		}
 	} else {
 		return []string{"admin"}
 	}
