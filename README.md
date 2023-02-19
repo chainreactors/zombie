@@ -14,6 +14,11 @@
 
 `zombie -I targets.txt -u root -p password123 -s ssh --debug`
 
+从gogo中导入
+
+`gogo -F 1.dat -o zombie -f zombie.json`
+
+`zombie --go zombie.json`
 ## Usage
 
 当前支持的协议
@@ -28,4 +33,5 @@
 * ORACLE
 * VNC
 * LDAP
+* SNMP
 * RDP 暂时移除
