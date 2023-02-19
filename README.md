@@ -8,8 +8,24 @@
 
 使用默认字典爆破ssh口令
 
-zombie -I targets.txt -u root -s ssh
+`zombie -I targets.txt -u root -s ssh`
 
 打开debug,判断是否存在漏报
 
-zombie -I targets.txt -u root -p password123 -s ssh --debug
+`zombie -I targets.txt -u root -p password123 -s ssh --debug`
+
+## Usage
+
+当前支持的协议
+
+* FTP
+* SSH
+* SMB
+* MSSQL
+* MYSQL
+* POSTGRESQL
+* REDIS
+* ORACLE
+* VNC
+* LDAP
+* RDP 暂时移除
