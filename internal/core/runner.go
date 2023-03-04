@@ -28,7 +28,6 @@ type Runner struct {
 	Done       bool
 	ExecString string
 	FirstOnly  bool
-	Top        int
 }
 
 func (r *Runner) Run() {
@@ -73,6 +72,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 			cancel()
 		}()
 
+		// 设置超时时间, 防止任务挂死
 		select {
 		case <-ctx.Done():
 		case <-time.After(time.Duration(task.Timeout+1) * time.Second):
@@ -85,12 +85,14 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 		wg.Done()
 	})
 
+	// 执行
 	for target := range targets {
 		ch := r.clusterBombGenerate(rootContext, target)
 	loop:
 		for {
 			select {
 			case task, ok := <-ch:
+				// 从生成器中取任务.
 				if ok {
 					wg.Add(1)
 					_ = pool.Invoke(task)
@@ -98,11 +100,14 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 					break loop
 				}
 			case <-rootContext.Done():
+				// todo 为断点续传做准备
 				break loop
 			}
 		}
 	}
 	wg.Wait()
+
+	// 某些情况下, 任务执行完毕后, 还在处理输出结果, 等待结果输出完毕
 	for len(r.OutputCh) > 0 {
 		time.Sleep(100 * time.Millisecond)
 	}
@@ -111,9 +116,11 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 }
 
 func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *utils.Task {
+	// 通过用户名与密码的笛卡尔积生成数据
 	tctx, canceler := context.WithCancel(ctx)
 	ch := make(chan *utils.Task)
 	var users, pwds []string
+	// 自动选择默认的用户名与密码字典
 	if r.Users == nil {
 		users = utils.UseDefaultUser(target.Service)
 	} else {
@@ -126,12 +133,13 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *
 		pwds = r.Pwds
 	}
 
+	// task生成器
 	go func() {
 	Loop:
 		for _, user := range users {
 			for _, pwd := range pwds {
 				if _, ok := utils.ServicePortMap[target.Service]; !ok {
-					logs.Log.Debugf("unknown service " + target.Service)
+					logs.Log.Warn("unknown service " + target.Service)
 					continue
 				}
 				select {
@@ -160,12 +168,11 @@ func (r *Runner) targetGenerate() chan *Target {
 	ch := make(chan *Target)
 	go func() {
 		// 通过targets生成目标
-		for _, t := range r.Targets {
-			t.Service = strings.ToUpper(t.Service)
-			if r.Services != nil && slice.Contains(r.Services, t.Service) {
-				ch <- t
-			} else {
-				ch <- t
+		for _, target := range r.Targets {
+			target.Service = strings.ToUpper(target.Service)
+			if r.Services == nil || (r.Services != nil && slice.Contains(r.Services, target.Service)) {
+				// 如果从gogo中输入的目标, 可以通过-s过滤特定的服务进行扫描
+				ch <- target
 			}
 		}
 
