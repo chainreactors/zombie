@@ -2,7 +2,7 @@ package plugin
 
 import (
 	"fmt"
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	"github.com/gosnmp/gosnmp"
 	"log"
 	"net"
@@ -13,7 +13,7 @@ import (
 )
 
 type SnmpService struct {
-	*utils.Task
+	*pkg.Task
 	Cidr    []string
 	GateWay []string
 	Input   string
@@ -44,7 +44,7 @@ type SwitchInfo struct {
 	InterfaceSlice []string `json:"InterfaceSlice"`
 }
 
-func SnmpConnect(info *utils.Task) (conn *gosnmp.GoSNMP, err error) {
+func SnmpConnect(info *pkg.Task) (conn *gosnmp.GoSNMP, err error) {
 	g := &gosnmp.GoSNMP{
 		Target:             info.IP,
 		Port:               info.UintPort(),
@@ -276,8 +276,8 @@ func HandleinetCidrRouteEntry(spcon *gosnmp.GoSNMP) (*CiderRoute, error) {
 		}
 
 	}
-	result.Cidr = utils.RemoveDuplicateElement(result.Cidr)
-	result.GateWay = utils.RemoveDuplicateElement(result.GateWay)
+	result.Cidr = pkg.RemoveDuplicateElement(result.Cidr)
+	result.GateWay = pkg.RemoveDuplicateElement(result.GateWay)
 
 	return &result, nil
 

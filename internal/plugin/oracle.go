@@ -3,12 +3,12 @@ package plugin
 import (
 	"database/sql"
 	"fmt"
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	_ "github.com/sijms/go-ora/v2"
 )
 
 type OracleService struct {
-	*utils.Task
+	*pkg.Task
 	Input string
 	conn  *sql.DB
 }
@@ -17,7 +17,7 @@ func (s *OracleService) Query() bool {
 	panic("implement me")
 }
 
-func OracleConnect(info *utils.Task) (conn *sql.DB, err error) {
+func OracleConnect(info *pkg.Task) (conn *sql.DB, err error) {
 	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%s/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", info.Username, info.Password, info.IP, info.Port, info.Instance, info.Timeout, info.Timeout)
 
 	conn, err = sql.Open("oracle", dataSourceName)

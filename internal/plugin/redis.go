@@ -1,13 +1,13 @@
 package plugin
 
 import (
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	"github.com/go-redis/redis"
 	"time"
 )
 
 type RedisService struct {
-	*utils.Task
+	*pkg.Task
 	conn       *redis.Client
 	Additional string
 	Input      string
@@ -46,7 +46,7 @@ func (s *RedisService) Output(res interface{}) {
 
 }
 
-func RedisConnect(task *utils.Task) (client *redis.Client, err error) {
+func RedisConnect(task *pkg.Task) (client *redis.Client, err error) {
 	opt := redis.Options{Addr: task.Address(),
 		Password: task.Password, DB: 0, DialTimeout: time.Duration(task.Timeout) * time.Second}
 	client = redis.NewClient(&opt)

@@ -7,7 +7,7 @@ import (
 	"github.com/chainreactors/ipcs"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/words"
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -25,7 +25,7 @@ type InputOptions struct {
 	IPFile        string `short:"I" long:"IP"`
 	Username      string `short:"u" long:"user"`
 	UsernameFile  string `short:"U" long:"USER"`
-	Password      string `short:"p" long:"pass"`
+	Password      string `short:"p" long:"pwd"`
 	PasswordFile  string `short:"P" long:"PWD"`
 	GogoFile      string `long:"go"`
 	ServiceName   string `short:"s" long:"service"`
@@ -97,7 +97,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		if strings.Contains(ipslice[0], ":") {
 			addrs = ipcs.NewAddrs(ipslice)
 		} else {
-			addrs = ipcs.NewAddrsWithDefaultPort(ipslice, utils.ServicePortMap[strings.ToUpper(opt.ServiceName)])
+			addrs = ipcs.NewAddrsWithDefaultPort(ipslice, pkg.ServicePortMap[strings.ToUpper(opt.ServiceName)])
 		}
 	}
 
@@ -145,7 +145,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		File:      file,
 		FirstOnly: true,
 		OutFunc:   outfunc,
-		OutputCh:  make(chan *utils.Result),
+		OutputCh:  make(chan *pkg.Result),
 	}
 	if opt.ServiceName != "" {
 		runner.Services = strings.Split(strings.ToUpper(opt.ServiceName), ",")

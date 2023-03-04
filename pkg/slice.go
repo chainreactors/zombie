@@ -1,6 +1,6 @@
-package slice
+package pkg
 
-func Contains(l []string, s string) bool {
+func SliceContains(l []string, s string) bool {
 	for _, i := range l {
 		if i == s {
 			return true

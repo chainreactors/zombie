@@ -2,18 +2,18 @@ package plugin
 
 import (
 	"fmt"
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	"github.com/jlaffaye/ftp"
 	"time"
 )
 
 type FtpService struct {
-	*utils.Task
+	*pkg.Task
 	Input string
 	conn  *ftp.ServerConn
 }
 
-func FtpConnect(task *utils.Task) (conn *ftp.ServerConn, err error) {
+func FtpConnect(task *pkg.Task) (conn *ftp.ServerConn, err error) {
 	conn, err = ftp.DialTimeout(fmt.Sprintf(task.Address()), time.Duration(task.Timeout)*time.Second)
 	if err != nil {
 		return nil, err

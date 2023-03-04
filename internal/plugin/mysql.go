@@ -3,13 +3,13 @@ package plugin
 import (
 	"database/sql"
 	"fmt"
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type MysqlService struct {
-	*utils.Task
+	*pkg.Task
 	MysqlInf
 	Input string
 	conn  *sql.DB
@@ -60,7 +60,7 @@ func (l nilLog) Print(v ...interface{}) {
 
 }
 
-func MysqlConnect(info *utils.Task) (conn *sql.DB, err error) {
+func MysqlConnect(info *pkg.Task) (conn *sql.DB, err error) {
 	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&charset=utf8", info.Username,
 		info.Password, info.IP, info.Port, info.Timeout, info.Timeout, info.Timeout)
 	conn, err = sql.Open("mysql", dataSourceName)

@@ -2,7 +2,7 @@ package plugin
 
 import (
 	"encoding/hex"
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	"github.com/hirochachacha/go-smb2"
 
 	//"github.com/hirochachacha/go-smb2"
@@ -12,7 +12,7 @@ import (
 )
 
 type SmbService struct {
-	*utils.Task
+	*pkg.Task
 	Session *smb2.Session
 	Version string
 	Input   string
@@ -50,7 +50,7 @@ func (s *SmbService) Output(res interface{}) {
 
 }
 
-func SMBConnect(info *utils.Task) (sess *smb2.Session, err error) {
+func SMBConnect(info *pkg.Task) (sess *smb2.Session, err error) {
 	var user, domain string
 
 	if strings.Contains(info.Username, "/") {

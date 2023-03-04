@@ -3,12 +3,12 @@ package plugin
 import (
 	"database/sql"
 	"fmt"
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
 type MssqlService struct {
-	*utils.Task
+	*pkg.Task
 	MssqlInf
 	Input string
 	conn  *sql.DB
@@ -28,7 +28,7 @@ type MssqlInf struct {
 	vb          []MssqlValuable
 }
 
-func MssqlConnect(task *utils.Task) (conn *sql.DB, err error) {
+func MssqlConnect(task *pkg.Task) (conn *sql.DB, err error) {
 	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", task.IP,
 		task.Port, task.Username, task.Password, "master", task.Timeout)
 
