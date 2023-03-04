@@ -1,14 +1,14 @@
 package plugin
 
 import (
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	"github.com/mitchellh/go-vnc"
 	"net"
 	"time"
 )
 
 type VNCService struct {
-	*utils.Task
+	*pkg.Task
 	conn  *vnc.ClientConn
 	Input string
 }
@@ -46,7 +46,7 @@ func (s *VNCService) Output(res interface{}) {
 
 }
 
-func VNCConnect(task *utils.Task) (conn *vnc.ClientConn, err error) {
+func VNCConnect(task *pkg.Task) (conn *vnc.ClientConn, err error) {
 	target := task.Address()
 
 	tcpconn, err := net.DialTimeout("tcp", target, time.Duration(task.Timeout)*time.Second)

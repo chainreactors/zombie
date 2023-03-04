@@ -6,8 +6,7 @@ import (
 	"github.com/chainreactors/files"
 	"github.com/chainreactors/ipcs"
 	"github.com/chainreactors/logs"
-	"github.com/chainreactors/zombie/pkg/utils"
-	"github.com/chainreactors/zombie/pkg/utils/slice"
+	"github.com/chainreactors/zombie/pkg"
 	"github.com/panjf2000/ants/v2"
 	"strings"
 	"sync"
@@ -22,7 +21,7 @@ type Runner struct {
 	Targets    []*Target
 	Services   []string
 	Generator  chan *Target
-	OutputCh   chan *utils.Result
+	OutputCh   chan *pkg.Result
 	File       *files.File
 	OutFunc    func(string)
 	Done       bool
@@ -51,17 +50,17 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	rootContext, _ := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
 	pool, _ := ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
-		task := i.(*utils.Task)
+		task := i.(*pkg.Task)
 		ctx, cancel := context.WithTimeout(task.Context, time.Duration(task.Timeout)*time.Second)
 		go func() {
 			err := Brute(task)
 			if err != nil {
-				r.OutputCh <- &utils.Result{
+				r.OutputCh <- &pkg.Result{
 					Task: task,
 					Err:  err,
 				}
 			} else {
-				r.OutputCh <- &utils.Result{
+				r.OutputCh <- &pkg.Result{
 					Task: task,
 					OK:   true,
 				}
@@ -76,7 +75,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 		select {
 		case <-ctx.Done():
 		case <-time.After(time.Duration(task.Timeout+1) * time.Second):
-			r.OutputCh <- &utils.Result{
+			r.OutputCh <- &pkg.Result{
 				Task: task,
 				Err:  fmt.Errorf("timeout"),
 			}
@@ -115,20 +114,20 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	time.Sleep(100 * time.Millisecond)
 }
 
-func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *utils.Task {
+func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *pkg.Task {
 	// 通过用户名与密码的笛卡尔积生成数据
 	tctx, canceler := context.WithCancel(ctx)
-	ch := make(chan *utils.Task)
+	ch := make(chan *pkg.Task)
 	var users, pwds []string
 	// 自动选择默认的用户名与密码字典
 	if r.Users == nil {
-		users = utils.UseDefaultUser(target.Service)
+		users = pkg.UseDefaultUser(target.Service)
 	} else {
 		users = r.Users
 	}
 
 	if r.Pwds == nil {
-		pwds = utils.UseDefaultPassword(target.Service, r.Top)
+		pwds = pkg.UseDefaultPassword(target.Service, r.Top)
 	} else {
 		pwds = r.Pwds
 	}
@@ -138,12 +137,12 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *
 	Loop:
 		for _, user := range users {
 			for _, pwd := range pwds {
-				if _, ok := utils.ServicePortMap[target.Service]; !ok {
+				if _, ok := pkg.ServicePortMap[target.Service]; !ok {
 					logs.Log.Warn("unknown service " + target.Service)
 					continue
 				}
 				select {
-				case ch <- &utils.Task{
+				case ch <- &pkg.Task{
 					IP:         target.IP,
 					Port:       target.Port,
 					Service:    target.Service,
@@ -170,7 +169,7 @@ func (r *Runner) targetGenerate() chan *Target {
 		// 通过targets生成目标
 		for _, target := range r.Targets {
 			target.Service = strings.ToUpper(target.Service)
-			if r.Services == nil || (r.Services != nil && slice.Contains(r.Services, target.Service)) {
+			if r.Services == nil || (r.Services != nil && pkg.SliceContains(r.Services, target.Service)) {
 				// 如果从gogo中输入的目标, 可以通过-s过滤特定的服务进行扫描
 				ch <- target
 			}

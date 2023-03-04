@@ -3,13 +3,13 @@ package plugin
 import (
 	"database/sql"
 	"fmt"
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	_ "github.com/lib/pq"
 	"strings"
 )
 
 type PostgresService struct {
-	*utils.Task
+	*pkg.Task
 	Dbname string `json:"Dbname"`
 	PostgreInf
 	Input string
@@ -60,7 +60,7 @@ func (s *PostgresService) Output(res interface{}) {
 	//}
 }
 
-func PostgresConnect(info *utils.Task, dbname string) (conn *sql.DB, err error) {
+func PostgresConnect(info *pkg.Task, dbname string) (conn *sql.DB, err error) {
 	dataSourceName := strings.Join([]string{
 		fmt.Sprintf("connect_timeout=%d", info.Timeout),
 		fmt.Sprintf("dbname=%s", dbname),

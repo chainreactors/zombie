@@ -3,10 +3,10 @@ package core
 import (
 	"fmt"
 	"github.com/chainreactors/zombie/internal/plugin"
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 )
 
-func Brute(task *utils.Task) error {
+func Brute(task *pkg.Task) error {
 	conn := plugin.Dispatch(task)
 	if conn == nil {
 		return fmt.Errorf("not support service " + task.Service)

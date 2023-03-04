@@ -2,13 +2,13 @@ package plugin
 
 import (
 	"fmt"
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	ldap "github.com/go-ldap/ldap/v3"
 	"time"
 )
 
 type LdapService struct {
-	*utils.Task
+	*pkg.Task
 	Input   string
 	LdapCon *ldap.Conn
 }
@@ -17,7 +17,7 @@ func (s *LdapService) Query() bool {
 	panic("implement me")
 }
 
-func LdapConnect(info *utils.Task) (con *ldap.Conn, err error) {
+func LdapConnect(info *pkg.Task) (con *ldap.Conn, err error) {
 	var conn *ldap.Conn
 	connectAddr := fmt.Sprintf(info.Address())
 

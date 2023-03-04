@@ -2,7 +2,7 @@ package plugin
 
 import (
 	"fmt"
-	"github.com/chainreactors/zombie/pkg/utils"
+	"github.com/chainreactors/zombie/pkg"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
@@ -13,7 +13,7 @@ import (
 )
 
 type SshService struct {
-	*utils.Task
+	*pkg.Task
 	MysqlInf
 	Cmd  string
 	conn *ssh.Client
@@ -86,7 +86,7 @@ func (s *SshService) Output(res interface{}) {
 	//utils.TDatach <- finres
 }
 
-func SSHConnect(task *utils.Task) (conn *ssh.Client, err error) {
+func SSHConnect(task *pkg.Task) (conn *ssh.Client, err error) {
 	config := &ssh.ClientConfig{
 		User:    task.Username,
 		Timeout: time.Duration(task.Timeout) * time.Second,
