@@ -106,35 +106,11 @@ var (
 		"3389":   "RDP",
 		"1521":   "ORACLE",
 	}
-
-	DefaultUsernames = map[string][]string{
-		"FTP":        {"ftp", "admin", "www", "wwwroot"},
-		"MYSQL":      {"root", "mysql"},
-		"MSSQL":      {"sa", "sql"},
-		"SMB":        {"administrator", "admin"},
-		"RDP":        {"administrator", "admin"},
-		"POSTGRESQL": {"postgres", "admin"},
-		"SSH":        {"root", "admin"},
-		"MONGO":      {"root", "admin"},
-		"REDIS":      {"root"},
-	}
-
-	DefaultPasswords = map[string][]string{
-		"FTP":        {"123456", "admin", "admin123", "root", "q1w2e3r4", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"MYSQL":      {"123456", "admin", "admin123", "root", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"MSSQL":      {"123456", "admin", "admin123", "root", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"SMB":        {"123456", "admin", "admin123", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#", "sa123456"},
-		"RDP":        {"123456", "admin", "admin123", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"POSTGRESQL": {"123456", "admin", "admin123", "root", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"SSH":        {"123456", "admin", "admin123", "root", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#", "admin@huawei.com"},
-		"MONGO":      {"123456", "admin", "admin123", "root", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-		"REDIS":      {"123456", "admin", "admin123", "root", "", "password", "123", "1", "admin@123", "Admin@123", "P@ssw0rd", "Passw0rd", "12345678", "test", "test123", "123qwe!@#", "123456789", "000000", "1234567890", "8888888", "!QAZ2wsx", "1qaz2wsx", "1QAZ2wsx", "1qaz@WSX", "sysadmin", "system", "1qaz!QAZ", "2wsx@WSX", "qwe123!@#"},
-	}
 )
 
 func UseDefaultPassword(service string, top int) []string {
-	if pwds, ok := DefaultPasswords[service]; ok {
-		if top > len(pwds) {
+	if pwds, ok := Keywords[strings.ToLower(service)+"_pwd"]; ok {
+		if top == 0 || top > len(pwds) {
 			return pwds
 		} else {
 			return pwds[:top]
@@ -145,7 +121,7 @@ func UseDefaultPassword(service string, top int) []string {
 }
 
 func UseDefaultUser(service string) []string {
-	if users, ok := DefaultUsernames[service]; ok {
+	if users, ok := Keywords[strings.ToLower(service)+"_user"]; ok {
 		return users
 	} else {
 		return []string{"admin"}

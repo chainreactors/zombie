@@ -39,7 +39,7 @@ type OutputOptions struct {
 }
 
 type WordOptions struct {
-	Top int `long:"top" default:"10"`
+	Top int `long:"top" default:"0"`
 }
 
 type MiscOptions struct {
@@ -62,6 +62,10 @@ func (opt *Option) Prepare() (*Runner, error) {
 
 	if opt.Debug {
 		logs.Log.Level = logs.Debug
+	}
+	err = pkg.LoadKeyword()
+	if err != nil {
+		return nil, err
 	}
 
 	var targets []*Target
