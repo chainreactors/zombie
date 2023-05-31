@@ -110,8 +110,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	for len(r.OutputCh) > 0 {
 		time.Sleep(100 * time.Millisecond)
 	}
-	close(r.OutputCh)
-	time.Sleep(100 * time.Millisecond)
+
 }
 
 func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *pkg.Task {
