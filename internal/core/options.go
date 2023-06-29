@@ -91,7 +91,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 			if err != nil {
 				return nil, err
 			}
-			ipslice = words.NewWorderWithFile(ipf).All()
+			ipslice = generateWord(ipf)
 		}
 
 		if len(ipslice) == 0 {
@@ -113,7 +113,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		if err != nil {
 			return nil, err
 		}
-		users = words.NewWorderWithFile(userf).All()
+		users = generateWord(userf)
 	}
 
 	// load password
@@ -124,7 +124,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		if err != nil {
 			return nil, err
 		}
-		pwds = words.NewWorderWithFile(pwdf).All()
+		pwds = generateWord(pwdf)
 	}
 
 	var file *files.File
@@ -166,4 +166,10 @@ type Target struct {
 
 func (t Target) Addr() *ipcs.Addr {
 	return &ipcs.Addr{IP: ipcs.NewIP(t.IP), Port: t.Port}
+}
+
+func generateWord(file *os.File) []string {
+	word := words.NewWorderWithFile(file)
+	word.Run()
+	return word.All()
 }
