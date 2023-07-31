@@ -18,7 +18,7 @@ require (
 )
 
 require (
-	github.com/chainreactors/files v0.2.4
+	github.com/chainreactors/files v0.2.5-0.20230731172931-8d0a64e79d98
 	github.com/chainreactors/ipcs v0.0.13
 	github.com/chainreactors/logs v0.6.1
 	github.com/chainreactors/parsers v0.3.0
@@ -26,7 +26,6 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 	sigs.k8s.io/yaml v1.3.0
 )
 
