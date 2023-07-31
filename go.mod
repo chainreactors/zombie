@@ -14,7 +14,7 @@ require (
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/panjf2000/ants/v2 v2.4.3
 	github.com/sijms/go-ora/v2 v2.2.15
-	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 )
 
 require (
@@ -26,6 +26,7 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
+	go.mongodb.org/mongo-driver v1.12.0 // indirect
 	sigs.k8s.io/yaml v1.3.0
 )
 
