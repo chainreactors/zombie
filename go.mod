@@ -22,7 +22,7 @@ require (
 	github.com/chainreactors/ipcs v0.0.13
 	github.com/chainreactors/logs v0.6.1
 	github.com/chainreactors/parsers v0.3.0
-	github.com/chainreactors/words v0.4.1-0.20230203115443-ca934844e361
+	github.com/chainreactors/words v0.4.1-0.20230731130315-158c047fd378
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect

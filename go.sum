@@ -12,6 +12,10 @@ github.com/chainreactors/parsers v0.3.0 h1:OJ/K/ZRsaSWkQNf6+3yliHrps+zj0fZl2/7ju
 github.com/chainreactors/parsers v0.3.0/go.mod h1:Z9weht+lnFCk7UcwqFu6lXpS7u5vttiy0AJYOAyCCLA=
 github.com/chainreactors/words v0.4.1-0.20230203115443-ca934844e361 h1:5KTlGw3NL3whK61GkrKY+WccI9+fVm/ctOQH+XBC5NM=
 github.com/chainreactors/words v0.4.1-0.20230203115443-ca934844e361/go.mod h1:QIWX1vMT5j/Mp9zx3/wgZh3FqskhjCbo/3Ffy/Hxj9w=
+github.com/chainreactors/words v0.4.1-0.20230731124209-dd13f1b5bc3a h1:zaA0juD7hD6o5jgJHFUcb/UcEPPUS/o6I0nn3y1Rmus=
+github.com/chainreactors/words v0.4.1-0.20230731124209-dd13f1b5bc3a/go.mod h1:QIWX1vMT5j/Mp9zx3/wgZh3FqskhjCbo/3Ffy/Hxj9w=
+github.com/chainreactors/words v0.4.1-0.20230731130315-158c047fd378 h1:260YhiuS6BdkmRDc21BXyLqUfBLudGjFVK9cyVuS9fc=
+github.com/chainreactors/words v0.4.1-0.20230731130315-158c047fd378/go.mod h1:QIWX1vMT5j/Mp9zx3/wgZh3FqskhjCbo/3Ffy/Hxj9w=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
