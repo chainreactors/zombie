@@ -45,13 +45,10 @@ func Dispatch(task *pkg.Task) Plugin {
 		return &FtpService{
 			Task: task,
 		}
-
-	//case "MONGO":
-	//	return &Plugin.MongoService{
-	//		Username: task.Username,
-	//		Password: task.Password,
-	//		Target:   task.Info,
-	//	}
+	case "MONGO":
+		return &MongoService{
+			Task: task,
+		}
 	case "VNC":
 		return &VNCService{
 			Task: task,

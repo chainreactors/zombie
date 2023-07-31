@@ -80,11 +80,11 @@ func MysqlConnect(info *pkg.Task) (conn *sql.DB, err error) {
 
 func (s *MysqlService) Connect() error {
 	mysql.SetLogger(nilLog{})
-	conn, err := MysqlConnect(s.Task)
+	var err error
+	s.conn, err = MysqlConnect(s.Task)
 	if err != nil {
 		return err
 	}
-	s.conn = conn
 	return nil
 }
 
