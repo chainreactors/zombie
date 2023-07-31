@@ -6,6 +6,7 @@ import (
 	"github.com/chainreactors/files"
 	"github.com/chainreactors/ipcs"
 	"github.com/chainreactors/logs"
+	"github.com/chainreactors/parsers/iutils"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/panjf2000/ants/v2"
 	"strings"
@@ -15,8 +16,8 @@ import (
 
 type Runner struct {
 	*Option
-	Users      []string
-	Pwds       []string
+	Users      *Generator
+	Pwds       *Generator
 	Addrs      ipcs.Addrs
 	Targets    []*Target
 	Services   []string
@@ -110,6 +111,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	for len(r.OutputCh) > 0 {
 		time.Sleep(100 * time.Millisecond)
 	}
+	time.Sleep(100 * time.Millisecond)
 
 }
 
@@ -122,13 +124,13 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *
 	if r.Users == nil {
 		users = pkg.UseDefaultUser(target.Service)
 	} else {
-		users = r.Users
+		users = r.Users.RunAsSlice()
 	}
 
 	if r.Pwds == nil {
 		pwds = pkg.UseDefaultPassword(target.Service, r.Top)
 	} else {
-		pwds = r.Pwds
+		pwds = r.Pwds.RunAsSlice()
 	}
 
 	// task生成器
@@ -168,7 +170,7 @@ func (r *Runner) targetGenerate() chan *Target {
 		// 通过targets生成目标
 		for _, target := range r.Targets {
 			target.Service = strings.ToUpper(target.Service)
-			if r.Services == nil || (r.Services != nil && pkg.SliceContains(r.Services, target.Service)) {
+			if r.Services == nil || (r.Services != nil && iutils.StringsContains(r.Services, target.Service)) {
 				// 如果从gogo中输入的目标, 可以通过-s过滤特定的服务进行扫描
 				ch <- target
 			}

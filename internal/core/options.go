@@ -6,10 +6,8 @@ import (
 	"github.com/chainreactors/files"
 	"github.com/chainreactors/ipcs"
 	"github.com/chainreactors/logs"
-	"github.com/chainreactors/words"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
-	"os"
 	"strings"
 )
 
@@ -21,15 +19,19 @@ type Option struct {
 }
 
 type InputOptions struct {
-	IP            string `short:"i" long:"ip"`
-	IPFile        string `short:"I" long:"IP"`
-	Username      string `short:"u" long:"user"`
-	UsernameFile  string `short:"U" long:"USER"`
-	Password      string `short:"p" long:"pwd"`
-	PasswordFile  string `short:"P" long:"PWD"`
-	GogoFile      string `long:"go"`
-	ServiceName   string `short:"s" long:"service"`
-	FilterService string `short:"S" long:"filter-service"`
+	IP            string   `short:"i" long:"ip"`
+	IPFile        string   `short:"I" long:"IP"`
+	Username      []string `short:"u" long:"user"`
+	UsernameFile  string   `short:"U" long:"USER"`
+	UsernameWord  string   `long:"userword"`
+	UsernameRule  string   `long:"userrule"`
+	Password      []string `short:"p" long:"pwd"`
+	PasswordFile  string   `short:"P" long:"PWD"`
+	PasswordWord  string   `long:"pwdword"`
+	PasswordRule  string   `long:"pwdrule"`
+	GogoFile      string   `long:"go"`
+	ServiceName   string   `short:"s" long:"service"`
+	FilterService string   `short:"S" long:"filter-service"`
 }
 
 type OutputOptions struct {
@@ -69,7 +71,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 	}
 
 	var targets []*Target
-	var users, pwds []string
+	var users, pwds *Generator
 	var addrs ipcs.Addrs
 	if opt.GogoFile != "" {
 		// load gogo result
@@ -87,11 +89,11 @@ func (opt *Option) Prepare() (*Runner, error) {
 		if opt.IP != "" {
 			ipslice = strings.Split(opt.IP, ",")
 		} else if opt.IPFile != "" {
-			ipf, err := os.Open(opt.IPFile)
+			ipg, err := NewGeneratorWithFile(opt.IPFile)
 			if err != nil {
 				return nil, err
 			}
-			ipslice = generateWord(ipf)
+			ipslice = ipg.RunAsSlice()
 		}
 
 		if len(ipslice) == 0 {
@@ -106,25 +108,45 @@ func (opt *Option) Prepare() (*Runner, error) {
 	}
 
 	// load username
-	if opt.Username != "" {
-		users = strings.Split(opt.Username, ",")
+	if opt.Username != nil {
+		users = NewGeneratorWithInput(opt.Username)
 	} else if opt.UsernameFile != "" {
-		userf, err := os.Open(opt.UsernameFile)
+		users, err = NewGeneratorWithFile(opt.UsernameFile)
 		if err != nil {
 			return nil, err
 		}
-		users = generateWord(userf)
+	} else if opt.UsernameWord != "" {
+		users, err = NewGeneratorWithWord(opt.UsernameWord, nil, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	// load password
-	if opt.Password != "" {
-		pwds = strings.Split(opt.Password, ",")
-	} else if opt.PasswordFile != "" {
-		pwdf, err := os.Open(opt.PasswordFile)
+	if opt.UsernameRule != "" {
+		err := users.SetRule(opt.UsernameRule)
 		if err != nil {
 			return nil, err
 		}
-		pwds = generateWord(pwdf)
+	}
+	// load password
+	if opt.Password != nil {
+		pwds = NewGeneratorWithInput(opt.Password)
+	} else if opt.PasswordFile != "" {
+		pwds, err = NewGeneratorWithFile(opt.PasswordFile)
+		if err != nil {
+			return nil, err
+		}
+	} else if opt.PasswordWord != "" {
+		pwds, err = NewGeneratorWithWord(opt.PasswordWord, nil, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if opt.PasswordRule != "" {
+		err := users.SetRule(opt.PasswordRule)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var file *files.File
@@ -166,10 +188,4 @@ type Target struct {
 
 func (t Target) Addr() *ipcs.Addr {
 	return &ipcs.Addr{IP: ipcs.NewIP(t.IP), Port: t.Port}
-}
-
-func generateWord(file *os.File) []string {
-	word := words.NewWorderWithFile(file)
-	word.Run()
-	return word.All()
 }

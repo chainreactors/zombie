@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+var (
+	Rules map[string]string = make(map[string]string)
+)
+
 type Task struct {
 	IP         string             `json:"ip"`
 	Port       string             `json:"port"`
