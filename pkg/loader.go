@@ -6,7 +6,10 @@ import (
 	"github.com/chainreactors/words/mask"
 )
 
-var Keywords map[string][]string = make(map[string][]string)
+var (
+	Rules    map[string]string   = make(map[string]string)
+	Keywords map[string][]string = make(map[string][]string)
+)
 
 func LoadKeyword() error {
 	// load mask
@@ -44,5 +47,18 @@ func LoadKeyword() error {
 		Keywords[k] = tmplist
 	}
 	mask.SpecialWords = Keywords
+	return nil
+}
+
+func LoadRules() error {
+	var err error
+	var data map[string]interface{}
+	err = json.Unmarshal(LoadConfig("zombie_rule"), &data)
+	if err != nil {
+		return err
+	}
+	for k, v := range data {
+		Rules[k] = v.(string)
+	}
 	return nil
 }

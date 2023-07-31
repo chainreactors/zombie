@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/chainreactors/files"
 	"github.com/chainreactors/ipcs"
-	"github.com/chainreactors/logs"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"strings"
@@ -57,19 +56,6 @@ func (opt *Option) Validate() error {
 
 func (opt *Option) Prepare() (*Runner, error) {
 	var err error
-
-	if err = opt.Validate(); err != nil {
-		return nil, err
-	}
-
-	if opt.Debug {
-		logs.Log.Level = logs.Debug
-	}
-	err = pkg.LoadKeyword()
-	if err != nil {
-		return nil, err
-	}
-
 	var targets []*Target
 	var users, pwds *Generator
 	var addrs ipcs.Addrs
