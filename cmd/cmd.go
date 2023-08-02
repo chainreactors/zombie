@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/zombie/internal/core"
 	"github.com/chainreactors/zombie/pkg"
@@ -11,7 +12,9 @@ func Zombie() {
 	var opt core.Option
 	_, err := flags.Parse(&opt)
 	if err != nil {
-		logs.Log.Error(err.Error())
+		if err.(*flags.Error).Type != flags.ErrHelp {
+			fmt.Println(err.Error())
+		}
 		return
 	}
 

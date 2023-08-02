@@ -18,36 +18,37 @@ type Option struct {
 }
 
 type InputOptions struct {
-	IP            string   `short:"i" long:"ip"`
-	IPFile        string   `short:"I" long:"IP"`
-	Username      []string `short:"u" long:"user"`
-	UsernameFile  string   `short:"U" long:"USER"`
-	UsernameWord  string   `long:"userword"`
-	UsernameRule  string   `long:"userrule"`
-	Password      []string `short:"p" long:"pwd"`
-	PasswordFile  string   `short:"P" long:"PWD"`
-	PasswordWord  string   `long:"pwdword"`
-	PasswordRule  string   `long:"pwdrule"`
-	GogoFile      string   `long:"go"`
-	ServiceName   string   `short:"s" long:"service"`
-	FilterService string   `short:"S" long:"filter-service"`
+	IP            string   `short:"i" long:"ip" alias:"ipp" description:"String, input ip"`
+	IPFile        string   `short:"I" long:"IP" description:"File, input ip list filename"`
+	Username      []string `short:"u" long:"user" description:"Strings, input usernames"`
+	UsernameFile  string   `short:"U" long:"USER" description:"File, input username list filename"`
+	UsernameWord  string   `long:"userword" description:"String, input username generator dsl"`
+	UsernameRule  string   `long:"userrule" description:"String, input username generator rule filename"`
+	Password      []string `short:"p" long:"pwd" description:"String, input passwords"`
+	PasswordFile  string   `short:"P" long:"PWD" description:"File, input password list filename"`
+	PasswordWord  string   `long:"pwdword" description:"String, input password generator dsl"`
+	PasswordRule  string   `long:"pwdrule" description:"String, input password generator rule filename"`
+	GogoFile      string   `long:"go" description:"File, input gogo result filename"`
+	ServiceName   string   `short:"s" long:"service" description:"String, input service name"`
+	FilterService string   `short:"S" long:"filter-service" description:"String, filter service name"`
 }
 
 type OutputOptions struct {
-	OutputFile   string `short:"f" long:"file"`
-	FileFormat   string `short:"O" long:"file-format" default:"json"`
-	OutputFormat string `short:"o" long:"format" default:"string"`
+	OutputFile   string `short:"f" long:"file" description:"File, output result filename"`
+	FileFormat   string `short:"O" long:"file-format" default:"json" description:"String, output result file format"`
+	OutputFormat string `short:"o" long:"format" default:"string" description:"String, output result format"`
 }
 
 type WordOptions struct {
-	Top int `long:"top" default:"0"`
+	Top           int  `long:"top" default:"0" description:"Int, top n words"`
+	ForceContinue bool `long:"force-continue" description:"Bool, force continue, not only stop when first success ever host"`
 }
 
 type MiscOptions struct {
-	Threads int    `short:"t" default:"100"`
-	Timeout int    `short:"d" long:"timeout" default:"5"`
-	Mod     string `short:"m" default:"clusterbomb"`
-	Debug   bool   `long:"debug"`
+	Threads int    `short:"t" default:"100" description:"Int, threads"`
+	Timeout int    `short:"d" long:"timeout" default:"5" description:"Int, timeout"`
+	Mod     string `short:"m" default:"clusterbomb" description:"String, mod"`
+	Debug   bool   `long:"debug" description:"Bool, enable debug"`
 }
 
 func (opt *Option) Validate() error {
@@ -159,6 +160,9 @@ func (opt *Option) Prepare() (*Runner, error) {
 		OutFunc:   outfunc,
 		OutputCh:  make(chan *pkg.Result),
 		Stat:      &pkg.Statistor{},
+	}
+	if opt.ForceContinue {
+		runner.FirstOnly = false
 	}
 	if opt.ServiceName != "" {
 		runner.Services = strings.Split(strings.ToUpper(opt.ServiceName), ",")
