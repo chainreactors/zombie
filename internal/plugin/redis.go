@@ -3,7 +3,6 @@ package plugin
 import (
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/go-redis/redis"
-	"time"
 )
 
 type RedisService struct {
@@ -22,11 +21,15 @@ func (s *RedisService) GetInfo() bool {
 }
 
 func (s *RedisService) Connect() error {
-	conn, err := RedisConnect(s.Task)
+	opt := redis.Options{Addr: s.Address(),
+		Password: s.Password, DB: 0, DialTimeout: s.Duration()}
+	client := redis.NewClient(&opt)
+	_, err := client.Ping().Result()
 	if err != nil {
 		return err
 	}
-	s.conn = conn
+
+	s.conn = client
 	return nil
 
 }
@@ -44,38 +47,4 @@ func (s *RedisService) SetQuery(query string) {
 
 func (s *RedisService) Output(res interface{}) {
 
-}
-
-func RedisConnect(task *pkg.Task) (client *redis.Client, err error) {
-	opt := redis.Options{Addr: task.Address(),
-		Password: task.Password, DB: 0, DialTimeout: time.Duration(task.Timeout) * time.Second}
-	client = redis.NewClient(&opt)
-	_, err = client.Ping().Result()
-	if err != nil {
-		return nil, err
-	}
-	//if err == nil {
-	//	result = true
-	//	redisinfo := client.Info().String()
-	//	osreg, _ := regexp.Compile("os:(.*)\r\n")
-	//	osname := osreg.FindString(redisinfo)
-	//	getos, _ := regexp.Compile("(?i)linux")
-	//	if getos.FindString(osname) != "" {
-	//		additional = "os: linux\t"
-	//
-	//		isroot := client.ConfigSet("dir", "/root/.ssh/").String()
-	//
-	//		if strings.Contains(isroot, "Permission denied") {
-	//			additional = "role: not root\t"
-	//		} else if strings.Contains(isroot, "OK") {
-	//			additional += "role: root\texsit /root/.ssh"
-	//		} else {
-	//			additional += "role: root\tdont have /root/.ssh"
-	//		}
-	//
-	//	} else {
-	//		additional = "os: windows\t"
-	//	}
-	//}
-	return client, nil
 }

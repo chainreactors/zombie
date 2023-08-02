@@ -60,12 +60,13 @@ func (l nilLog) Print(v ...interface{}) {
 
 }
 
-func MysqlConnect(info *pkg.Task) (conn *sql.DB, err error) {
-	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&charset=utf8", info.Username,
-		info.Password, info.IP, info.Port, info.Timeout, info.Timeout, info.Timeout)
-	conn, err = sql.Open("mysql", dataSourceName)
+func (s *MysqlService) Connect() error {
+	mysql.SetLogger(nilLog{})
+	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&charset=utf8", s.Username,
+		s.Password, s.IP, s.Port, s.Timeout, s.Timeout, s.Timeout)
+	conn, err := sql.Open("mysql", dataSourceName)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	//conn.SetMaxOpenConns(60)
@@ -73,18 +74,9 @@ func MysqlConnect(info *pkg.Task) (conn *sql.DB, err error) {
 
 	err = conn.Ping()
 	if err != nil {
-		return nil, err
-	}
-	return conn, err
-}
-
-func (s *MysqlService) Connect() error {
-	mysql.SetLogger(nilLog{})
-	var err error
-	s.conn, err = MysqlConnect(s.Task)
-	if err != nil {
 		return err
 	}
+	s.conn = conn
 	return nil
 }
 

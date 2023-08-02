@@ -13,7 +13,7 @@ import (
 
 type SmbService struct {
 	*pkg.Task
-	Session *smb2.Session
+	conn    *smb2.Session
 	Version string
 	Input   string
 }
@@ -27,47 +27,23 @@ func (s *SmbService) GetInfo() bool {
 }
 
 func (s *SmbService) Connect() error {
-	conn, err := SMBConnect(s.Task)
+	var user, domain string
+
+	if strings.Contains(s.Username, "/") {
+		user = strings.Split(s.Username, "/")[1]
+		domain = strings.Split(s.Username, "/")[0]
+	} else {
+		user = s.Username
+	}
+
+	c, err := net.DialTimeout("tcp", s.Address(), time.Duration(s.Timeout)*time.Second)
 	if err != nil {
 		return err
 	}
-	s.Session = conn
-	return nil
-}
-
-func (s *SmbService) Close() error {
-	if s.Session != nil {
-		return s.Session.Logoff()
-	}
-	return NilConnError{s.Service}
-}
-
-func (s *SmbService) SetQuery(query string) {
-	s.Input = query
-}
-
-func (s *SmbService) Output(res interface{}) {
-
-}
-
-func SMBConnect(info *pkg.Task) (sess *smb2.Session, err error) {
-	var user, domain string
-
-	if strings.Contains(info.Username, "/") {
-		user = strings.Split(info.Username, "/")[1]
-		domain = strings.Split(info.Username, "/")[0]
-	} else {
-		user = info.Username
-	}
-
-	conn, err := net.DialTimeout("tcp", info.Address(), time.Duration(info.Timeout)*time.Second)
-	if err != nil {
-		return nil, err
-	}
 
 	d := &smb2.Dialer{}
-	if strings.HasPrefix(info.Password, "hash:") {
-		hash := info.Password[5:]
+	if strings.HasPrefix(s.Password, "hash:") {
+		hash := s.Password[5:]
 		buf := make([]byte, len(hash)/2)
 		hex.Decode(buf, []byte(hash))
 		d.Initiator = &smb2.NTLMInitiator{
@@ -80,19 +56,32 @@ func SMBConnect(info *pkg.Task) (sess *smb2.Session, err error) {
 			User:   user,
 			Domain: domain,
 			//Hash: buf,
-			Password: info.Password,
+			Password: s.Password,
 		}
 	}
 
-	_ = conn.SetDeadline(time.Now().Add(time.Duration(info.Timeout) * time.Second))
+	_ = c.SetDeadline(time.Now().Add(time.Duration(s.Timeout) * time.Second))
 
-	s, _, err := d.Dial(conn)
+	conn, _, err := d.Dial(c)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	//share, err := s.Mount("C$")
-	//
-	//fmt.Println(err.Error())
-	return s, nil
+	s.conn = conn
+	return nil
+}
+
+func (s *SmbService) Close() error {
+	if s.conn != nil {
+		return s.conn.Logoff()
+	}
+	return NilConnError{s.Service}
+}
+
+func (s *SmbService) SetQuery(query string) {
+	s.Input = query
+}
+
+func (s *SmbService) Output(res interface{}) {
+
 }

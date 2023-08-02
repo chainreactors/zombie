@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -36,30 +35,6 @@ func (s *SshService) Close() error {
 }
 
 func (s *SshService) GetInfo() bool {
-
-	if s.Cmd != "" {
-		session, err := s.conn.NewSession()
-		cmd := "ping -c 5 " + s.Cmd
-		buf, err := session.Output(cmd)
-
-		if err != nil {
-			return false
-		}
-
-		re, _ := regexp.Compile(`\d received`)
-
-		FindRes := string(re.Find([]byte(buf)))
-
-		reslist := strings.Split(FindRes, " ")
-		if reslist[1] == "received" {
-			if reslist[0] != "0" {
-				fmt.Printf("%v can reach %v\n", s.IP, s.Cmd)
-			}
-		}
-	} else {
-		panic("Please input ip")
-	}
-
 	return true
 }
 
@@ -114,7 +89,6 @@ func SSHConnect(task *pkg.Task) (conn *ssh.Client, err error) {
 }
 
 func publicKeyAuthFunc(kPath string) ssh.AuthMethod {
-
 	key, err := ioutil.ReadFile(kPath)
 	if err != nil {
 		log.Fatal("ssh key file read failed", err)
