@@ -60,31 +60,6 @@ func (s *PostgresService) Output(res interface{}) {
 	//}
 }
 
-func PostgresConnect(info *pkg.Task, dbname string) (conn *sql.DB, err error) {
-	dataSourceName := strings.Join([]string{
-		fmt.Sprintf("connect_timeout=%d", info.Timeout),
-		fmt.Sprintf("dbname=%s", dbname),
-		fmt.Sprintf("host=%v", info.IP),
-		fmt.Sprintf("password=%v", info.Password),
-		fmt.Sprintf("port=%v", info.Port),
-		"sslmode=disable",
-		fmt.Sprintf("user=%v", info.Username),
-	}, " ")
-
-	conn, err = sql.Open("postgres", dataSourceName)
-	if err != nil {
-		return nil, err
-	}
-
-	err = conn.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return conn, nil
-
-}
-
 //func PostgresQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
 //	err = SqlCon.Ping()
 //	if err == nil {
@@ -123,7 +98,22 @@ func (s *PostgresService) Query() bool {
 }
 
 func (s *PostgresService) Connect() error {
-	conn, err := PostgresConnect(s.Task, s.Dbname)
+	dataSourceName := strings.Join([]string{
+		fmt.Sprintf("connect_timeout=%d", s.Timeout),
+		fmt.Sprintf("dbname=%s", s.Dbname),
+		fmt.Sprintf("host=%v", s.IP),
+		fmt.Sprintf("password=%v", s.Password),
+		fmt.Sprintf("port=%v", s.Port),
+		"sslmode=disable",
+		fmt.Sprintf("user=%v", s.Username),
+	}, " ")
+
+	conn, err := sql.Open("postgres", dataSourceName)
+	if err != nil {
+		return err
+	}
+
+	err = conn.Ping()
 	if err != nil {
 		return err
 	}

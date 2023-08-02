@@ -28,24 +28,6 @@ type MssqlInf struct {
 	vb          []MssqlValuable
 }
 
-func MssqlConnect(task *pkg.Task) (conn *sql.DB, err error) {
-	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", task.IP,
-		task.Port, task.Username, task.Password, "master", task.Timeout)
-
-	//time.Duration(Utils.Timeout)*time.Second
-	conn, err = sql.Open("mssql", dataSourceName)
-	if err != nil {
-		return nil, err
-	}
-
-	err = conn.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return conn, nil
-}
-
 //func MssqlQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
 //	err = SqlCon.Ping()
 //	if err == nil {
@@ -85,10 +67,20 @@ func (s *MssqlService) SetQuery(query string) {
 }
 
 func (s *MssqlService) Connect() error {
-	conn, err := MssqlConnect(s.Task)
+	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", s.IP,
+		s.Port, s.Username, s.Password, "master", s.Timeout)
+
+	//time.Duration(Utils.Timeout)*time.Second
+	conn, err := sql.Open("mssql", dataSourceName)
 	if err != nil {
 		return err
 	}
+
+	err = conn.Ping()
+	if err != nil {
+		return err
+	}
+
 	s.conn = conn
 	return nil
 }

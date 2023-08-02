@@ -14,9 +14,7 @@ import (
 
 type SnmpService struct {
 	*pkg.Task
-	Cidr    []string
-	GateWay []string
-	Input   string
+	Input string
 	SwitchInfo
 	conn *gosnmp.GoSNMP
 }
@@ -42,35 +40,6 @@ type SwitchInfo struct {
 	SsCpuSystem    int64    `json:"SsCpuSystem"`
 	SsCpuIdle      int64    `json:"SsCpuIdle"`
 	InterfaceSlice []string `json:"InterfaceSlice"`
-}
-
-func SnmpConnect(info *pkg.Task) (conn *gosnmp.GoSNMP, err error) {
-	g := &gosnmp.GoSNMP{
-		Target:             info.IP,
-		Port:               info.UintPort(),
-		Community:          info.Password,
-		Version:            gosnmp.Version2c,
-		Timeout:            time.Duration(info.Timeout/2) * time.Second,
-		MaxOids:            gosnmp.MaxOids,
-		Retries:            3,
-		ExponentialTimeout: true,
-	}
-	err = g.Connect()
-	if err != nil {
-		//log.Println("Connect() err: %v", err)
-		return nil, err
-	}
-	//GetRes, err := g.Get([]string{".1.3.6.1.2.1.1.1.0"})
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	//variable := GetRes.Variables[0]
-	//if variable.Value != nil {
-	//	result = true
-	//}
-
-	return conn, nil
 }
 
 func (s *SnmpService) Query() bool {
@@ -130,7 +99,17 @@ func (s *SnmpService) SetQuery(query string) {
 }
 
 func (s *SnmpService) Connect() error {
-	conn, err := SnmpConnect(s.Task)
+	conn := &gosnmp.GoSNMP{
+		Target:             s.IP,
+		Port:               s.UintPort(),
+		Community:          s.Password,
+		Version:            gosnmp.Version2c,
+		Timeout:            time.Duration(s.Timeout/2) * time.Second,
+		MaxOids:            gosnmp.MaxOids,
+		Retries:            3,
+		ExponentialTimeout: true,
+	}
+	err := conn.Connect()
 	if err != nil {
 		return err
 	}

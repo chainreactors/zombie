@@ -7,6 +7,7 @@ import (
 	"github.com/chainreactors/logs"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Task struct {
@@ -38,6 +39,10 @@ func (t *Task) URL() string {
 func (t *Task) UintPort() uint16 {
 	p, _ := strconv.Atoi(t.Port)
 	return uint16(p)
+}
+
+func (t *Task) Duration() time.Duration {
+	return time.Duration(t.Timeout) * time.Second
 }
 
 type Result struct {

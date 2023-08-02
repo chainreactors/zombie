@@ -14,15 +14,15 @@ type OracleService struct {
 }
 
 func (s *OracleService) Query() bool {
-	panic("implement me")
+	return true
 }
 
-func OracleConnect(info *pkg.Task) (conn *sql.DB, err error) {
-	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%s/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", info.Username, info.Password, info.IP, info.Port, info.Instance, info.Timeout, info.Timeout)
+func (s *OracleService) Connect() error {
+	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%s/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", s.Username, s.Password, s.IP, s.Port, s.Instance, s.Timeout, s.Timeout)
 
-	conn, err = sql.Open("oracle", dataSourceName)
+	conn, err := sql.Open("oracle", dataSourceName)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	//conn.SetMaxOpenConns(60)
@@ -30,17 +30,9 @@ func OracleConnect(info *pkg.Task) (conn *sql.DB, err error) {
 
 	err = conn.Ping()
 	if err != nil {
-		return nil, err
-	}
-
-	return conn, nil
-}
-
-func (s *OracleService) Connect() error {
-	conn, err := OracleConnect(s.Task)
-	if err != nil {
 		return err
 	}
+
 	s.conn = conn
 	return err
 }

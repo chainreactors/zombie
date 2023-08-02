@@ -24,14 +24,26 @@ func (s *MongoService) GetInfo() bool {
 
 func (s *MongoService) Connect() error {
 	var err error
-	s.conn, err = MongoConnect(s.Task)
+	var url string
+
+	if s.Password == "" {
+		url = fmt.Sprintf("mongodb://%v:%v", s.IP, s.Port)
+	} else {
+		url = fmt.Sprintf("mongodb://%v:%v@%v:%v", s.Username, s.Password, s.IP, s.Port)
+	}
+	clientOptions := options.Client().ApplyURI(url).SetConnectTimeout(time.Duration(s.Timeout) * time.Second)
+
+	// 连接到MongoDB
+	client, err := mongo.Connect(s.Context, clientOptions)
 	if err != nil {
 		return err
 	}
+	s.conn = client
 	err = s.conn.Ping(s.Context, nil)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -48,23 +60,4 @@ func (s *MongoService) SetQuery(query string) {
 
 func (s *MongoService) Output(res interface{}) {
 
-}
-
-func MongoConnect(info *pkg.Task) (client *mongo.Client, err error) {
-	var url string
-
-	if info.Password == "" {
-		url = fmt.Sprintf("mongodb://%v:%v", info.IP, info.Port)
-	} else {
-		url = fmt.Sprintf("mongodb://%v:%v@%v:%v", info.Username, info.Password, info.IP, info.Port)
-	}
-	clientOptions := options.Client().ApplyURI(url).SetConnectTimeout(time.Duration(info.Timeout) * time.Second)
-
-	// 连接到MongoDB
-	client, err = mongo.Connect(info.Context, clientOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
 }

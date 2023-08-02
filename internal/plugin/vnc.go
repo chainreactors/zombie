@@ -22,13 +22,24 @@ func (s *VNCService) GetInfo() bool {
 }
 
 func (s *VNCService) Connect() error {
-	conn, err := VNCConnect(s.Task)
+	target := s.Address()
+
+	tcpconn, err := net.DialTimeout("tcp", target, time.Duration(s.Timeout)*time.Second)
+	if err != nil {
+		return err
+	}
+
+	config := vnc.ClientConfig{
+		Auth: []vnc.ClientAuth{
+			&vnc.PasswordAuth{Password: s.Password},
+		},
+	}
+	conn, err := vnc.Client(tcpconn, &config)
 	if err != nil {
 		return err
 	}
 	s.conn = conn
 	return nil
-
 }
 
 func (s *VNCService) Close() error {
@@ -44,24 +55,4 @@ func (s *VNCService) SetQuery(query string) {
 
 func (s *VNCService) Output(res interface{}) {
 
-}
-
-func VNCConnect(task *pkg.Task) (conn *vnc.ClientConn, err error) {
-	target := task.Address()
-
-	tcpconn, err := net.DialTimeout("tcp", target, time.Duration(task.Timeout)*time.Second)
-	if err != nil {
-		return nil, err
-	}
-
-	config := vnc.ClientConfig{
-		Auth: []vnc.ClientAuth{
-			&vnc.PasswordAuth{Password: task.Password},
-		},
-	}
-	conn, err = vnc.Client(tcpconn, &config)
-	if err != nil {
-		return nil, err
-	}
-	return conn, nil
 }
