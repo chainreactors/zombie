@@ -26,12 +26,13 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
-	go.mongodb.org/mongo-driver v1.12.0 // indirect
+	github.com/tomatome/grdp v0.0.0-00010101000000-000000000000
+	go.mongodb.org/mongo-driver v1.12.0
 	sigs.k8s.io/yaml v1.3.0
 )
 
 replace (
 	github.com/go-sql-driver/mysql => ./external/github.com/go-sql-driver/mysql
 	github.com/hirochachacha/go-smb2 => ./external/github.com/hirochachacha/go-smb2
-//github.com/icodeface/grdp => github.com/chainreactors/grdp
+	github.com/tomatome/grdp => ./external/github.com/tomatome/grdp
 )
