@@ -16,6 +16,7 @@ import (
 
 type Runner struct {
 	*Option
+	Stat       *pkg.Statistor
 	Users      *Generator
 	Pwds       *Generator
 	Addrs      ipcs.Addrs
@@ -52,7 +53,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	var wg sync.WaitGroup
 	pool, _ := ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
-		ctx, cancel := context.WithTimeout(task.Context, time.Duration(task.Timeout)*time.Second)
+		ctx, cancel := context.WithCancel(task.Context)
 		go func() {
 			err := Brute(task)
 			if err != nil {
@@ -95,6 +96,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 				// 从生成器中取任务.
 				if ok {
 					wg.Add(1)
+					r.Stat.Count++
 					_ = pool.Invoke(task)
 				} else {
 					break loop
@@ -108,11 +110,9 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	wg.Wait()
 
 	// 某些情况下, 任务执行完毕后, 还在处理输出结果, 等待结果输出完毕
-	for len(r.OutputCh) > 0 {
-		time.Sleep(100 * time.Millisecond)
+	for r.Stat.Count != outed {
+		time.Sleep(1 * time.Millisecond)
 	}
-	time.Sleep(100 * time.Millisecond)
-
 }
 
 func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *pkg.Task {
@@ -191,7 +191,10 @@ func (r *Runner) targetGenerate() chan *Target {
 	return ch
 }
 
+var outed int
+
 func (r *Runner) Output() {
+
 loop:
 	for {
 		select {
@@ -199,6 +202,7 @@ loop:
 			if !ok {
 				break loop
 			}
+			outed++
 			if result.OK {
 				if r.File != nil {
 					r.OutFunc(result.Format(r.Option.FileFormat))
