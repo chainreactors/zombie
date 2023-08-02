@@ -8,11 +8,6 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/tomatome/grdp/plugin/cliprdr"
-	"github.com/tomatome/grdp/plugin/rail"
-
-	"github.com/tomatome/grdp/plugin/drdynvc"
-
 	"github.com/tomatome/grdp/core"
 	"github.com/tomatome/grdp/emission"
 	"github.com/tomatome/grdp/glog"
@@ -284,15 +279,15 @@ func (c *MCSClient) SetClientDesktop(width, height uint16) {
 
 func (c *MCSClient) SetClientDynvcProtocol() {
 	c.clientCoreData.EarlyCapabilityFlags = gcc.RNS_UD_CS_SUPPORT_DYNVC_GFX_PROTOCOL
-	c.clientNetworkData.AddVirtualChannel(drdynvc.ChannelName, drdynvc.ChannelOption)
+	//c.clientNetworkData.AddVirtualChannel(drdynvc.ChannelName, drdynvc.ChannelOption)
 }
 
 func (c *MCSClient) SetClientRemoteProgram() {
-	c.clientNetworkData.AddVirtualChannel(rail.ChannelName, rail.ChannelOption)
+	//c.clientNetworkData.AddVirtualChannel(rail.ChannelName, rail.ChannelOption)
 }
 
 func (c *MCSClient) SetClientCliprdr() {
-	c.clientNetworkData.AddVirtualChannel(cliprdr.ChannelName, cliprdr.ChannelOption)
+	//c.clientNetworkData.AddVirtualChannel(cliprdr.ChannelName, cliprdr.ChannelOption)
 }
 
 func (c *MCSClient) connect(selectedProtocol uint32) {

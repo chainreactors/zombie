@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/tomatome/grdp/core"
-	"github.com/tomatome/grdp/plugin"
 	"github.com/tomatome/grdp/protocol/nla"
 	"github.com/tomatome/grdp/protocol/pdu"
 	"github.com/tomatome/grdp/protocol/sec"
@@ -17,12 +16,12 @@ import (
 )
 
 type RdpClient struct {
-	tpkt     *tpkt.TPKT
-	x224     *x224.X224
-	mcs      *t125.MCSClient
-	sec      *sec.Client
-	pdu      *pdu.Client
-	channels *plugin.Channels
+	tpkt *tpkt.TPKT
+	x224 *x224.X224
+	mcs  *t125.MCSClient
+	sec  *sec.Client
+	pdu  *pdu.Client
+	//channels *plugin.Channels
 }
 
 func newRdpClient(s *Setting) *RdpClient {
@@ -58,7 +57,7 @@ func (c *RdpClient) Login(host, user, pwd string, width, height int) error {
 	c.mcs = t125.NewMCSClient(c.x224)
 	c.sec = sec.NewClient(c.mcs)
 	c.pdu = pdu.NewClient(c.sec)
-	c.channels = plugin.NewChannels(c.sec)
+	//c.channels = plugin.NewChannels(c.sec)
 
 	c.mcs.SetClientDesktop(uint16(width), uint16(height))
 
@@ -69,7 +68,7 @@ func (c *RdpClient) Login(host, user, pwd string, width, height int) error {
 	c.tpkt.SetFastPathListener(c.sec)
 	c.sec.SetFastPathListener(c.pdu)
 	c.sec.SetChannelSender(c.mcs)
-	c.channels.SetChannelSender(c.sec)
+	//c.channels.SetChannelSender(c.sec)
 
 	//c.x224.SetRequestedProtocol(x224.PROTOCOL_RDP)
 	//c.x224.SetRequestedProtocol(x224.PROTOCOL_SSL)
