@@ -51,7 +51,6 @@ func RdpConnect(task *pkg.Task) error {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	client.OnReady(func() {
-		fmt.Println("ready")
 		wg.Done()
 	})
 	wg.Wait()

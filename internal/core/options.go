@@ -158,6 +158,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		FirstOnly: true,
 		OutFunc:   outfunc,
 		OutputCh:  make(chan *pkg.Result),
+		Stat:      &pkg.Statistor{},
 	}
 	if opt.ServiceName != "" {
 		runner.Services = strings.Split(strings.ToUpper(opt.ServiceName), ",")
