@@ -20,6 +20,7 @@
 
 `zombie --go zombie.json`
 
+
 ## Usage
 
 当前支持的协议
@@ -29,10 +30,22 @@
 * SMB
 * MSSQL
 * MYSQL
+* Mongo
 * POSTGRESQL
 * REDIS
 * ORACLE
 * VNC
 * LDAP
 * SNMP
-* RDP 暂时移除
+* RDP 
+
+TODO协议:
+
+* RSYNC
+* rlogin
+* telnet
+* HTTP 401
+* POP3
+* RTSP
+* SOCKS5
+* SVN
