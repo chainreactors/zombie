@@ -60,6 +60,8 @@ type Generator struct {
 	Filter       string
 	Fns          []func(string) string
 	C            chan string
+	cache        []string
+	running      bool
 }
 
 func (g *Generator) initWord() {
@@ -69,20 +71,22 @@ func (g *Generator) initWord() {
 
 	if g.Rules != "" {
 		g.Word.SetRules(g.Rules, g.Filter)
-		g.Word.Run()
-	} else {
-		g.Word.Run()
 	}
 }
 
 func (g *Generator) Run() {
+	g.running = true
 	g.initWord()
+	g.Word.Run()
 	g.C = g.Word.C
 }
 
 func (g *Generator) RunAsSlice() []string {
-	g.Run()
-	return g.All()
+	if !g.running {
+		g.Run()
+		g.cache = g.All()
+	}
+	return g.cache
 }
 
 func (g *Generator) SetFile(filename string) error {
