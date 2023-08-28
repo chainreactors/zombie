@@ -66,7 +66,11 @@ func (s *SmbService) Connect() error {
 	if err != nil {
 		return err
 	}
-
+	// todo anon
+	_, err = conn.ListSharenames()
+	if err != nil {
+		return err
+	}
 	s.conn = conn
 	return nil
 }
