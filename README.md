@@ -49,3 +49,21 @@ TODO协议:
 * RTSP
 * SOCKS5
 * SVN
+
+
+## Make
+
+```bash
+# download
+git clone --recurse-submodules https://github.com/chainreactors/zombie
+cd zombie
+
+# sync dependency
+go mod tidy   
+
+# generate template.go
+go generate  
+
+# build 
+go build .
+```
