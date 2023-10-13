@@ -22,7 +22,6 @@ type Runner struct {
 	Addrs      ipcs.Addrs
 	Targets    []*Target
 	Services   []string
-	Generator  chan *Target
 	OutputCh   chan *pkg.Result
 	File       *files.File
 	OutFunc    func(string)
@@ -53,7 +52,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	var wg sync.WaitGroup
 	pool, _ := ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
-		ctx, cancel := context.WithCancel(task.Context)
+		ctx, cancel := context.WithCancel(task.Context) // current task context
 		go func() {
 			err := Brute(task)
 			if err != nil {
@@ -67,7 +66,8 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 					OK:   true,
 				}
 				if r.FirstOnly {
-					task.Canceler()
+					cancel()        // 退出当前任务
+					task.Canceler() // 取消正在执行的所有任务
 				}
 			}
 			cancel()
@@ -76,17 +76,20 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 		// 设置超时时间, 防止任务挂死
 		select {
 		case <-ctx.Done():
+			wg.Done()
+		case <-task.Context.Done():
+			wg.Done()
 		case <-time.After(time.Duration(task.Timeout+1) * time.Second):
 			r.OutputCh <- &pkg.Result{
 				Task: task,
 				Err:  fmt.Errorf("timeout"),
 			}
-			cancel()
+			wg.Done()
 		}
-		wg.Done()
 	})
 
 	// 执行
+
 	for target := range targets {
 		ch := r.clusterBombGenerate(rootContext, target)
 	loop:
