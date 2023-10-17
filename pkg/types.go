@@ -95,6 +95,10 @@ var (
 		"RDP":        "3389",
 		"SNMP":       "161",
 		"ORACLE":     "1521",
+		"HTTP":       "80",
+		"HTTPS":      "443",
+		"80":         "HTTP",
+		"443":        "HTTPS",
 		"21":         "FTP",
 		"22":         "SSH",
 		"445":        "SMB",
@@ -110,6 +114,10 @@ var (
 		"1521":       "ORACLE",
 	}
 )
+
+func GetDefault(s string) string {
+	return ServicePortMap[strings.ToUpper(s)]
+}
 
 func UseDefaultPassword(service string, top int) []string {
 	if pwds, ok := Keywords[strings.ToLower(service)+"_pwd"]; ok {
