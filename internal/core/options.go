@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/chainreactors/files"
-	"github.com/chainreactors/ipcs"
+	"github.com/chainreactors/logs"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"strings"
@@ -58,8 +58,33 @@ func (opt *Option) Validate() error {
 func (opt *Option) Prepare() (*Runner, error) {
 	var err error
 	var targets []*Target
-	var users, pwds *Generator
-	var addrs ipcs.Addrs
+
+	var file *files.File
+	var outfunc func(string)
+	if opt.OutputFile != "" {
+		file, err = files.NewFile(opt.OutputFile, false, true, true)
+		if err != nil {
+			return nil, err
+		}
+		outfunc = func(s string) {
+			file.SafeWrite(s)
+			file.SafeSync()
+		}
+	}
+
+	runner := &Runner{
+		File:      file,
+		OutFunc:   outfunc,
+		FirstOnly: !opt.ForceContinue,
+		Option:    opt,
+		OutputCh:  make(chan *pkg.Result),
+		Stat:      &pkg.Statistor{},
+	}
+
+	if opt.ServiceName != "" {
+		runner.Services = strings.Split(strings.ToUpper(opt.FilterService), ",")
+	}
+
 	if opt.GogoFile != "" {
 		// load gogo result
 		content, err := ioutil.ReadFile(opt.GogoFile)
@@ -71,7 +96,6 @@ func (opt *Option) Prepare() (*Runner, error) {
 			return nil, err
 		}
 	} else {
-		// load target
 		var ipslice []string
 		if opt.IP != "" {
 			ipslice = strings.Split(opt.IP, ",")
@@ -87,13 +111,23 @@ func (opt *Option) Prepare() (*Runner, error) {
 			return nil, fmt.Errorf("not any ip input")
 		}
 
-		if strings.Contains(ipslice[0], ":") {
-			addrs = ipcs.NewAddrs(ipslice)
-		} else {
-			addrs = ipcs.NewAddrsWithDefaultPort(ipslice, pkg.ServicePortMap[strings.ToUpper(opt.ServiceName)])
+		for _, input := range ipslice {
+			t, ok := ParseUrl(input)
+			if !ok {
+				logs.Log.Warn("invalid input " + input)
+				continue
+			}
+			if opt.ServiceName != "" {
+				t.UpdateService(opt.ServiceName)
+			}
+			if t.Service == "" {
+				logs.Log.Warn(t.String() + " null service")
+				continue
+			}
+			targets = append(targets, t)
 		}
 	}
-
+	var users, pwds *Generator
 	// load username
 	if opt.Username != nil {
 		users = NewGeneratorWithInput(opt.Username)
@@ -115,6 +149,8 @@ func (opt *Option) Prepare() (*Runner, error) {
 			return nil, err
 		}
 	}
+	runner.Users = users
+
 	// load password
 	if opt.Password != nil {
 		pwds = NewGeneratorWithInput(opt.Password)
@@ -136,47 +172,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		}
 	}
 
-	var file *files.File
-	var outfunc func(string)
-	if opt.OutputFile != "" {
-		file, err = files.NewFile(opt.OutputFile, false, true, true)
-		if err != nil {
-			return nil, err
-		}
-		outfunc = func(s string) {
-			file.SafeWrite(s)
-			file.SafeSync()
-		}
-	}
-
-	runner := &Runner{
-		Users:     users,
-		Pwds:      pwds,
-		Addrs:     addrs,
-		Targets:   targets,
-		Option:    opt,
-		File:      file,
-		FirstOnly: true,
-		OutFunc:   outfunc,
-		OutputCh:  make(chan *pkg.Result),
-		Stat:      &pkg.Statistor{},
-	}
-	if opt.ForceContinue {
-		runner.FirstOnly = false
-	}
-	if opt.ServiceName != "" {
-		runner.Services = strings.Split(strings.ToUpper(opt.ServiceName), ",")
-	}
+	runner.Pwds = pwds
 	return runner, nil
 
-}
-
-type Target struct {
-	IP      string `json:"ip"`
-	Port    string `json:"port"`
-	Service string `json:"service"`
-}
-
-func (t Target) Addr() *ipcs.Addr {
-	return &ipcs.Addr{IP: ipcs.NewIP(t.IP), Port: t.Port}
 }

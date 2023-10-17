@@ -141,7 +141,7 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *
 	Loop:
 		for _, user := range users {
 			for _, pwd := range pwds {
-				if _, ok := pkg.ServicePortMap[target.Service]; !ok {
+				if s := pkg.GetDefault(target.Service); s == "" {
 					logs.Log.Warn("unknown service " + target.Service)
 					continue
 				}
@@ -178,18 +178,6 @@ func (r *Runner) targetGenerate() chan *Target {
 				ch <- target
 			}
 		}
-
-		// 通过addrs生成目标
-		for _, addr := range r.Addrs {
-			for _, service := range r.Services {
-				ch <- &Target{
-					IP:      addr.IP.String(),
-					Port:    addr.Port,
-					Service: service,
-				}
-			}
-		}
-		close(ch)
 	}()
 	return ch
 }

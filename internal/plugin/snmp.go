@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"fmt"
+	"github.com/chainreactors/parsers/iutils"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/gosnmp/gosnmp"
 	"log"
@@ -255,8 +256,8 @@ func HandleinetCidrRouteEntry(spcon *gosnmp.GoSNMP) (*CiderRoute, error) {
 		}
 
 	}
-	result.Cidr = pkg.RemoveDuplicateElement(result.Cidr)
-	result.GateWay = pkg.RemoveDuplicateElement(result.GateWay)
+	result.Cidr = iutils.StringsUnique(result.Cidr)
+	result.GateWay = iutils.StringsUnique(result.GateWay)
 
 	return &result, nil
 
