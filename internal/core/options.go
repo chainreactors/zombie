@@ -82,7 +82,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 	}
 
 	if opt.ServiceName != "" {
-		runner.Services = strings.Split(strings.ToUpper(opt.FilterService), ",")
+		runner.Services = strings.Split(strings.ToUpper(opt.ServiceName), ",")
 	}
 
 	if opt.GogoFile != "" {
@@ -127,6 +127,8 @@ func (opt *Option) Prepare() (*Runner, error) {
 			targets = append(targets, t)
 		}
 	}
+	runner.Targets = targets
+
 	var users, pwds *Generator
 	// load username
 	if opt.Username != nil {
@@ -171,8 +173,8 @@ func (opt *Option) Prepare() (*Runner, error) {
 			return nil, err
 		}
 	}
-
 	runner.Pwds = pwds
+
 	return runner, nil
 
 }
