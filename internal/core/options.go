@@ -82,7 +82,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 	}
 
 	if opt.ServiceName != "" {
-		runner.Services = strings.Split(strings.ToUpper(opt.ServiceName), ",")
+		runner.Services = strings.Split(strings.ToLower(opt.ServiceName), ",")
 	}
 
 	if opt.GogoFile != "" {

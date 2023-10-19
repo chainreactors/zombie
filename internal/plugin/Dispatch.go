@@ -3,7 +3,6 @@ package plugin
 import (
 	"fmt"
 	"github.com/chainreactors/zombie/pkg"
-	"strings"
 )
 
 const (
@@ -30,11 +29,11 @@ type Plugin interface {
 }
 
 type NilConnError struct {
-	service string
+	service pkg.Service
 }
 
 func (e NilConnError) Error() string {
-	return e.service + "has nil conn"
+	return e.service.String() + " has nil conn"
 }
 
 type TimeoutError struct {
@@ -50,58 +49,57 @@ func (e TimeoutError) Error() string {
 func (e TimeoutError) Unwrap() error { return e.err }
 
 func Dispatch(task *pkg.Task) Plugin {
-	task.Service = strings.ToUpper(task.Service)
 	switch task.Service {
-	case "POSTGRESQL":
+	case pkg.POSTGRESQLService:
 		return &PostgresService{
 			Task:   task,
 			Dbname: "postgres",
 		}
-	case "MSSQL":
+	case pkg.MSSQLService:
 		return &MssqlService{
 			Task: task,
 		}
-	case "MYSQL":
+	case pkg.MYSQLService:
 		return &MysqlService{
 			Task: task,
 		}
-	case "ORACLE":
+	case pkg.ORACLEService:
 		return &OracleService{
 			Task: task,
 		}
-	case "SNMP":
+	case pkg.SNMPService:
 		return &SnmpService{
 			Task: task,
 		}
-	case "SSH":
+	case pkg.SSHService:
 		return &SshService{
 			Task: task,
 		}
-	case "RDP":
+	case pkg.RDPService:
 		return &RdpService{
 			Task: task,
 		}
-	case "SMB":
+	case pkg.SMBService:
 		return &SmbService{
 			Task: task,
 		}
-	case "FTP":
+	case pkg.FTPService:
 		return &FtpService{
 			Task: task,
 		}
-	case "MONGO":
+	case pkg.MONGOService:
 		return &MongoService{
 			Task: task,
 		}
-	case "VNC":
+	case pkg.VNCService:
 		return &VNCService{
 			Task: task,
 		}
-	case "REDIS":
+	case pkg.REDISService:
 		return &RedisService{
 			Task: task,
 		}
-	case "LDAP":
+	case pkg.LDAPService:
 		return &LdapService{
 			Task: task,
 		}

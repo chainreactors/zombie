@@ -9,7 +9,6 @@ import (
 	"github.com/chainreactors/parsers/iutils"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/panjf2000/ants/v2"
-	"strings"
 	"sync"
 	"time"
 )
@@ -125,13 +124,13 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *
 	var users, pwds []string
 	// 自动选择默认的用户名与密码字典
 	if r.Users == nil {
-		users = pkg.UseDefaultUser(target.Service)
+		users = pkg.UseDefaultUser(target.Service.String())
 	} else {
 		users = r.Users.RunAsSlice()
 	}
 
 	if r.Pwds == nil {
-		pwds = pkg.UseDefaultPassword(target.Service, r.Top)
+		pwds = pkg.UseDefaultPassword(target.Service.String(), r.Top)
 	} else {
 		pwds = r.Pwds.RunAsSlice()
 	}
@@ -141,8 +140,8 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *
 	Loop:
 		for _, user := range users {
 			for _, pwd := range pwds {
-				if s := pkg.GetDefault(target.Service); s == "" {
-					logs.Log.Warn("unknown service " + target.Service)
+				if target.Service == "" {
+					logs.Log.Warn("unknown service " + target.Service.String())
 					continue
 				}
 				select {
@@ -172,8 +171,7 @@ func (r *Runner) targetGenerate() chan *Target {
 	go func() {
 		// 通过targets生成目标
 		for _, target := range r.Targets {
-			target.Service = strings.ToUpper(target.Service)
-			if r.Services == nil || (r.Services != nil && iutils.StringsContains(r.Services, target.Service)) {
+			if r.Services == nil || (r.Services != nil && iutils.StringsContains(r.Services, target.Service.String())) {
 				// 如果从gogo中输入的目标, 可以通过-s过滤特定的服务进行扫描
 				ch <- target
 			}

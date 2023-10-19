@@ -9,7 +9,7 @@ import (
 func Brute(task *pkg.Task) error {
 	conn := plugin.Dispatch(task)
 	if conn == nil {
-		return fmt.Errorf("not support service " + task.Service)
+		return fmt.Errorf("not support service " + task.Service.String())
 	}
 	err := conn.Connect()
 	if err != nil {
