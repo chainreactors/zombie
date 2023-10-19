@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"github.com/chainreactors/logs"
 	"strconv"
-	"strings"
 	"time"
 )
 
 type Task struct {
 	IP         string             `json:"ip"`
 	Port       string             `json:"port"`
-	Service    string             `json:"service"`
+	Service    Service            `json:"service"`
 	Username   string             `json:"username"`
 	Password   string             `json:"password"`
 	ExecString string             `json:"exec"`
@@ -29,7 +28,7 @@ func (t *Task) Address() string {
 }
 
 func (t *Task) URI() string {
-	return strings.ToLower(t.Service) + "://" + t.Address()
+	return t.Service.String() + "://" + t.Address()
 }
 
 func (t *Task) URL() string {
@@ -80,47 +79,98 @@ func (r *Result) Format(form string) string {
 //	ValueableSlice = []string{"PWD", "PASS", "PASSWORD", "CERT", "EMAIL", "MOBILE", "PAPER"}
 //)
 
+type Service string
+
 var (
-	ServicePortMap = map[string]string{
-		"FTP":        "21",
-		"SSH":        "22",
-		"SMB":        "445",
-		"MSSQL":      "1433",
-		"MYSQL":      "3306",
-		"POSTGRESQL": "5432",
-		"REDIS":      "6379",
-		"ES":         "9200",
-		"MONGO":      "27017",
-		"VNC":        "5900",
-		"RDP":        "3389",
-		"SNMP":       "161",
-		"ORACLE":     "1521",
-		"HTTP":       "80",
-		"HTTPS":      "443",
-		"80":         "HTTP",
-		"443":        "HTTPS",
-		"21":         "FTP",
-		"22":         "SSH",
-		"445":        "SMB",
-		"1433":       "MSSQL",
-		"3306":       "MYSQL",
-		"5432":       "POSTGRESQL",
-		"6379":       "REDIS",
-		"9200":       "ES",
-		"27017":      "MONGO",
-		"5900":       "VNC",
-		"161":        "SNMP",
-		"3389":       "RDP",
-		"1521":       "ORACLE",
-	}
+	FTPService        Service = "ftp"
+	SSHService        Service = "ssh"
+	SMBService        Service = "smb"
+	MSSQLService      Service = "mssql"
+	MYSQLService      Service = "mysql"
+	POSTGRESQLService Service = "postgresql"
+	REDISService      Service = "redis"
+	ESService         Service = "es"
+	MONGOService      Service = "mongo"
+	VNCService        Service = "vnc"
+	RDPService        Service = "rdp"
+	SNMPService       Service = "snmp"
+	ORACLEService     Service = "oracle"
+	HTTPService       Service = "http"
+	HTTPSService      Service = "https"
+	LDAPService       Service = "ldap"
+	UnknownService    Service = ""
 )
 
-func GetDefault(s string) string {
-	return ServicePortMap[strings.ToUpper(s)]
+var Services = map[Service]string{
+	FTPService:        "21",
+	SSHService:        "22",
+	SMBService:        "445",
+	MSSQLService:      "1433",
+	MYSQLService:      "3306",
+	POSTGRESQLService: "5432",
+	REDISService:      "6379",
+	ESService:         "9200",
+	MONGOService:      "27017",
+	VNCService:        "5900",
+	RDPService:        "3389",
+	SNMPService:       "161",
+	ORACLEService:     "1521",
+	LDAPService:       "389",
+	HTTPService:       "80",
+	HTTPSService:      "443",
+}
+
+func (s Service) String() string {
+	return string(s)
+}
+func (s Service) DefaultPort() string {
+	if port, ok := Services[s]; ok {
+		return port
+	}
+	return ""
+}
+
+func GetDefault(s string) Service {
+	switch s {
+	case "22":
+		return SSHService
+	case "21":
+		return FTPService
+	case "445":
+		return SMBService
+	case "1433":
+		return MSSQLService
+	case "3306":
+		return MYSQLService
+	case "5432":
+		return POSTGRESQLService
+	case "6379":
+		return REDISService
+	case "9200":
+		return ESService
+	case "27017":
+		return MONGOService
+	case "5900":
+		return VNCService
+	case "3389":
+		return RDPService
+	case "161":
+		return SNMPService
+	case "1521":
+		return ORACLEService
+	case "80":
+		return HTTPService
+	case "443":
+		return HTTPSService
+	case "389":
+		return LDAPService
+	default:
+		return UnknownService
+	}
 }
 
 func UseDefaultPassword(service string, top int) []string {
-	if pwds, ok := Keywords[strings.ToLower(service)+"_pwd"]; ok {
+	if pwds, ok := Keywords[service+"_pwd"]; ok {
 		if top == 0 || top > len(pwds) {
 			return pwds
 		} else {
@@ -132,7 +182,7 @@ func UseDefaultPassword(service string, top int) []string {
 }
 
 func UseDefaultUser(service string) []string {
-	if users, ok := Keywords[strings.ToLower(service)+"_user"]; ok {
+	if users, ok := Keywords[service+"_user"]; ok {
 		return users
 	} else {
 		return []string{"admin"}

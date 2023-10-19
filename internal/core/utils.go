@@ -9,20 +9,19 @@ import (
 )
 
 type Target struct {
-	IP      string `json:"ip"`
-	Port    string `json:"port"`
-	Service string `json:"service"`
+	IP      string      `json:"ip"`
+	Port    string      `json:"port"`
+	Service pkg.Service `json:"service"`
 }
 
 func (t *Target) String() string {
-	return fmt.Sprintf("%s://%s:%s", strings.ToLower(t.Service), t.IP, t.Port)
+	return fmt.Sprintf("%s://%s:%s", t.Service, t.IP, t.Port)
 }
 
 func (t *Target) UpdateService(s string) {
-	s = strings.ToUpper(s)
-	t.Service = s
+	t.Service = pkg.Service(strings.ToLower(s))
 	if t.Port == "" {
-		t.Port = pkg.GetDefault(s)
+		t.Port = t.Service.DefaultPort()
 	}
 }
 
@@ -50,7 +49,7 @@ func ParseUrl(u string) (*Target, bool) {
 		t.Port = parsed.Port()
 	}
 	if parsed.Scheme != "" {
-		t.Service = parsed.Scheme
+		t.Service = pkg.Service(parsed.Scheme)
 	} else {
 		t.Service = pkg.GetDefault(t.Port)
 	}
