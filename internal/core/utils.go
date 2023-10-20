@@ -48,10 +48,15 @@ func ParseUrl(u string) (*Target, bool) {
 	if parsed.Port() != "" {
 		t.Port = parsed.Port()
 	}
+
 	if parsed.Scheme != "" {
 		t.Service = pkg.Service(parsed.Scheme)
-	} else {
+		if t.Port == "" {
+			t.Port = t.Service.DefaultPort()
+		}
+	} else if t.Port != "" {
 		t.Service = pkg.GetDefault(t.Port)
 	}
+
 	return t, true
 }

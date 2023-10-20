@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/hirochachacha/go-smb2"
-
 	//"github.com/hirochachacha/go-smb2"
 	"net"
 	"strings"

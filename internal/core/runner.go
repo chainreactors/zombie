@@ -15,6 +15,7 @@ import (
 
 type Runner struct {
 	*Option
+	wg         *sync.WaitGroup
 	Stat       *pkg.Statistor
 	Users      *Generator
 	Pwds       *Generator
@@ -24,7 +25,6 @@ type Runner struct {
 	OutputCh   chan *pkg.Result
 	File       *files.File
 	OutFunc    func(string)
-	Done       bool
 	ExecString string
 	FirstOnly  bool
 }
@@ -48,7 +48,6 @@ func (r *Runner) RunWithPitchfork() {
 
 func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	rootContext, _ := context.WithCancel(context.Background())
-	var wg sync.WaitGroup
 	pool, _ := ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
 		ctx, cancel := context.WithCancel(task.Context) // current task context
@@ -75,15 +74,12 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 		// 设置超时时间, 防止任务挂死
 		select {
 		case <-ctx.Done():
-			wg.Done()
 		case <-task.Context.Done():
-			wg.Done()
 		case <-time.After(time.Duration(task.Timeout+1) * time.Second):
 			r.OutputCh <- &pkg.Result{
 				Task: task,
 				Err:  fmt.Errorf("timeout"),
 			}
-			wg.Done()
 		}
 	})
 
@@ -97,7 +93,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 			case task, ok := <-ch:
 				// 从生成器中取任务.
 				if ok {
-					wg.Add(1)
+					r.wg.Add(1)
 					r.Stat.Count++
 					_ = pool.Invoke(task)
 				} else {
@@ -109,12 +105,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 			}
 		}
 	}
-	wg.Wait()
-
-	// 某些情况下, 任务执行完毕后, 还在处理输出结果, 等待结果输出完毕
-	for r.Stat.Count != outed {
-		time.Sleep(1 * time.Millisecond)
-	}
+	r.wg.Wait()
 }
 
 func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *pkg.Task {
@@ -176,6 +167,7 @@ func (r *Runner) targetGenerate() chan *Target {
 				ch <- target
 			}
 		}
+		close(ch)
 	}()
 	return ch
 }
@@ -200,6 +192,7 @@ loop:
 			} else {
 				logs.Log.Debugf(" %s\t%s\t%s ,failed, %s", result.URI(), result.Username, result.Password, result.Err.Error())
 			}
+			r.wg.Done()
 		}
 	}
 }
