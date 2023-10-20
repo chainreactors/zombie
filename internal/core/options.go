@@ -8,6 +8,7 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"strings"
+	"sync"
 )
 
 type Option struct {
@@ -77,6 +78,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		OutFunc:   outfunc,
 		FirstOnly: !opt.ForceContinue,
 		Option:    opt,
+		wg:        &sync.WaitGroup{},
 		OutputCh:  make(chan *pkg.Result),
 		Stat:      &pkg.Statistor{},
 	}
