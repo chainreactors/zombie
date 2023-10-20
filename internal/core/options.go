@@ -8,6 +8,7 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"strings"
+	"sync"
 )
 
 type Option struct {
@@ -31,6 +32,7 @@ type InputOptions struct {
 	GogoFile      string   `long:"go" description:"File, input gogo result filename"`
 	ServiceName   string   `short:"s" long:"service" description:"String, input service name"`
 	FilterService string   `short:"S" long:"filter-service" description:"String, filter service name"`
+	Param         string   `long:"param" description:"param"`
 }
 
 type OutputOptions struct {
@@ -77,12 +79,13 @@ func (opt *Option) Prepare() (*Runner, error) {
 		OutFunc:   outfunc,
 		FirstOnly: !opt.ForceContinue,
 		Option:    opt,
+		wg:        &sync.WaitGroup{},
 		OutputCh:  make(chan *pkg.Result),
 		Stat:      &pkg.Statistor{},
 	}
 
 	if opt.ServiceName != "" {
-		runner.Services = strings.Split(strings.ToUpper(opt.ServiceName), ",")
+		runner.Services = strings.Split(strings.ToLower(opt.ServiceName), ",")
 	}
 
 	if opt.GogoFile != "" {
@@ -124,9 +127,25 @@ func (opt *Option) Prepare() (*Runner, error) {
 				logs.Log.Warn(t.String() + " null service")
 				continue
 			}
+
+			if opt.Param != "" {
+				ParamMap := make(map[string]string)
+				if opt.Param != "" {
+					list := strings.Split(opt.Param, ",")
+					for _, param := range list {
+						keyValue := strings.Split(param, ":")
+						key := keyValue[0]
+						value := keyValue[1]
+						ParamMap[key] = value
+					}
+				}
+				t.Param = ParamMap
+			}
+
 			targets = append(targets, t)
 		}
 	}
+
 	runner.Targets = targets
 
 	var users, pwds *Generator
