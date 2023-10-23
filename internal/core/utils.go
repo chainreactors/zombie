@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"github.com/chainreactors/ipcs"
 	"github.com/chainreactors/zombie/pkg"
 	"net/url"
 	"strings"
@@ -25,8 +24,8 @@ func (t *Target) UpdateService(s string) {
 	}
 }
 
-func (t *Target) Addr() *ipcs.Addr {
-	return &ipcs.Addr{IP: ipcs.NewIP(t.IP), Port: t.Port}
+func (t *Target) Addr() *utils.Addr {
+	return &utils.Addr{IP: utils.NewIP(t.IP), Port: t.Port}
 }
 
 func ParseUrl(u string) (*Target, bool) {
@@ -35,7 +34,7 @@ func ParseUrl(u string) (*Target, bool) {
 		return nil, false
 	}
 	if parsed.Host == "" {
-		if ipcs.IsIpv4(u) {
+		if utils.IsIpv4(u) {
 			return &Target{
 				IP: u,
 			}, true
