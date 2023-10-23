@@ -142,6 +142,7 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *
 					Service:    target.Service,
 					Username:   user,
 					Password:   pwd,
+					Param:      target.Param,
 					Timeout:    r.Timeout,
 					ExecString: r.ExecString,
 					Context:    tctx,
@@ -169,6 +170,7 @@ func (r *Runner) targetGenerate() chan *Target {
 		}
 		close(ch)
 	}()
+
 	return ch
 }
 

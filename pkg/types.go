@@ -17,6 +17,7 @@ type Task struct {
 	Password   string             `json:"password"`
 	ExecString string             `json:"exec"`
 	Instance   string             `json:"-"`
+	Param      map[string]string  `json:"-"`
 	Timeout    int                `json:"-"`
 	Context    context.Context    `json:"-"`
 	Canceler   context.CancelFunc `json:"-"`
@@ -98,6 +99,7 @@ var (
 	HTTPService       Service = "http"
 	HTTPSService      Service = "https"
 	LDAPService       Service = "ldap"
+	SOCKS5Service     Service = "socks5"
 	UnknownService    Service = ""
 )
 
@@ -118,6 +120,7 @@ var Services = map[Service]string{
 	LDAPService:       "389",
 	HTTPService:       "80",
 	HTTPSService:      "443",
+	SOCKS5Service:     "1080",
 }
 
 func (s Service) String() string {

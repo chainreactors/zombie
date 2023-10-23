@@ -5,20 +5,6 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 )
 
-const (
-	FTP = iota
-	LDAP
-	MSSQL
-	MYSQL
-	ORACLE
-	POSTGRESQL
-	RDP
-	SMB
-	SNMP
-	SSH
-	VNC
-)
-
 type Plugin interface {
 	Query() bool
 	GetInfo() bool
@@ -103,7 +89,21 @@ func Dispatch(task *pkg.Task) Plugin {
 		return &LdapService{
 			Task: task,
 		}
-
+	case pkg.HTTPService:
+		return &HttpService{
+			Task: task,
+			HttpInf: HttpInf{
+				Path: task.Param["path"],
+			},
+		}
+	case pkg.SOCKS5Service:
+		task.Timeout = 10
+		return &Socks5Service{
+			Task: task,
+			Socks5Inf: Socks5Inf{
+				Url: task.Param["Url"],
+			},
+		}
 	default:
 		return nil
 	}

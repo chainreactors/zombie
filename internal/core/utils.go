@@ -8,9 +8,10 @@ import (
 )
 
 type Target struct {
-	IP      string      `json:"ip"`
-	Port    string      `json:"port"`
-	Service pkg.Service `json:"service"`
+	IP      string            `json:"ip"`
+	Port    string            `json:"port"`
+	Service pkg.Service       `json:"service"`
+	Param   map[string]string `json:"param"`
 }
 
 func (t *Target) String() string {
