@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-type Http struct {
+type HttpService struct {
 	*pkg.Task
 	HttpInf
 }
@@ -17,15 +17,15 @@ type HttpInf struct {
 	Path string `json:"path"`
 }
 
-func (s *Http) Query() bool {
+func (s *HttpService) Query() bool {
 	return false
 }
 
-func (s *Http) GetInfo() bool {
+func (s *HttpService) GetInfo() bool {
 	return false
 }
 
-func (s *Http) Connect() error {
+func (s *HttpService) Connect() error {
 
 	url := fmt.Sprintf("%s://%s:%s%s", s.Service, s.IP, s.Port, s.Path)
 	client := &http.Client{}
@@ -47,14 +47,14 @@ func (s *Http) Connect() error {
 	}
 }
 
-func (s *Http) Close() error {
+func (s *HttpService) Close() error {
 	return NilConnError{s.Service}
 }
 
-func (s *Http) SetQuery(query string) {
+func (s *HttpService) SetQuery(query string) {
 	//s.Input = query
 }
 
-func (s *Http) Output(res interface{}) {
+func (s *HttpService) Output(res interface{}) {
 
 }
