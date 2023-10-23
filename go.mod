@@ -19,9 +19,9 @@ require (
 
 require (
 	github.com/chainreactors/files v0.2.5-0.20230731172931-8d0a64e79d98
-	github.com/chainreactors/ipcs v0.0.13
 	github.com/chainreactors/logs v0.6.1
 	github.com/chainreactors/parsers v0.3.0
+	github.com/chainreactors/utils v0.0.14-0.20230928082055-ef5e1ae47f3e
 	github.com/chainreactors/words v0.4.1-0.20230731130315-158c047fd378
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/onsi/ginkgo v1.16.5 // indirect
