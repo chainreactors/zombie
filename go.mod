@@ -28,6 +28,7 @@ require (
 	github.com/onsi/gomega v1.19.0 // indirect
 	github.com/tomatome/grdp v0.0.0-00010101000000-000000000000
 	go.mongodb.org/mongo-driver v1.12.0
+	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
 	sigs.k8s.io/yaml v1.3.0
 )
 
