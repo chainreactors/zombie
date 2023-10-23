@@ -2,7 +2,9 @@ package core
 
 import (
 	"fmt"
+	"github.com/chainreactors/utils"
 	"github.com/chainreactors/zombie/pkg"
+	"net"
 	"net/url"
 	"strings"
 )
@@ -26,23 +28,34 @@ func (t *Target) UpdateService(s string) {
 }
 
 func (t *Target) Addr() *utils.Addr {
-	return &utils.Addr{IP: utils.NewIP(t.IP), Port: t.Port}
+	return &utils.Addr{IP: utils.ParseIP(t.IP), Port: t.Port}
 }
 
 func ParseUrl(u string) (*Target, bool) {
+	var t *Target
 	parsed, err := url.Parse(u)
 	if err != nil {
-		return nil, false
+		if ip, port, err := net.SplitHostPort(u); err == nil {
+			t = &Target{
+				IP:   ip,
+				Port: port,
+			}
+		} else {
+			return nil, false
+		}
+
 	}
+
 	if parsed.Host == "" {
-		if utils.IsIpv4(u) {
+		if utils.IsIp(u) {
 			return &Target{
 				IP: u,
 			}, true
 		}
 		return nil, false
 	}
-	t := &Target{
+
+	t = &Target{
 		IP: parsed.Hostname(),
 	}
 	if parsed.Port() != "" {
