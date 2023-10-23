@@ -115,10 +115,10 @@ func (opt *Option) Prepare() (*Runner, error) {
 		}
 
 		for _, input := range ipslice {
-			t := &Target{}
 			t, ok := ParseUrl(input)
 			if !ok {
-				t = SimpleParseUrl(input)
+				logs.Log.Warn("invalid input " + input)
+				continue
 			}
 			if opt.ServiceName != "" {
 				t.UpdateService(opt.ServiceName)
