@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/proxy"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 type Socks5Service struct {
@@ -41,11 +42,14 @@ func (s *Socks5Service) Connect() error {
 		Transport: transport,
 	}
 
-	req, err := http.NewRequest("GET", s.Url, nil)
+	req, err := http.NewRequest("GET", "http://127.0.0.1", nil)
 	_, err = client.Do(req)
-	if err != nil {
+	if strings.Contains(err.Error(), "connect") {
 		return errors.New("connect fail")
 	}
+	//if err != nil {
+	//	return errors.New("connect fail")
+	//}
 
 	return nil
 

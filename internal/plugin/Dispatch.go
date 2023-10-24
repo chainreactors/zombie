@@ -111,13 +111,25 @@ func Dispatch(task *pkg.Task) Plugin {
 				Path: task.Param["path"],
 			},
 		}
+	case pkg.HTTPSService:
+		return &HttpService{
+			Task: task,
+			HttpInf: HttpInf{
+				Path: task.Param["path"],
+			},
+		}
 	case pkg.SOCKS5Service:
 		task.Timeout = 10
 		return &Socks5Service{
 			Task: task,
-			Socks5Inf: Socks5Inf{
-				Url: task.Param["Url"],
-			},
+			//Socks5Inf: Socks5Inf{
+			//	Url: task.Param["url"],
+			//},
+		}
+	case pkg.TELNETService:
+		task.Timeout = 10
+		return &TelnetService{
+			Task: task,
 		}
 	default:
 		return nil
