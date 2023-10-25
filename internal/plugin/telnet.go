@@ -3,6 +3,7 @@ package plugin
 import (
 	"github.com/chainreactors/zombie/internal/plugin/lib"
 	"github.com/chainreactors/zombie/pkg"
+	"strconv"
 )
 
 type TelnetService struct {
@@ -19,14 +20,17 @@ func (s *TelnetService) GetInfo() bool {
 
 func (s *TelnetService) Connect() error {
 
-	c := lib.New(s.IP, 23)
+	port, _ := strconv.Atoi(s.Port)
+	c := lib.New(s.IP, port)
 	err := c.Connect()
 	if err != nil {
 		return err
 	}
+
 	c.UserName = s.Username
 	c.Password = s.Password
-	c.ServerType = c.MakeServerType()
+	c.ServerType = 3
+
 	err = c.Login()
 	if err != nil {
 		return err

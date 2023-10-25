@@ -391,6 +391,7 @@ func (c *Client) loginForOnlyPassword() error {
 
 	responseString := c.ReadContext()
 	if c.isLoginFailed(responseString) {
+		c.Close()
 		return errors.New("login failed")
 	}
 
@@ -399,6 +400,7 @@ func (c *Client) loginForOnlyPassword() error {
 	}
 
 	//slog.Println(slog.WARN, c.IPAddr, c.Port, "|", responseString)
+	c.Close()
 	return errors.New("login failed")
 
 }
@@ -412,12 +414,14 @@ func (c *Client) loginForUsernameAndPassword() error {
 
 	responseString := c.ReadContext()
 	if c.isLoginFailed(responseString) {
+		c.Close()
 		return errors.New("login failed")
 	}
 	if c.isLoginSucceed(responseString) {
 		return nil
 	}
 	//slog.Println(slog.WARN, c.IPAddr, c.Port, "|", responseString)
+	c.Close()
 	return errors.New("login failed")
 }
 
