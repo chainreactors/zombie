@@ -101,6 +101,7 @@ var (
 	LDAPService       Service = "ldap"
 	SOCKS5Service     Service = "socks5"
 	TELNETService     Service = "telnet"
+	POP3Service       Service = "pop3"
 	UnknownService    Service = ""
 )
 
@@ -123,6 +124,7 @@ var Services = map[Service]string{
 	HTTPSService:      "443",
 	SOCKS5Service:     "1080",
 	TELNETService:     "23",
+	POP3Service:       "110",
 }
 
 func (s Service) String() string {
