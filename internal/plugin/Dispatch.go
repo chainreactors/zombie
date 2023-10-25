@@ -127,7 +127,6 @@ func Dispatch(task *pkg.Task) Plugin {
 			//},
 		}
 	case pkg.TELNETService:
-		task.Timeout = 10
 		return &TelnetService{
 			Task: task,
 		}
