@@ -24,8 +24,10 @@ require (
 	github.com/chainreactors/logs v0.6.1
 	github.com/chainreactors/parsers v0.3.0
 	github.com/chainreactors/words v0.4.1-0.20230731130315-158c047fd378
+	github.com/emersion/go-message v0.17.0 // indirect
 	github.com/go-ldap/ldap/v3 v3.4.6 // indirect
 	github.com/jessevdk/go-flags v1.5.0
+	github.com/knadh/go-pop3 v0.3.0 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
 	github.com/tomatome/grdp v0.0.0-00010101000000-000000000000

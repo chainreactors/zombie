@@ -130,6 +130,10 @@ func Dispatch(task *pkg.Task) Plugin {
 		return &TelnetService{
 			Task: task,
 		}
+	case pkg.POP3Service:
+		return &Pop3Service{
+			Task: task,
+		}
 	default:
 		return nil
 	}
