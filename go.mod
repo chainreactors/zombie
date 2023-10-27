@@ -18,21 +18,18 @@ require (
 )
 
 require (
-	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
-	github.com/chainreactors/files v0.2.5-0.20230731172931-8d0a64e79d98
-	github.com/chainreactors/ipcs v0.0.13
-	github.com/chainreactors/logs v0.6.1
-	github.com/chainreactors/parsers v0.3.0
-	github.com/chainreactors/words v0.4.1-0.20230731130315-158c047fd378
-	github.com/emersion/go-message v0.17.0 // indirect
-	github.com/go-ldap/ldap/v3 v3.4.6 // indirect
+	github.com/chainreactors/files v0.0.0-20230731174853-acee21c8c45a
+	github.com/chainreactors/logs v0.0.0-20231027080134-7a11bb413460
+	github.com/chainreactors/parsers v0.0.0-20231027075644-5d67f3a109d8
+	github.com/chainreactors/utils v0.0.0-20230928082055-ef5e1ae47f3e
+	github.com/chainreactors/words v0.4.1-0.20231027073512-0ccf7e0f0e32
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/knadh/go-pop3 v0.3.0 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
 	github.com/tomatome/grdp v0.0.0-00010101000000-000000000000
 	go.mongodb.org/mongo-driver v1.12.0
-	golang.org/x/net v0.17.0 // indirect
+	golang.org/x/net v0.0.0-20220722155237-a158d28d115b
 	sigs.k8s.io/yaml v1.3.0
 )
 
