@@ -73,3 +73,12 @@ func ParseUrl(u string) (*Target, bool) {
 
 	return t, true
 }
+
+func SimpleParseUrl(u string) *Target {
+	result := strings.Split(u, ":")
+	t := &Target{
+		IP:   result[0],
+		Port: result[1],
+	}
+	return t
+}
