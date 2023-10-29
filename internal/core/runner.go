@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/chainreactors/files"
-	"github.com/chainreactors/ipcs"
 	"github.com/chainreactors/logs"
-	"github.com/chainreactors/parsers/iutils"
+	"github.com/chainreactors/utils"
+	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/panjf2000/ants/v2"
 	"sync"
@@ -19,7 +19,7 @@ type Runner struct {
 	Stat       *pkg.Statistor
 	Users      *Generator
 	Pwds       *Generator
-	Addrs      ipcs.Addrs
+	Addrs      utils.Addrs
 	Targets    []*Target
 	Services   []string
 	OutputCh   chan *pkg.Result

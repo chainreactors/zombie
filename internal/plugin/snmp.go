@@ -2,7 +2,7 @@ package plugin
 
 import (
 	"fmt"
-	"github.com/chainreactors/parsers/iutils"
+	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/gosnmp/gosnmp"
 	"log"

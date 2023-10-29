@@ -5,21 +5,6 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 )
 
-const (
-	FTP = iota
-	LDAP
-	MSSQL
-	MYSQL
-	ORACLE
-	POSTGRESQL
-	RDP
-	SMB
-	SNMP
-	SSH
-	VNC
-	HTTP401
-)
-
 type Plugin interface {
 	Query() bool
 	GetInfo() bool
@@ -132,6 +117,10 @@ func Dispatch(task *pkg.Task) Plugin {
 		}
 	case pkg.POP3Service:
 		return &Pop3Service{
+			Task: task,
+		}
+	case pkg.RSYNCService:
+		return &RsyncService{
 			Task: task,
 		}
 	default:
