@@ -119,6 +119,10 @@ func Dispatch(task *pkg.Task) Plugin {
 		return &Pop3Service{
 			Task: task,
 		}
+	case pkg.RSYNCService:
+		return &RsyncService{
+			Task: task,
+		}
 	default:
 		return nil
 	}
