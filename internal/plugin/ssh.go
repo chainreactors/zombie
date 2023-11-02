@@ -13,7 +13,6 @@ import (
 
 type SshService struct {
 	*pkg.Task
-	MysqlInf
 	Cmd  string
 	conn *ssh.Client
 }
@@ -31,7 +30,7 @@ func (s *SshService) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 func (s *SshService) GetInfo() bool {

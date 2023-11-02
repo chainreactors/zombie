@@ -43,7 +43,7 @@ func (s *Pop3Service) Connect() error {
 }
 
 func (s *Pop3Service) Close() error {
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 func (s *Pop3Service) SetQuery(query string) {

@@ -1,4 +1,4 @@
-package plugin
+package ftp
 
 import (
 	"fmt"
@@ -6,21 +6,22 @@ import (
 	"github.com/jlaffaye/ftp"
 )
 
-type FtpService struct {
+type FtpPlugin struct {
 	*pkg.Task
 	Input string
 	conn  *ftp.ServerConn
 }
 
-func (s *FtpService) Query() bool {
-	return false
+func (s *FtpPlugin) Name() string {
+	return s.Service.String()
 }
 
-func (s *FtpService) GetInfo() bool {
-	return false
+func (s *FtpPlugin) Unauth() (bool, error) {
+	// todo anoy login
+	return false, nil
 }
 
-func (s *FtpService) Connect() error {
+func (s *FtpPlugin) Login() error {
 	conn, err := ftp.DialTimeout(fmt.Sprintf(s.Address()), s.Duration())
 	if err != nil {
 		return err
@@ -34,17 +35,14 @@ func (s *FtpService) Connect() error {
 	return nil
 }
 
-func (s *FtpService) SetQuery(query string) {
-	s.Input = query
+func (s *FtpPlugin) GetBasic() *pkg.Basic {
+	// todo list root dir
+	return &pkg.Basic{}
 }
 
-func (s *FtpService) Output(res interface{}) {
-
-}
-
-func (s *FtpService) Close() error {
+func (s *FtpPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Quit()
 	}
-	return NilConnError{s.Service}
+	return pkg.NilConnError{Service: s.Service}
 }

@@ -122,7 +122,7 @@ func (s *SnmpService) Close() error {
 	if s.conn != nil {
 		return s.conn.Conn.Close()
 	}
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 func (s *SnmpService) Output(res interface{}) {

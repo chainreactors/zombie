@@ -9,19 +9,23 @@ import (
 	"time"
 )
 
+const (
+	TaskModBrute = 0 + iota
+	TaskModUnauth
+)
+
 type Task struct {
-	IP         string             `json:"ip"`
-	Port       string             `json:"port"`
-	Service    Service            `json:"service"`
-	Username   string             `json:"username"`
-	Password   string             `json:"password"`
-	ExecString string             `json:"exec"`
-	Instance   string             `json:"-"`
-	Param      map[string]string  `json:"-"`
-	Timeout    int                `json:"-"`
-	Context    context.Context    `json:"-"`
-	Canceler   context.CancelFunc `json:"-"`
-	OutputCh   chan *Result       `json:"-"`
+	IP       string             `json:"ip"`
+	Port     string             `json:"port"`
+	Service  Service            `json:"service"`
+	Username string             `json:"username"`
+	Password string             `json:"password"`
+	Param    map[string]string  `json:"-"`
+	Mod      int                `json:"-"`
+	Timeout  int                `json:"-"`
+	Context  context.Context    `json:"-"`
+	Canceler context.CancelFunc `json:"-"`
+	OutputCh chan *Result       `json:"-"`
 }
 
 func (t *Task) Address() string {
@@ -45,11 +49,25 @@ func (t *Task) Duration() time.Duration {
 	return time.Duration(t.Timeout) * time.Second
 }
 
+func NewResult(task *Task, err error) *Result {
+	if err != nil {
+		return &Result{
+			Task: task,
+			OK:   false,
+			Err:  err,
+		}
+	} else {
+		return &Result{
+			Task: task,
+			OK:   true,
+		}
+	}
+}
+
 type Result struct {
 	*Task
-	OK         bool
-	Err        error
-	Additional string `json:"additional"`
+	OK  bool
+	Err error
 }
 
 func (r *Result) String() string {
@@ -196,4 +214,9 @@ func UseDefaultUser(service string) []string {
 	} else {
 		return []string{"admin"}
 	}
+}
+
+type Basic struct {
+	Input string
+	Data  string
 }

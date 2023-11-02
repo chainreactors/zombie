@@ -38,7 +38,7 @@ func (s *LdapService) Close() error {
 		s.conn.Close()
 		return nil
 	}
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 func (s *LdapService) SetQuery(query string) {

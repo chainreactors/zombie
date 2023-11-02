@@ -78,7 +78,7 @@ func (s *SmbService) Close() error {
 	if s.conn != nil {
 		return s.conn.Logoff()
 	}
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 func (s *SmbService) SetQuery(query string) {

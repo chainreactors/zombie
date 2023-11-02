@@ -154,7 +154,7 @@ func (s *TelnetService) Connect() error {
 }
 
 func (s *TelnetService) Close() error {
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 func (s *TelnetService) SetQuery(query string) {

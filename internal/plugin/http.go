@@ -48,7 +48,7 @@ func (s *HttpService) Connect() error {
 }
 
 func (s *HttpService) Close() error {
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 func (s *HttpService) SetQuery(query string) {
