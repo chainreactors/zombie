@@ -56,7 +56,7 @@ func (s *Socks5Service) Connect() error {
 }
 
 func (s *Socks5Service) Close() error {
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 func (s *Socks5Service) SetQuery(query string) {

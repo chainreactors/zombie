@@ -125,7 +125,7 @@ func (s *PostgresService) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 //func GetPostBaseInfo(SqlCon *sql.DB) *PostgreInf {

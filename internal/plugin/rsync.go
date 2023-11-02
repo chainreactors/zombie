@@ -39,7 +39,7 @@ func (s *RsyncService) Connect() error {
 }
 
 func (s *RsyncService) Close() error {
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 func (s *RsyncService) SetQuery(query string) {

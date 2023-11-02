@@ -89,7 +89,7 @@ func (s *MssqlService) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 func (s *MssqlService) GetInfo() bool {

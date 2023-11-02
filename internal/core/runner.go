@@ -15,18 +15,18 @@ import (
 
 type Runner struct {
 	*Option
-	wg         *sync.WaitGroup
-	Stat       *pkg.Statistor
-	Users      *Generator
-	Pwds       *Generator
-	Addrs      utils.Addrs
-	Targets    []*Target
-	Services   []string
-	OutputCh   chan *pkg.Result
-	File       *files.File
-	OutFunc    func(string)
-	ExecString string
-	FirstOnly  bool
+	wg        *sync.WaitGroup
+	Stat      *pkg.Statistor
+	Users     *Generator
+	Pwds      *Generator
+	Addrs     utils.Addrs
+	Targets   []*Target
+	Services  []string
+	OutputCh  chan *pkg.Result
+	File      *files.File
+	OutFunc   func(string)
+	FirstOnly bool
+	Pool      *ants.PoolWithFunc
 }
 
 func (r *Runner) Run() {
@@ -34,12 +34,13 @@ func (r *Runner) Run() {
 	ch := r.targetGenerate()
 	switch r.Mod {
 	case "pitchfork":
+		r.RunWithPitchfork(ch)
 	case "clusterbomb":
 		r.RunWithClusterBomb(ch)
 	}
 }
 
-func (r *Runner) RunWithPitchfork() {
+func (r *Runner) RunWithPitchfork(targets chan *Target) {
 	//rootContext, rootCancel := context.WithCancel(context.Background())
 	//for _, addr := range r.Addrs{
 	//	 for _, user := range r.Users{}
@@ -48,25 +49,21 @@ func (r *Runner) RunWithPitchfork() {
 
 func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	rootContext, _ := context.WithCancel(context.Background())
-	pool, _ := ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
+	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
 		ctx, cancel := context.WithCancel(task.Context) // current task context
 		go func() {
-			err := Brute(task)
-			if err != nil {
-				r.OutputCh <- &pkg.Result{
-					Task: task,
-					Err:  err,
-				}
-			} else {
-				r.OutputCh <- &pkg.Result{
-					Task: task,
-					OK:   true,
-				}
-				if r.FirstOnly {
-					cancel()        // 退出当前任务
-					task.Canceler() // 取消正在执行的所有任务
-				}
+			var res *pkg.Result
+			if task.Mod == pkg.TaskModUnauth {
+				res = Unauth(task)
+			} else if task.Mod == pkg.TaskModBrute {
+				res = Brute(task)
+			}
+
+			r.OutputCh <- res
+			if res.OK && r.FirstOnly {
+				cancel()        // 退出当前任务
+				task.Canceler() // 取消正在执行的所有任务
 			}
 			cancel()
 		}()
@@ -84,8 +81,15 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	})
 
 	// 执行
-
 	for target := range targets {
+		r.add(&pkg.Task{
+			IP:      target.IP,
+			Port:    target.Port,
+			Service: target.Service,
+			Context: rootContext,
+			Mod:     pkg.TaskModUnauth,
+		})
+
 		ch := r.clusterBombGenerate(rootContext, target)
 	loop:
 		for {
@@ -93,9 +97,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 			case task, ok := <-ch:
 				// 从生成器中取任务.
 				if ok {
-					r.wg.Add(1)
-					r.Stat.Count++
-					_ = pool.Invoke(task)
+					r.add(task)
 				} else {
 					break loop
 				}
@@ -137,16 +139,16 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *
 				}
 				select {
 				case ch <- &pkg.Task{
-					IP:         target.IP,
-					Port:       target.Port,
-					Service:    target.Service,
-					Username:   user,
-					Password:   pwd,
-					Param:      target.Param,
-					Timeout:    r.Timeout,
-					ExecString: r.ExecString,
-					Context:    tctx,
-					Canceler:   canceler,
+					IP:       target.IP,
+					Port:     target.Port,
+					Service:  target.Service,
+					Username: user,
+					Password: pwd,
+					Param:    target.Param,
+					Timeout:  r.Timeout,
+					Mod:      pkg.TaskModBrute,
+					Context:  tctx,
+					Canceler: canceler,
 				}:
 				case <-tctx.Done():
 					break Loop
@@ -174,6 +176,12 @@ func (r *Runner) targetGenerate() chan *Target {
 	return ch
 }
 
+func (r *Runner) add(task *pkg.Task) {
+	r.wg.Add(1)
+	r.Stat.Count++
+	_ = r.Pool.Invoke(task)
+}
+
 var outed int
 
 func (r *Runner) Output() {
@@ -192,7 +200,11 @@ loop:
 				}
 				logs.Log.Console(result.Format(r.Option.OutputFormat))
 			} else {
-				logs.Log.Debugf(" %s\t%s\t%s ,failed, %s", result.URI(), result.Username, result.Password, result.Err.Error())
+				if result.Mod == pkg.TaskModUnauth {
+					logs.Log.Debugf("%s login failed, %s", result.URI(), result.Err.Error())
+				} else {
+					logs.Log.Debugf("%s %s %s login failed, %s", result.URI(), result.Username, result.Password, result.Err.Error())
+				}
 			}
 			r.wg.Done()
 		}

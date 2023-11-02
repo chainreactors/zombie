@@ -18,7 +18,7 @@ func (s *OracleService) Query() bool {
 }
 
 func (s *OracleService) Connect() error {
-	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%s/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", s.Username, s.Password, s.IP, s.Port, s.Instance, s.Timeout, s.Timeout)
+	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%s/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", s.Username, s.Password, s.IP, s.Port, s.Param["instance"], s.Timeout, s.Timeout)
 
 	conn, err := sql.Open("oracle", dataSourceName)
 	if err != nil {
@@ -41,7 +41,7 @@ func (s *OracleService) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
-	return NilConnError{s.Service}
+	return pkg.NilConnError{s.Service}
 }
 
 func (s *OracleService) SetQuery(query string) {
