@@ -1,4 +1,4 @@
-package plugin
+package socks5
 
 import (
 	"errors"
@@ -10,24 +10,29 @@ import (
 	"strings"
 )
 
-type Socks5Service struct {
+type Socks5Plugin struct {
 	*pkg.Task
 	Socks5Inf
+}
+
+func (s *Socks5Plugin) Unauth() (bool, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 type Socks5Inf struct {
 	Url string `json:"url"`
 }
 
-func (s *Socks5Service) Query() bool {
-	return false
-}
+//func (s *Socks5Plugin) Query() bool {
+//	return false
+//}
+//
+//func (s *Socks5Plugin) GetInfo() bool {
+//	return false
+//}
 
-func (s *Socks5Service) GetInfo() bool {
-	return false
-}
-
-func (s *Socks5Service) Connect() error {
+func (s *Socks5Plugin) Login() error {
 
 	Socks5Url := fmt.Sprintf("%s://%s:%s@%s:%s", s.Service, s.Username, s.Password, s.IP, s.Port)
 	proxyURL, _ := url.Parse(Socks5Url)
@@ -55,14 +60,23 @@ func (s *Socks5Service) Connect() error {
 
 }
 
-func (s *Socks5Service) Close() error {
+func (s *Socks5Plugin) Close() error {
 	return pkg.NilConnError{s.Service}
 }
 
-func (s *Socks5Service) SetQuery(query string) {
-	//s.Input = query
+func (s *Socks5Plugin) Name() string {
+	return s.Service.String()
 }
 
-func (s *Socks5Service) Output(res interface{}) {
-
+func (s *Socks5Plugin) GetBasic() *pkg.Basic {
+	// todo list dbs
+	return &pkg.Basic{}
 }
+
+//func (s *Socks5Plugin) SetQuery(query string) {
+//	//s.Input = query
+//}
+//
+//func (s *Socks5Plugin) Output(res interface{}) {
+//
+//}

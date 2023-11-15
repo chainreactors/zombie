@@ -1,4 +1,4 @@
-package plugin
+package mssql
 
 import (
 	"database/sql"
@@ -7,7 +7,7 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
-type MssqlService struct {
+type MssqlPlugin struct {
 	*pkg.Task
 	MssqlInf
 	Input string
@@ -49,24 +49,11 @@ type MssqlInf struct {
 //	return err, Qresult, Columns
 //}
 
-func (s *MssqlService) Query() bool {
-	//err, Qresult, Columns := MssqlQuery(s.conn, s.Input)
-	//
-	//if err != nil {
-	//	fmt.Println("something wrong")
-	//	return false
-	//} else {
-	//	OutPutQuery(Qresult, Columns, true)
-	//}
-
-	return true
+func (s *MssqlPlugin) Name() string {
+	return s.Service.String()
 }
 
-func (s *MssqlService) SetQuery(query string) {
-	s.Input = query
-}
-
-func (s *MssqlService) Connect() error {
+func (s *MssqlPlugin) Login() error {
 	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", s.IP,
 		s.Port, s.Username, s.Password, "master", s.Timeout)
 
@@ -85,14 +72,38 @@ func (s *MssqlService) Connect() error {
 	return nil
 }
 
-func (s *MssqlService) Close() error {
+func (s *MssqlPlugin) Unauth() (bool, error) {
+	// mysql none pass
+	dataSourceName := fmt.Sprintf("server=%v;port=%v;user id=%v;password=%v;database=%v;connection timeout=%v;encrypt=disable", s.IP,
+		s.Port, "sa", "", "master", s.Timeout)
+
+	//time.Duration(Utils.Timeout)*time.Second
+	conn, err := sql.Open("mssql", dataSourceName)
+	if err != nil {
+		return false, err
+	}
+
+	err = conn.Ping()
+	if err != nil {
+		return false, err
+	}
+
+	s.conn = conn
+	return true, nil
+}
+func (s *MssqlPlugin) GetBasic() *pkg.Basic {
+	// todo list dbs
+	return &pkg.Basic{}
+}
+
+func (s *MssqlPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
 	return pkg.NilConnError{s.Service}
 }
 
-func (s *MssqlService) GetInfo() bool {
+func (s *MssqlPlugin) GetInfo() bool {
 	//defer s.conn.Close()
 	//
 	//res := GetMssqlBaseInfo(s.conn)
@@ -112,7 +123,7 @@ func (s *MssqlService) GetInfo() bool {
 	return true
 }
 
-func (s *MssqlService) Output(res interface{}) {
+func (s *MssqlPlugin) Output(res interface{}) {
 	//finres := res.(MssqlService)
 	//MsCollectInfo := ""
 	//MsCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.IP, utils.OutputType, finres.Version, finres.OS, finres.Count)

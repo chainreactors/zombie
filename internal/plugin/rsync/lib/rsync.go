@@ -1,53 +1,15 @@
-package plugin
+package lib
 
 import (
 	"crypto/md5"
 	"errors"
 	"fmt"
 	parse "github.com/chainreactors/parsers"
-	"github.com/chainreactors/zombie/pkg"
 	"golang.org/x/crypto/md4"
 	"net"
-	"strconv"
 	"strings"
 	"time"
 )
-
-type RsyncService struct {
-	*pkg.Task
-}
-
-func (s *RsyncService) Query() bool {
-	return false
-}
-
-func (s *RsyncService) GetInfo() bool {
-	return false
-}
-
-func (s *RsyncService) Connect() error {
-	res, Libs := RsyncDetect(s.IP, s.Port)
-	version := strings.Split(res, "\n")[0]
-	SmallVersion, _ := strconv.ParseFloat(strings.Split(version, " ")[1], 64)
-	err := RsyncLogin(s.IP, s.Port, s.Username, s.Password, Libs[0], SmallVersion)
-	if err != nil {
-		return err
-	}
-
-	return nil
-
-}
-
-func (s *RsyncService) Close() error {
-	return pkg.NilConnError{s.Service}
-}
-
-func (s *RsyncService) SetQuery(query string) {
-}
-
-func (s *RsyncService) Output(res interface{}) {
-
-}
 
 func RsyncDetect(ip string, port string) (string, []string) {
 	s := "@RSYNCD: 31.0"
