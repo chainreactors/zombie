@@ -1,4 +1,4 @@
-package plugin
+package postgre
 
 import (
 	"database/sql"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type PostgresService struct {
+type PostgresPlugin struct {
 	*pkg.Task
 	Dbname string `json:"Dbname"`
 	PostgreInf
@@ -24,41 +24,41 @@ type PostgreInf struct {
 
 var PostgresCollectInfo string
 
-func (s *PostgresService) GetInfo() bool {
-	//res := GetPostBaseInfo(s.conn)
-	//res.Count = GetPostgresSummary(s)
-	//s.PostgreInf = *res
-	////将结果放入管道
-	//s.Output(*s)
-	return true
-}
+//func (s *PostgresPlugin) GetInfo() bool {
+//	//res := GetPostBaseInfo(s.conn)
+//	//res.Count = GetPostgresSummary(s)
+//	//s.PostgreInf = *res
+//	////将结果放入管道
+//	//s.Output(*s)
+//	return true
+//}
+//
+//func (s *PostgresPlugin) SetQuery(query string) {
+//	s.Input = query
+//}
+//
+//func (s *PostgresPlugin) SetDbname(db string) {
+//	s.Dbname = db
+//}
 
-func (s *PostgresService) SetQuery(query string) {
-	s.Input = query
-}
-
-func (s *PostgresService) SetDbname(db string) {
-	s.Dbname = db
-}
-
-func (s *PostgresService) Output(res interface{}) {
-	//finres := res.(PostgresService)
-	//PostCollectInfo := ""
-	//PostCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.IP, utils.OutputType, finres.Version, finres.OS, finres.Count)
-	//PostCollectInfo += "\n"
-	//fmt.Println(PostCollectInfo)
-	//switch utils.FileFormat {
-	//case "raw":
-	//	utils.TDatach <- PostCollectInfo
-	//case "json":
-	//	jsons, errs := json.Marshal(res)
-	//	if errs != nil {
-	//		fmt.Println(errs.Error())
-	//		return
-	//	}
-	//	utils.TDatach <- jsons
-	//}
-}
+//func (s *PostgresPlugin) Output(res interface{}) {
+//	//finres := res.(PostgresService)
+//	//PostCollectInfo := ""
+//	//PostCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\nOS: %v\nSummary: %v", finres.IP, utils.OutputType, finres.Version, finres.OS, finres.Count)
+//	//PostCollectInfo += "\n"
+//	//fmt.Println(PostCollectInfo)
+//	//switch utils.FileFormat {
+//	//case "raw":
+//	//	utils.TDatach <- PostCollectInfo
+//	//case "json":
+//	//	jsons, errs := json.Marshal(res)
+//	//	if errs != nil {
+//	//		fmt.Println(errs.Error())
+//	//		return
+//	//	}
+//	//	utils.TDatach <- jsons
+//	//}
+//}
 
 //func PostgresQuery(SqlCon *sql.DB, Query string) (err error, Qresult []map[string]string, Columns []string) {
 //	err = SqlCon.Ping()
@@ -82,22 +82,22 @@ func (s *PostgresService) Output(res interface{}) {
 //	return err, Qresult, Columns
 //}
 
-func (s *PostgresService) Query() bool {
+//func (s *PostgresPlugin) Query() bool {
+//
+//	//defer s.conn.Close()
+//	//err, Qresult, Columns := PostgresQuery(s.conn, s.Input)
+//	//
+//	//if err != nil {
+//	//	fmt.Println("something wrong")
+//	//	os.Exit(0)
+//	//} else {
+//	//	OutPutQuery(Qresult, Columns, true)
+//	//}
+//
+//	return true
+//}
 
-	//defer s.conn.Close()
-	//err, Qresult, Columns := PostgresQuery(s.conn, s.Input)
-	//
-	//if err != nil {
-	//	fmt.Println("something wrong")
-	//	os.Exit(0)
-	//} else {
-	//	OutPutQuery(Qresult, Columns, true)
-	//}
-
-	return true
-}
-
-func (s *PostgresService) Connect() error {
+func (s *PostgresPlugin) Login() error {
 	dataSourceName := strings.Join([]string{
 		fmt.Sprintf("connect_timeout=%d", s.Timeout),
 		fmt.Sprintf("dbname=%s", s.Dbname),
@@ -121,7 +121,40 @@ func (s *PostgresService) Connect() error {
 	return nil
 }
 
-func (s *PostgresService) Close() error {
+func (s *PostgresPlugin) Unauth() (bool, error) {
+	dataSourceName := strings.Join([]string{
+		fmt.Sprintf("connect_timeout=%d", s.Timeout),
+		fmt.Sprintf("dbname=%s", s.Dbname),
+		fmt.Sprintf("host=%v", s.IP),
+		fmt.Sprintf("password=%v", ""),
+		fmt.Sprintf("port=%v", s.Port),
+		"sslmode=disable",
+		fmt.Sprintf("user=%v", ""),
+	}, " ")
+
+	conn, err := sql.Open("postgres", dataSourceName)
+	if err != nil {
+		return false, err
+	}
+
+	err = conn.Ping()
+	if err != nil {
+		return false, err
+	}
+	s.conn = conn
+	return true, nil
+}
+
+func (s *PostgresPlugin) Name() string {
+	return s.Service.String()
+}
+
+func (s *PostgresPlugin) GetBasic() *pkg.Basic {
+	// todo list dbs
+	return &pkg.Basic{}
+}
+
+func (s *PostgresPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}

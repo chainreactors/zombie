@@ -81,13 +81,15 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	})
 
 	// 执行
+	_, cancel := context.WithCancel(rootContext)
 	for target := range targets {
 		r.add(&pkg.Task{
-			IP:      target.IP,
-			Port:    target.Port,
-			Service: target.Service,
-			Context: rootContext,
-			Mod:     pkg.TaskModUnauth,
+			IP:       target.IP,
+			Port:     target.Port,
+			Service:  target.Service,
+			Context:  rootContext,
+			Canceler: cancel,
+			Mod:      pkg.TaskModUnauth,
 		})
 
 		ch := r.clusterBombGenerate(rootContext, target)

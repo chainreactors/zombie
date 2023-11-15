@@ -1,13 +1,11 @@
-package plugin
+package lib
 
 import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/chainreactors/zombie/pkg"
 	"net"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -119,53 +117,7 @@ type Client struct {
 	ServerType   int
 }
 
-type TelnetService struct {
-	*pkg.Task
-}
-
-func (s *TelnetService) Query() bool {
-	return false
-}
-
-func (s *TelnetService) GetInfo() bool {
-	return false
-}
-
-func (s *TelnetService) Connect() error {
-
-	port, _ := strconv.Atoi(s.Port)
-	c := _init(s.IP, port)
-	err := c.connect()
-	if err != nil {
-		return err
-	}
-
-	c.UserName = s.Username
-	c.Password = s.Password
-	c.ServerType = 3
-
-	err = c.login()
-	if err != nil {
-		return err
-	}
-
-	return nil
-
-}
-
-func (s *TelnetService) Close() error {
-	return pkg.NilConnError{s.Service}
-}
-
-func (s *TelnetService) SetQuery(query string) {
-	//s.Input = query
-}
-
-func (s *TelnetService) Output(res interface{}) {
-
-}
-
-func _init(addr string, port int) *Client {
+func Init(addr string, port int) *Client {
 	return &Client{
 		IPAddr:       addr,
 		Port:         port,
@@ -177,7 +129,7 @@ func _init(addr string, port int) *Client {
 	}
 }
 
-func (c *Client) connect() error {
+func (c *Client) Connect() error {
 	conn, err := net.DialTimeout("tcp", c.netloc(), 5*time.Second)
 	if err != nil {
 		return err
@@ -386,7 +338,7 @@ func (c *Client) write(buf []byte) error {
 	return nil
 }
 
-func (c *Client) login() error {
+func (c *Client) Login() error {
 	switch c.ServerType {
 	case Closed:
 		return errors.New("service is disabled")

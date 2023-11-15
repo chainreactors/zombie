@@ -1,4 +1,4 @@
-package plugin
+package snmp
 
 import (
 	"fmt"
@@ -13,11 +13,16 @@ import (
 	"time"
 )
 
-type SnmpService struct {
+type SnmpPlugin struct {
 	*pkg.Task
 	Input string
 	SwitchInfo
 	conn *gosnmp.GoSNMP
+}
+
+func (s *SnmpPlugin) Unauth() (bool, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 type CiderRoute struct {
@@ -43,7 +48,7 @@ type SwitchInfo struct {
 	InterfaceSlice []string `json:"InterfaceSlice"`
 }
 
-func (s *SnmpService) Query() bool {
+func (s *SnmpPlugin) Query() bool {
 	defer s.conn.Conn.Close()
 
 	if strings.HasPrefix(s.Input, "Walk") {
@@ -95,11 +100,11 @@ func (s *SnmpService) Query() bool {
 	return true
 }
 
-func (s *SnmpService) SetQuery(query string) {
+func (s *SnmpPlugin) SetQuery(query string) {
 	s.Input = query
 }
 
-func (s *SnmpService) Connect() error {
+func (s *SnmpPlugin) Login() error {
 	conn := &gosnmp.GoSNMP{
 		Target:             s.IP,
 		Port:               s.UintPort(),
@@ -118,18 +123,27 @@ func (s *SnmpService) Connect() error {
 	return nil
 }
 
-func (s *SnmpService) Close() error {
+func (s *SnmpPlugin) Name() string {
+	return s.Service.String()
+}
+
+func (s *SnmpPlugin) GetBasic() *pkg.Basic {
+	// todo list dbs
+	return &pkg.Basic{}
+}
+
+func (s *SnmpPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Conn.Close()
 	}
 	return pkg.NilConnError{s.Service}
 }
 
-func (s *SnmpService) Output(res interface{}) {
+func (s *SnmpPlugin) Output(res interface{}) {
 
 }
 
-func (s *SnmpService) GetInfo() bool {
+func (s *SnmpPlugin) GetInfo() bool {
 	//cidr, _ := HandleinetCidrRouteEntry(s.conn)
 	//submask, _ := HandleIpSubmask(s.conn)
 	//var FinCidrSlice []string

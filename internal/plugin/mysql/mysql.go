@@ -27,7 +27,23 @@ func (s *MysqlPlugin) Name() string {
 
 func (s *MysqlPlugin) Unauth() (bool, error) {
 	// mysql none pass
-	return false, nil
+	mysql.SetLogger(nilLog{})
+	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&charset=utf8", "root",
+		"", s.IP, s.Port, s.Timeout, s.Timeout, s.Timeout)
+	conn, err := sql.Open("mysql", dataSourceName)
+	if err != nil {
+		return false, err
+	}
+
+	//conn.SetMaxOpenConns(60)
+	//conn.SetMaxIdleConns(60)
+
+	err = conn.Ping()
+	if err != nil {
+		return false, err
+	}
+	s.conn = conn
+	return true, nil
 }
 
 func (s *MysqlPlugin) Login() error {
