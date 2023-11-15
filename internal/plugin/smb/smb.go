@@ -1,4 +1,4 @@
-package plugin
+package smb
 
 import (
 	"encoding/hex"
@@ -10,22 +10,27 @@ import (
 	"time"
 )
 
-type SmbService struct {
+type SmbPlugin struct {
 	*pkg.Task
 	conn    *smb2.Session
 	Version string
 	Input   string
 }
 
-func (s *SmbService) Query() bool {
-	return false
+func (s *SmbPlugin) Unauth() (bool, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
-func (s *SmbService) GetInfo() bool {
-	return false
-}
+//func (s *SmbService) Query() bool {
+//	return false
+//}
+//
+//func (s *SmbService) GetInfo() bool {
+//	return false
+//}
 
-func (s *SmbService) Connect() error {
+func (s *SmbPlugin) Login() error {
 	var user, domain string
 
 	if strings.Contains(s.Username, "/") {
@@ -74,17 +79,26 @@ func (s *SmbService) Connect() error {
 	return nil
 }
 
-func (s *SmbService) Close() error {
+func (s *SmbPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Logoff()
 	}
 	return pkg.NilConnError{s.Service}
 }
 
-func (s *SmbService) SetQuery(query string) {
-	s.Input = query
+func (s *SmbPlugin) Name() string {
+	return s.Service.String()
 }
 
-func (s *SmbService) Output(res interface{}) {
-
+func (s *SmbPlugin) GetBasic() *pkg.Basic {
+	// todo list dbs
+	return &pkg.Basic{}
 }
+
+//func (s *SmbService) SetQuery(query string) {
+//	s.Input = query
+//}
+//
+//func (s *SmbService) Output(res interface{}) {
+//
+//}

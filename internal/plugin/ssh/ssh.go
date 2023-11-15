@@ -1,4 +1,4 @@
-package plugin
+package ssh
 
 import (
 	"fmt"
@@ -11,13 +11,13 @@ import (
 	"time"
 )
 
-type SshService struct {
+type SshPlugin struct {
 	*pkg.Task
 	Cmd  string
 	conn *ssh.Client
 }
 
-func (s *SshService) Connect() error {
+func (s *SshPlugin) Login() error {
 	conn, err := SSHConnect(s.Task)
 	if err != nil {
 		return err
@@ -26,22 +26,40 @@ func (s *SshService) Connect() error {
 	return nil
 }
 
-func (s *SshService) Close() error {
+func (s *SshPlugin) Unauth() (bool, error) {
+	conn, err := SSHConnect(s.Task)
+	if err != nil {
+		return false, err
+	}
+	s.conn = conn
+	return true, nil
+}
+
+func (s *SshPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
 	return pkg.NilConnError{s.Service}
 }
 
-func (s *SshService) GetInfo() bool {
+func (s *SshPlugin) GetBasic() *pkg.Basic {
+	// todo list dbs
+	return &pkg.Basic{}
+}
+
+func (s *SshPlugin) Name() string {
+	return s.Service.String()
+}
+
+func (s *SshPlugin) GetInfo() bool {
 	return true
 }
 
-func (s *SshService) SetQuery(cmd string) {
+func (s *SshPlugin) SetQuery(cmd string) {
 	s.Cmd = cmd
 }
 
-func (s *SshService) Query() bool {
+func (s *SshPlugin) Query() bool {
 	session, err := s.conn.NewSession()
 	defer session.Close()
 	defer s.conn.Close()
@@ -55,7 +73,7 @@ func (s *SshService) Query() bool {
 	return true
 }
 
-func (s *SshService) Output(res interface{}) {
+func (s *SshPlugin) Output(res interface{}) {
 	//finres := res.(string)
 	//utils.TDatach <- finres
 }

@@ -17,8 +17,17 @@ func (s *FtpPlugin) Name() string {
 }
 
 func (s *FtpPlugin) Unauth() (bool, error) {
-	// todo anoy login
-	return false, nil
+	conn, err := ftp.DialTimeout(fmt.Sprintf(s.Address()), s.Duration())
+	if err != nil {
+		return false, err
+	}
+	err = conn.Login("anonymous", "anonymous")
+	if err != nil {
+		return false, err
+	}
+
+	s.conn = conn
+	return true, nil
 }
 
 func (s *FtpPlugin) Login() error {

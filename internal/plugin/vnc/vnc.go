@@ -1,4 +1,4 @@
-package plugin
+package vnc
 
 import (
 	"github.com/chainreactors/zombie/pkg"
@@ -7,21 +7,26 @@ import (
 	"time"
 )
 
-type VNCService struct {
+type VNCPlugin struct {
 	*pkg.Task
 	conn  *vnc.ClientConn
 	Input string
 }
 
-func (s *VNCService) Query() bool {
-	return false
+func (s *VNCPlugin) Unauth() (bool, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
-func (s *VNCService) GetInfo() bool {
-	return false
-}
+//func (s *VNCPlugin) Query() bool {
+//	return false
+//}
+//
+//func (s *VNCPlugin) GetInfo() bool {
+//	return false
+//}
 
-func (s *VNCService) Connect() error {
+func (s *VNCPlugin) Login() error {
 	target := s.Address()
 
 	tcpconn, err := net.DialTimeout("tcp", target, time.Duration(s.Timeout)*time.Second)
@@ -42,17 +47,26 @@ func (s *VNCService) Connect() error {
 	return nil
 }
 
-func (s *VNCService) Close() error {
+func (s *VNCPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
 	return pkg.NilConnError{s.Service}
 }
 
-func (s *VNCService) SetQuery(query string) {
-	s.Input = query
+//func (s *VNCPlugin) SetQuery(query string) {
+//	s.Input = query
+//}
+//
+//func (s *VNCPlugin) Output(res interface{}) {
+//
+//}
+
+func (s *VNCPlugin) Name() string {
+	return s.Service.String()
 }
 
-func (s *VNCService) Output(res interface{}) {
-
+func (s *VNCPlugin) GetBasic() *pkg.Basic {
+	// todo list dbs
+	return &pkg.Basic{}
 }

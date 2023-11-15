@@ -1,4 +1,4 @@
-package plugin
+package mongo
 
 import (
 	"fmt"
@@ -8,21 +8,27 @@ import (
 	"time"
 )
 
-type MongoService struct {
+type MongoPlugin struct {
 	*pkg.Task
 	Input string
 	conn  *mongo.Client
 }
 
-func (s *MongoService) Query() bool {
-	return false
+func (s *MongoPlugin) Unauth() (bool, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
-func (s *MongoService) GetInfo() bool {
-	return false
+func (s *MongoPlugin) Name() string {
+	return s.Service.String()
 }
 
-func (s *MongoService) Connect() error {
+func (s *MongoPlugin) GetBasic() *pkg.Basic {
+	// todo list dbs
+	return &pkg.Basic{}
+}
+
+func (s *MongoPlugin) Login() error {
 	var err error
 	var url string
 
@@ -47,17 +53,17 @@ func (s *MongoService) Connect() error {
 	return nil
 }
 
-func (s *MongoService) Close() error {
+func (s *MongoPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Disconnect(s.Context)
 	}
 	return nil
 }
 
-func (s *MongoService) SetQuery(query string) {
-	s.Input = query
-}
-
-func (s *MongoService) Output(res interface{}) {
-
-}
+//func (s *MongoPlugin) SetQuery(query string) {
+//	s.Input = query
+//}
+//
+//func (s *MongoPlugin) Output(res interface{}) {
+//
+//}
