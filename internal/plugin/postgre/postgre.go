@@ -11,18 +11,18 @@ import (
 type PostgresPlugin struct {
 	*pkg.Task
 	Dbname string `json:"Dbname"`
-	PostgreInf
+	//PostgreInf
 	Input string
 	conn  *sql.DB
 }
 
-type PostgreInf struct {
-	Version string
-	Count   int
-	OS      string
-}
-
-var PostgresCollectInfo string
+//type PostgreInf struct {
+//	Version string
+//	Count   int
+//	OS      string
+//}
+//
+//var PostgresCollectInfo string
 
 //func (s *PostgresPlugin) GetInfo() bool {
 //	//res := GetPostBaseInfo(s.conn)

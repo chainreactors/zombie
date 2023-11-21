@@ -48,7 +48,7 @@ func (r *Runner) RunWithPitchfork(targets chan *Target) {
 }
 
 func (r *Runner) RunWithClusterBomb(targets chan *Target) {
-	rootContext, _ := context.WithCancel(context.Background())
+	rootContext, cancel := context.WithCancel(context.Background())
 	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
 		ctx, cancel := context.WithCancel(task.Context) // current task context
@@ -81,7 +81,6 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 	})
 
 	// 执行
-	_, cancel := context.WithCancel(rootContext)
 	for target := range targets {
 		r.add(&pkg.Task{
 			IP:       target.IP,

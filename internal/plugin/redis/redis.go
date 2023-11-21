@@ -5,13 +5,6 @@ import (
 	"github.com/go-redis/redis"
 )
 
-type nilLog struct {
-}
-
-func (l nilLog) Print(v ...interface{}) {
-
-}
-
 type RedisPlugin struct {
 	*pkg.Task
 	conn       *redis.Client

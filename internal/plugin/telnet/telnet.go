@@ -1,7 +1,6 @@
 package telnet
 
 import (
-	"github.com/chainreactors/zombie/internal/plugin/telnet/lib"
 	"github.com/chainreactors/zombie/pkg"
 	"strconv"
 )
@@ -11,22 +10,13 @@ type TelnetPlugin struct {
 }
 
 func (s *TelnetPlugin) Unauth() (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	return false, nil
 }
-
-//func (s *TelnetService) Query() bool {
-//	return false
-//}
-//
-//func (s *TelnetService) GetInfo() bool {
-//	return false
-//}
 
 func (s *TelnetPlugin) Login() error {
 
 	port, _ := strconv.Atoi(s.Port)
-	c := lib.Init(s.IP, port)
+	c := Init(s.IP, port)
 	err := c.Connect()
 	if err != nil {
 		return err
@@ -46,7 +36,7 @@ func (s *TelnetPlugin) Login() error {
 }
 
 func (s *TelnetPlugin) Close() error {
-	return pkg.NilConnError{s.Service}
+	return pkg.NilConnError{Service: s.Service}
 }
 
 func (s *TelnetPlugin) Name() string {

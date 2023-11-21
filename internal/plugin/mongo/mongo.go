@@ -15,8 +15,7 @@ type MongoPlugin struct {
 }
 
 func (s *MongoPlugin) Unauth() (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	return false, nil
 }
 
 func (s *MongoPlugin) Name() string {
