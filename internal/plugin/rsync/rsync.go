@@ -1,7 +1,6 @@
 package rsync
 
 import (
-	"github.com/chainreactors/zombie/internal/plugin/rsync/lib"
 	"github.com/chainreactors/zombie/pkg"
 	"strconv"
 	"strings"
@@ -25,10 +24,10 @@ func (s *RsyncPlugin) Unauth() (bool, error) {
 //}
 
 func (s *RsyncPlugin) Login() error {
-	res, Libs := lib.RsyncDetect(s.IP, s.Port)
+	res, Libs := RsyncDetect(s.IP, s.Port)
 	version := strings.Split(res, "\n")[0]
 	SmallVersion, _ := strconv.ParseFloat(strings.Split(version, " ")[1], 64)
-	err := lib.RsyncLogin(s.IP, s.Port, s.Username, s.Password, Libs[0], SmallVersion)
+	err := RsyncLogin(s.IP, s.Port, s.Username, s.Password, Libs[0], SmallVersion)
 	if err != nil {
 		return err
 	}

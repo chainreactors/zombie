@@ -18,8 +18,7 @@ type SmbPlugin struct {
 }
 
 func (s *SmbPlugin) Unauth() (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	return false, nil
 }
 
 //func (s *SmbService) Query() bool {

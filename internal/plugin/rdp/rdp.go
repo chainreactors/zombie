@@ -13,8 +13,7 @@ type RdpPlugin struct {
 }
 
 func (s *RdpPlugin) Unauth() (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	return false, nil
 }
 
 //func (s *RdpPlugin) Query() bool {

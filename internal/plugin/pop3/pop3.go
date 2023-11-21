@@ -11,8 +11,7 @@ type Pop3Plugin struct {
 }
 
 func (s *Pop3Plugin) Unauth() (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	return false, nil
 }
 
 //func (s *Pop3Plugin) Query() bool {

@@ -14,8 +14,7 @@ type OraclePlugin struct {
 }
 
 func (s *OraclePlugin) Unauth() (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	return false, nil
 }
 
 //func (s *OraclePlugin) Query() bool {

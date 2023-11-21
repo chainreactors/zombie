@@ -1,7 +1,6 @@
 package ssh
 
 import (
-	"fmt"
 	"github.com/chainreactors/zombie/pkg"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
@@ -49,33 +48,6 @@ func (s *SshPlugin) GetBasic() *pkg.Basic {
 
 func (s *SshPlugin) Name() string {
 	return s.Service.String()
-}
-
-func (s *SshPlugin) GetInfo() bool {
-	return true
-}
-
-func (s *SshPlugin) SetQuery(cmd string) {
-	s.Cmd = cmd
-}
-
-func (s *SshPlugin) Query() bool {
-	session, err := s.conn.NewSession()
-	defer session.Close()
-	defer s.conn.Close()
-	buf, err := session.Output(s.Cmd)
-
-	if err != nil {
-		return false
-	}
-	res := fmt.Sprintf(s.IP + ":\n" + string(buf) + "\n")
-	s.Output(res)
-	return true
-}
-
-func (s *SshPlugin) Output(res interface{}) {
-	//finres := res.(string)
-	//utils.TDatach <- finres
 }
 
 func SSHConnect(task *pkg.Task) (conn *ssh.Client, err error) {
