@@ -8,21 +8,13 @@ import (
 	"net/http"
 )
 
-type nilLog struct {
-}
-
-func (l nilLog) Print(v ...interface{}) {
-
-}
-
 type HttpPlugin struct {
 	*pkg.Task
 	HttpInf
 }
 
 func (s *HttpPlugin) Unauth() (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	return false, nil
 }
 
 type HttpInf struct {

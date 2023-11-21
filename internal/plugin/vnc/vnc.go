@@ -14,17 +14,8 @@ type VNCPlugin struct {
 }
 
 func (s *VNCPlugin) Unauth() (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	return false, nil
 }
-
-//func (s *VNCPlugin) Query() bool {
-//	return false
-//}
-//
-//func (s *VNCPlugin) GetInfo() bool {
-//	return false
-//}
 
 func (s *VNCPlugin) Login() error {
 	target := s.Address()

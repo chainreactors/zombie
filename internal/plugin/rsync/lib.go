@@ -1,4 +1,4 @@
-package lib
+package rsync
 
 import (
 	"crypto/md5"

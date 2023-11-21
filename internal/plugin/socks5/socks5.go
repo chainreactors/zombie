@@ -16,24 +16,14 @@ type Socks5Plugin struct {
 }
 
 func (s *Socks5Plugin) Unauth() (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	return false, nil
 }
 
 type Socks5Inf struct {
 	Url string `json:"url"`
 }
 
-//func (s *Socks5Plugin) Query() bool {
-//	return false
-//}
-//
-//func (s *Socks5Plugin) GetInfo() bool {
-//	return false
-//}
-
 func (s *Socks5Plugin) Login() error {
-
 	Socks5Url := fmt.Sprintf("%s://%s:%s@%s:%s", s.Service, s.Username, s.Password, s.IP, s.Port)
 	proxyURL, _ := url.Parse(Socks5Url)
 	password, _ := proxyURL.User.Password()
