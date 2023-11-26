@@ -13,7 +13,7 @@ type LdapPlugin struct {
 
 func (s *LdapPlugin) Unauth() (bool, error) {
 	//TODO implement me
-	panic("implement me")
+	return false, nil
 }
 
 //func (s *LdapPlugin) Query() bool {

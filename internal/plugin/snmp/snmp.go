@@ -13,7 +13,22 @@ type SnmpPlugin struct {
 }
 
 func (s *SnmpPlugin) Unauth() (bool, error) {
-	return false, nil
+	conn := &gosnmp.GoSNMP{
+		Target:             s.IP,
+		Port:               s.UintPort(),
+		Community:          "",
+		Version:            gosnmp.Version2c,
+		Timeout:            time.Duration(s.Timeout) * time.Second,
+		MaxOids:            gosnmp.MaxOids,
+		Retries:            3,
+		ExponentialTimeout: true,
+	}
+	err := conn.Connect()
+	if err != nil {
+		return false, err
+	}
+	s.conn = conn
+	return true, nil
 }
 
 //type CiderRoute struct {

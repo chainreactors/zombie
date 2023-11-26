@@ -14,7 +14,24 @@ type VNCPlugin struct {
 }
 
 func (s *VNCPlugin) Unauth() (bool, error) {
-	return false, nil
+	target := s.Address()
+
+	tcpconn, err := net.DialTimeout("tcp", target, time.Duration(s.Timeout)*time.Second)
+	if err != nil {
+		return false, err
+	}
+
+	config := vnc.ClientConfig{
+		Auth: []vnc.ClientAuth{
+			&vnc.PasswordAuth{Password: ""},
+		},
+	}
+	conn, err := vnc.Client(tcpconn, &config)
+	if err != nil {
+		return false, err
+	}
+	s.conn = conn
+	return true, nil
 }
 
 func (s *VNCPlugin) Login() error {
