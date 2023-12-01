@@ -31,12 +31,13 @@ func (s *Socks5Plugin) Unauth() (bool, error) {
 
 	req, err := http.NewRequest("GET", "http://127.0.0.1", nil)
 	_, err = client.Do(req)
-	if strings.Contains(err.Error(), "connect") {
-		return false, errors.New("connect fail")
+	if err != nil {
+		if strings.Contains(err.Error(), "connect") {
+			return false, errors.New("connect fail")
+		}
+
+		return false, err
 	}
-	//if err != nil {
-	//	return errors.New("connect fail")
-	//}
 
 	return true, nil
 }
@@ -48,6 +49,9 @@ type Socks5Inf struct {
 func (s *Socks5Plugin) Login() error {
 	Socks5Url := fmt.Sprintf("%s://%s:%s@%s:%s", s.Service, s.Username, s.Password, s.IP, s.Port)
 	proxyURL, _ := url.Parse(Socks5Url)
+	if proxyURL == nil {
+		return errors.New("Url parse error")
+	}
 	password, _ := proxyURL.User.Password()
 	dialer, _ := proxy.SOCKS5("tcp", proxyURL.Host, &proxy.Auth{User: proxyURL.User.Username(), Password: password}, proxy.Direct)
 	transport := &http.Transport{
@@ -61,12 +65,13 @@ func (s *Socks5Plugin) Login() error {
 
 	req, err := http.NewRequest("GET", "http://127.0.0.1", nil)
 	_, err = client.Do(req)
-	if strings.Contains(err.Error(), "connect") {
-		return errors.New("connect fail")
+	if err != nil {
+		if strings.Contains(err.Error(), "connect") {
+			return errors.New("connect fail")
+		}
+
+		return err
 	}
-	//if err != nil {
-	//	return errors.New("connect fail")
-	//}
 
 	return nil
 
