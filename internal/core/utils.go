@@ -34,7 +34,7 @@ func (t *Target) Addr() *utils.Addr {
 func ParseUrl(u string) (*Target, bool) {
 	var t *Target
 	parsed, err := url.Parse(u)
-	if err != nil {
+	if err != nil && parsed != nil {
 		if ip, port, err := net.SplitHostPort(u); err == nil {
 			t = &Target{
 				IP:   ip,
@@ -44,6 +44,8 @@ func ParseUrl(u string) (*Target, bool) {
 			return nil, false
 		}
 
+	} else if parsed == nil {
+		return nil, false
 	}
 
 	if parsed.Host == "" {
