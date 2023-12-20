@@ -4,7 +4,7 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
-	parse "github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/encode"
 	"golang.org/x/crypto/md4"
 	"net"
 	"strings"
@@ -113,7 +113,7 @@ func RsyncLogin(ip, port, user, passwd string, mod string, SmallVersion float64)
 		str = md.Sum(nil)
 	}
 
-	AutoData := parse.Base64Encode(str)
+	AutoData := encode.Base64Encode(str)
 	a := strings.Replace(AutoData, "==", "", len(AutoData))
 	payload := user + " " + a + "\n"
 
