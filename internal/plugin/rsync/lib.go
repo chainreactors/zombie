@@ -67,7 +67,6 @@ func RsyncDetect(ip string, port string) (string, []string) {
 }
 
 func RsyncLogin(ip, port, user, passwd string, mod string, SmallVersion float64) error {
-
 	s := []byte("@RSYNCD: 31." + "\n")
 
 	conn, err := net.DialTimeout("tcp", ip+":"+port, 8*time.Second)
@@ -87,9 +86,7 @@ func RsyncLogin(ip, port, user, passwd string, mod string, SmallVersion float64)
 		return err
 	}
 
-	module := mod + "\n"
-
-	_, err = conn.Write([]byte(module))
+	_, err = conn.Write([]byte(mod + "\n"))
 
 	var rev2 = make([]byte, 1024)
 	_, err = conn.Read(rev2)
@@ -100,24 +97,22 @@ func RsyncLogin(ip, port, user, passwd string, mod string, SmallVersion float64)
 	challenge := strings.Split(string(rev2), " ")
 	c := challenge[len(challenge)-1]
 	c1 := strings.Split(passwd+c, "\n")
-	c2 := c1[0]
 
-	var str []byte
+	var hash []byte
 	if SmallVersion >= 30 {
 		md := md5.New()
-		md.Write([]byte(c2))
-		str = md.Sum(nil)
+		md.Write([]byte(c1[0]))
+		hash = md.Sum(nil)
 	} else {
 		md := md4.New()
-		md.Write([]byte(c2))
-		str = md.Sum(nil)
+		md.Write([]byte(c1[0]))
+		hash = md.Sum(nil)
 	}
 
-	AutoData := encode.Base64Encode(str)
+	AutoData := encode.Base64Encode(hash)
 	a := strings.Replace(AutoData, "==", "", len(AutoData))
-	payload := user + " " + a + "\n"
 
-	_, err = conn.Write([]byte(payload))
+	_, err = conn.Write([]byte(user + " " + a + "\n"))
 	if err != nil {
 		return err
 	}
@@ -129,5 +124,5 @@ func RsyncLogin(ip, port, user, passwd string, mod string, SmallVersion float64)
 	if strings.Contains(string(rev3), "OK") {
 		return nil
 	}
-	return errors.New("connect error")
+	return errors.New("rsync connect error")
 }
