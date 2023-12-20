@@ -19,20 +19,21 @@ type Option struct {
 }
 
 type InputOptions struct {
-	IP            string   `short:"i" long:"ip" alias:"ipp" description:"String, input ip"`
-	IPFile        string   `short:"I" long:"IP" description:"File, input ip list filename"`
-	Username      []string `short:"u" long:"user" description:"Strings, input usernames"`
-	UsernameFile  string   `short:"U" long:"USER" description:"File, input username list filename"`
-	UsernameWord  string   `long:"userword" description:"String, input username generator dsl"`
-	UsernameRule  string   `long:"userrule" description:"String, input username generator rule filename"`
-	Password      []string `short:"p" long:"pwd" description:"String, input passwords"`
-	PasswordFile  string   `short:"P" long:"PWD" description:"File, input password list filename"`
-	PasswordWord  string   `long:"pwdword" description:"String, input password generator dsl"`
-	PasswordRule  string   `long:"pwdrule" description:"String, input password generator rule filename"`
-	GogoFile      string   `long:"go" description:"File, input gogo result filename"`
-	ServiceName   string   `short:"s" long:"service" description:"String, input service name"`
-	FilterService string   `short:"S" long:"filter-service" description:"String, filter service name"`
-	Param         string   `long:"param" description:"param"`
+	IP            string            `short:"i" long:"ip" alias:"ipp" description:"String, input ip"`
+	IPFile        string            `short:"I" long:"IP" description:"File, input ip list filename"`
+	Username      []string          `short:"u" long:"user" description:"Strings, input usernames"`
+	UsernameFile  string            `short:"U" long:"USER" description:"File, input username list filename"`
+	UsernameWord  string            `long:"userword" description:"String, input username generator dsl"`
+	UsernameRule  string            `long:"userrule" description:"String, input username generator rule filename"`
+	Password      []string          `short:"p" long:"pwd" description:"String, input passwords"`
+	PasswordFile  string            `short:"P" long:"PWD" description:"File, input password list filename"`
+	PasswordWord  string            `long:"pwdword" description:"String, input password generator dsl"`
+	PasswordRule  string            `long:"pwdrule" description:"String, input password generator rule filename"`
+	JsonFile      string            `short:"j" long:"json" description:"File, input json result filename"`
+	GogoFile      string            `short:"g" long:"go" description:"File, input gogo result filename"`
+	ServiceName   string            `short:"s" long:"service" description:"String, input service name"`
+	FilterService string            `short:"S" long:"filter-service" description:"String, filter service name"`
+	Param         map[string]string `long:"param" description:"param"`
 }
 
 type OutputOptions struct {
@@ -88,13 +89,18 @@ func (opt *Option) Prepare() (*Runner, error) {
 		runner.Services = strings.Split(strings.ToLower(opt.ServiceName), ",")
 	}
 
-	if opt.GogoFile != "" {
-		// load gogo result
-		content, err := ioutil.ReadFile(opt.GogoFile)
+	if opt.JsonFile != "" {
+		// load json file
+		content, err := ioutil.ReadFile(opt.JsonFile)
 		if err != nil {
 			return nil, err
 		}
 		err = json.Unmarshal(content, &targets)
+		if err != nil {
+			return nil, err
+		}
+	} else if opt.GogoFile != "" {
+		targets, err = LoadGogoFile(opt.GogoFile)
 		if err != nil {
 			return nil, err
 		}
@@ -114,12 +120,14 @@ func (opt *Option) Prepare() (*Runner, error) {
 			return nil, fmt.Errorf("not any ip input")
 		}
 
+		// 处理输入参数
 		for _, input := range ipslice {
 			t := &Target{}
 			t, ok := ParseUrl(input)
 			if !ok {
 				t = SimpleParseUrl(input)
 			}
+			// 如果指定了service, 将会覆盖json或gogo中的字段
 			if opt.ServiceName != "" {
 				t.UpdateService(opt.ServiceName)
 			}
@@ -128,18 +136,9 @@ func (opt *Option) Prepare() (*Runner, error) {
 				continue
 			}
 
-			if opt.Param != "" {
-				ParamMap := make(map[string]string)
-				if opt.Param != "" {
-					list := strings.Split(opt.Param, ",")
-					for _, param := range list {
-						keyValue := strings.Split(param, ":")
-						key := keyValue[0]
-						value := keyValue[1]
-						ParamMap[key] = value
-					}
-				}
-				t.Param = ParamMap
+			// 命令行中指定的 param 会覆盖原有的配置
+			if opt.Param != nil {
+				t.Param = opt.Param
 			}
 
 			targets = append(targets, t)

@@ -18,10 +18,10 @@ require (
 )
 
 require (
-	github.com/chainreactors/files v0.0.0-20230731174853-acee21c8c45a
+	github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8
 	github.com/chainreactors/logs v0.0.0-20231027080134-7a11bb413460
-	github.com/chainreactors/parsers v0.0.0-20231027075644-5d67f3a109d8
-	github.com/chainreactors/utils v0.0.0-20230928082055-ef5e1ae47f3e
+	github.com/chainreactors/parsers v0.0.0-20231220104848-3a0b5a5bd8dc
+	github.com/chainreactors/utils v0.0.0-20231031063336-9477f1b23886
 	github.com/chainreactors/words v0.4.1-0.20231027073512-0ccf7e0f0e32
 	github.com/go-ldap/ldap/v3 v3.4.6
 	github.com/jessevdk/go-flags v1.5.0
