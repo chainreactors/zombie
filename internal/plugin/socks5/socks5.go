@@ -1,13 +1,11 @@
 package socks5
 
 import (
-	"errors"
 	"fmt"
 	"github.com/chainreactors/zombie/pkg"
 	"golang.org/x/net/proxy"
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 type Socks5Plugin struct {
@@ -32,13 +30,8 @@ func (s *Socks5Plugin) Unauth() (bool, error) {
 	req, err := http.NewRequest("GET", "http://127.0.0.1", nil)
 	_, err = client.Do(req)
 	if err != nil {
-		if strings.Contains(err.Error(), "connect") {
-			return false, errors.New("connect fail")
-		}
-
 		return false, err
 	}
-
 	return true, nil
 }
 
@@ -48,9 +41,9 @@ type Socks5Inf struct {
 
 func (s *Socks5Plugin) Login() error {
 	Socks5Url := fmt.Sprintf("%s://%s:%s@%s:%s", s.Service, s.Username, s.Password, s.IP, s.Port)
-	proxyURL, _ := url.Parse(Socks5Url)
-	if proxyURL == nil {
-		return errors.New("Url parse error")
+	proxyURL, err := url.Parse(Socks5Url)
+	if err != nil {
+		return err
 	}
 	password, _ := proxyURL.User.Password()
 	dialer, _ := proxy.SOCKS5("tcp", proxyURL.Host, &proxy.Auth{User: proxyURL.User.Username(), Password: password}, proxy.Direct)
@@ -66,10 +59,6 @@ func (s *Socks5Plugin) Login() error {
 	req, err := http.NewRequest("GET", "http://127.0.0.1", nil)
 	_, err = client.Do(req)
 	if err != nil {
-		if strings.Contains(err.Error(), "connect") {
-			return errors.New("connect fail")
-		}
-
 		return err
 	}
 
@@ -89,11 +78,3 @@ func (s *Socks5Plugin) GetBasic() *pkg.Basic {
 	// todo list dbs
 	return &pkg.Basic{}
 }
-
-//func (s *Socks5Plugin) SetQuery(query string) {
-//	//s.Input = query
-//}
-//
-//func (s *Socks5Plugin) Output(res interface{}) {
-//
-//}
