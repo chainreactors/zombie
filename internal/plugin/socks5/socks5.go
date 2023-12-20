@@ -10,7 +10,7 @@ import (
 
 type Socks5Plugin struct {
 	*pkg.Task
-	Socks5Inf
+	Url string `json:"url"`
 }
 
 func (s *Socks5Plugin) Unauth() (bool, error) {
@@ -33,10 +33,6 @@ func (s *Socks5Plugin) Unauth() (bool, error) {
 		return false, err
 	}
 	return true, nil
-}
-
-type Socks5Inf struct {
-	Url string `json:"url"`
 }
 
 func (s *Socks5Plugin) Login() error {

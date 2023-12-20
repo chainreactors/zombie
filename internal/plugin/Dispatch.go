@@ -43,87 +43,55 @@ func Dispatch(task *pkg.Task) (Plugin, error) {
 			Dbname: "postgres",
 		}, nil
 	case pkg.MSSQLService:
-		return &mssql.MssqlPlugin{
-			Task: task,
-		}, nil
+		return &mssql.MssqlPlugin{Task: task}, nil
 	case pkg.MYSQLService:
-		return &mysql.MysqlPlugin{
-			Task: task,
-		}, nil
+		return &mysql.MysqlPlugin{Task: task}, nil
 	case pkg.ORACLEService:
-		return &oracle.OraclePlugin{
-			Task: task,
-		}, nil
+		return &oracle.OraclePlugin{Task: task}, nil
 	case pkg.SNMPService:
-		return &snmp.SnmpPlugin{
-			Task: task,
-		}, nil
+		return &snmp.SnmpPlugin{Task: task}, nil
 	case pkg.SSHService:
-		return &ssh.SshPlugin{
-			Task: task,
-		}, nil
+		return &ssh.SshPlugin{Task: task}, nil
 	case pkg.RDPService:
-		return &rdp.RdpPlugin{
-			Task: task,
-		}, nil
+		return &rdp.RdpPlugin{Task: task}, nil
 	case pkg.SMBService:
-		return &smb.SmbPlugin{
-			Task: task,
-		}, nil
+		return &smb.SmbPlugin{Task: task}, nil
 	case pkg.FTPService:
-		return &ftp.FtpPlugin{
-			Task: task,
-		}, nil
+		return &ftp.FtpPlugin{Task: task}, nil
 	case pkg.MONGOService:
-		return &mongo.MongoPlugin{
-			Task: task,
-		}, nil
+		return &mongo.MongoPlugin{Task: task}, nil
 	case pkg.VNCService:
-		return &vnc.VNCPlugin{
-			Task: task,
-		}, nil
+		return &vnc.VNCPlugin{Task: task}, nil
 	case pkg.REDISService:
-		return &redis.RedisPlugin{
-			Task: task,
-		}, nil
+		return &redis.RedisPlugin{Task: task}, nil
 	case pkg.LDAPService:
-		return &ldap.LdapPlugin{
-			Task: task,
-		}, nil
+		return &ldap.LdapPlugin{Task: task}, nil
 	case pkg.HTTPService:
 		return &http.HttpPlugin{
 			Task: task,
-			HttpInf: http.HttpInf{
-				Path: task.Param["path"],
-			},
+			Path: task.Param["path"],
 		}, nil
 	case pkg.HTTPSService:
 		return &http.HttpPlugin{
 			Task: task,
-			HttpInf: http.HttpInf{
-				Path: task.Param["path"],
-			},
+			Path: task.Param["path"],
 		}, nil
+	case pkg.TomcatService:
+		return &http.HttpPlugin{
+			Task: task,
+			Path: "manager",
+		}, nil
+	case pkg.KibanaService:
+		return &http.HttpPlugin{Task: task}, nil
 	case pkg.SOCKS5Service:
 		task.Timeout = 10
-		return &socks5.Socks5Plugin{
-			Task: task,
-			//Socks5Inf: Socks5Inf{
-			//	Url: task.Param["url"],
-			//},
-		}, nil
+		return &socks5.Socks5Plugin{Task: task}, nil
 	case pkg.TELNETService:
-		return &telnet.TelnetPlugin{
-			Task: task,
-		}, nil
+		return &telnet.TelnetPlugin{Task: task}, nil
 	case pkg.POP3Service:
-		return &pop3.Pop3Plugin{
-			Task: task,
-		}, nil
+		return &pop3.Pop3Plugin{Task: task}, nil
 	case pkg.RSYNCService:
-		return &rsync.RsyncPlugin{
-			Task: task,
-		}, nil
+		return &rsync.RsyncPlugin{Task: task}, nil
 	default:
 		return nil, ErrKnownPlugin
 	}

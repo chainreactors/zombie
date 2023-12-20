@@ -116,6 +116,9 @@ var (
 	ORACLEService     Service = "oracle"
 	HTTPService       Service = "http"
 	HTTPSService      Service = "https"
+	TomcatService     Service = "tomcat"
+	ElasticService    Service = "elastic"
+	KibanaService     Service = "kibana"
 	LDAPService       Service = "ldap"
 	SOCKS5Service     Service = "socks5"
 	TELNETService     Service = "telnet"
@@ -141,6 +144,8 @@ var Services = map[Service]string{
 	LDAPService:       "389",
 	HTTPService:       "80",
 	HTTPSService:      "443",
+	TomcatService:     "8080",
+	KibanaService:     "5601",
 	SOCKS5Service:     "1080",
 	TELNETService:     "23",
 	POP3Service:       "110",
