@@ -10,15 +10,11 @@ import (
 
 type HttpPlugin struct {
 	*pkg.Task
-	HttpInf
+	Path string `json:"path"`
 }
 
 func (s *HttpPlugin) Unauth() (bool, error) {
 	return false, nil
-}
-
-type HttpInf struct {
-	Path string `json:"path"`
 }
 
 func (s *HttpPlugin) Name() string {
