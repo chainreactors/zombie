@@ -88,9 +88,10 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 			Service:  target.Service,
 			Context:  rootContext,
 			Canceler: cancel,
+			Timeout:  r.Timeout,
 			Mod:      pkg.TaskModUnauth,
 		})
-
+		r.wg.Wait()
 		ch := r.clusterBombGenerate(rootContext, target)
 	loop:
 		for {
@@ -186,7 +187,6 @@ func (r *Runner) add(task *pkg.Task) {
 var outed int
 
 func (r *Runner) Output() {
-
 loop:
 	for {
 		select {

@@ -1,7 +1,6 @@
 package ftp
 
 import (
-	"fmt"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/jlaffaye/ftp"
 )
@@ -17,21 +16,20 @@ func (s *FtpPlugin) Name() string {
 }
 
 func (s *FtpPlugin) Unauth() (bool, error) {
-	conn, err := ftp.DialTimeout(fmt.Sprintf(s.Address()), s.Duration())
+	conn, err := ftp.DialTimeout(s.Address(), s.Duration())
 	if err != nil {
 		return false, err
 	}
-	err = conn.Login("anonymous", "anonymous")
+	err = conn.Login("anonymous", "")
 	if err != nil {
 		return false, err
 	}
-
 	s.conn = conn
 	return true, nil
 }
 
 func (s *FtpPlugin) Login() error {
-	conn, err := ftp.DialTimeout(fmt.Sprintf(s.Address()), s.Duration())
+	conn, err := ftp.DialTimeout(s.Address(), s.Duration())
 	if err != nil {
 		return err
 	}

@@ -95,5 +95,4 @@ func Dispatch(task *pkg.Task) (Plugin, error) {
 	default:
 		return nil, ErrKnownPlugin
 	}
-
 }

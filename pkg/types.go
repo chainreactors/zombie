@@ -71,7 +71,11 @@ type Result struct {
 }
 
 func (r *Result) String() string {
-	return fmt.Sprintf("[+] %s://%s\t%s\t%s\n", r.Service, r.Address(), r.Username, r.Password)
+	if r.Mod == TaskModUnauth {
+		return fmt.Sprintf("[+] %s://%s unauth\n", r.Service, r.Address())
+	} else {
+		return fmt.Sprintf("[+] %s://%s\t%s\t%s\n", r.Service, r.Address(), r.Username, r.Password)
+	}
 }
 
 func (r *Result) Json() string {
