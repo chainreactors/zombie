@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/chainreactors/files"
 	"github.com/chainreactors/logs"
@@ -30,9 +31,9 @@ type InputOptions struct {
 	PasswordWord  string            `long:"pwdword" description:"String, input password generator dsl"`
 	PasswordRule  string            `long:"pwdrule" description:"String, input password generator rule filename"`
 	JsonFile      string            `short:"j" long:"json" description:"File, input json result filename"`
-	GogoFile      string            `short:"g" long:"go" description:"File, input gogo result filename"`
+	GogoFile      string            `short:"g" long:"gogo" description:"File, input gogo result filename"`
 	ServiceName   string            `short:"s" long:"service" description:"String, input service name"`
-	FilterService string            `short:"S" long:"filter-service" description:"String, filter service name"`
+	FilterService string            `short:"S" long:"filter-service" description:"String, filter service when input json/gogo file"`
 	Param         map[string]string `long:"param" description:"param"`
 }
 
@@ -45,6 +46,7 @@ type OutputOptions struct {
 type WordOptions struct {
 	Top           int  `long:"top" default:"0" description:"Int, top n words"`
 	ForceContinue bool `long:"force-continue" description:"Bool, force continue, not only stop when first success ever host"`
+	WeakPassWord  bool `long:"weakpass" description:"Bool, common weak password rule"`
 }
 
 type MiscOptions struct {
@@ -55,6 +57,18 @@ type MiscOptions struct {
 }
 
 func (opt *Option) Validate() error {
+	if opt.IP == "" && opt.IPFile == "" && opt.JsonFile == "" && opt.GogoFile == "" {
+		return errors.New("please input ip or or file or json file or gogo file")
+	}
+	if opt.WeakPassWord && (opt.Password == nil && opt.PasswordFile == "") {
+		return errors.New("use weak-password rule must set password, please set -p/-P")
+	}
+	if opt.PasswordRule != "" && (opt.Password == nil && opt.PasswordFile == "") {
+		return errors.New("use custom password rule must set password, please set -p/-P")
+	}
+	if opt.UsernameRule != "" && (opt.Username == nil && opt.UsernameFile == "") {
+		return errors.New("use custom username rule must set username, please set -u/-U")
+	}
 	return nil
 }
 
@@ -164,7 +178,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 	}
 
 	if opt.UsernameRule != "" {
-		err := users.SetRule(opt.UsernameRule)
+		err := users.SetRuleFile(opt.UsernameRule)
 		if err != nil {
 			return nil, err
 		}
@@ -186,7 +200,12 @@ func (opt *Option) Prepare() (*Runner, error) {
 		}
 	}
 	if opt.PasswordRule != "" {
-		err := users.SetRule(opt.PasswordRule)
+		err := pwds.SetRuleFile(opt.PasswordRule)
+		if err != nil {
+			return nil, err
+		}
+	} else if opt.WeakPassWord {
+		err := pwds.SetInternalRule("weakpass")
 		if err != nil {
 			return nil, err
 		}

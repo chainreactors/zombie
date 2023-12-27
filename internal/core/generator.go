@@ -1,7 +1,9 @@
 package core
 
 import (
+	"errors"
 	"github.com/chainreactors/words"
+	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -99,7 +101,7 @@ func (g *Generator) SetFile(filename string) error {
 	return nil
 }
 
-func (g *Generator) SetRule(filename string) error {
+func (g *Generator) SetRuleFile(filename string) error {
 	g.RuleFilename = filename
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -108,6 +110,14 @@ func (g *Generator) SetRule(filename string) error {
 	g.Rules = string(content)
 
 	return nil
+}
+
+func (g *Generator) SetInternalRule(rulename string) error {
+	if content, ok := pkg.Rules[rulename]; ok {
+		g.Rules = content
+		return nil
+	}
+	return errors.New("rule not found")
 }
 
 func (g *Generator) SetFilter(filter []string) {

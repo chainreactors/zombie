@@ -67,14 +67,6 @@ func (s *SmbPlugin) Unauth() (bool, error) {
 	return true, nil
 }
 
-//func (s *SmbService) Query() bool {
-//	return false
-//}
-//
-//func (s *SmbService) GetInfo() bool {
-//	return false
-//}
-
 func (s *SmbPlugin) Login() error {
 	var user, domain string
 
@@ -128,7 +120,7 @@ func (s *SmbPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Logoff()
 	}
-	return pkg.NilConnError{s.Service}
+	return pkg.NilConnError{Service: s.Service}
 }
 
 func (s *SmbPlugin) Name() string {
@@ -139,11 +131,3 @@ func (s *SmbPlugin) GetBasic() *pkg.Basic {
 	// todo list dbs
 	return &pkg.Basic{}
 }
-
-//func (s *SmbService) SetQuery(query string) {
-//	s.Input = query
-//}
-//
-//func (s *SmbService) Output(res interface{}) {
-//
-//}
