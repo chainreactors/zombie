@@ -121,25 +121,28 @@ google2022
 
 ### TODO
 
-* RSTP
-* HTTP PROXY
-* rlogin
-* zookeeper
-* memcache
-* amqp
-* mqtt
-* http
-  * rabbitmq management
-  * solr
-  * webdav
-  * ...
-* web
-  * weblogic
-  * websphere
-  * jenkins
-  * grafana
-  * zabbix
-  * ...
+* 支持基本信息收集
+* 支持基本的后利用(希望能像cme一样)
+* 支持更多协议
+  * RSTP
+  * HTTP PROXY
+  * rlogin
+  * zookeeper
+  * memcache
+  * amqp
+  * mqtt
+  * http
+    * rabbitmq management
+    * solr
+    * webdav
+    * ...
+  * web
+    * weblogic
+    * websphere
+    * jenkins
+    * grafana
+    * zabbix
+    * ...
 
 ## Make
 
