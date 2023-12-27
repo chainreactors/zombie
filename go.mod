@@ -22,7 +22,7 @@ require (
 	github.com/chainreactors/logs v0.0.0-20231027080134-7a11bb413460
 	github.com/chainreactors/parsers v0.0.0-20231227070753-8cda94b96b6c
 	github.com/chainreactors/utils v0.0.0-20231031063336-9477f1b23886
-	github.com/chainreactors/words v0.4.1-0.20231027073512-0ccf7e0f0e32
+	github.com/chainreactors/words v0.4.1-0.20231227144711-467c1954322c
 	github.com/go-ldap/ldap/v3 v3.4.6
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/knadh/go-pop3 v0.3.0
