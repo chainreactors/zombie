@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"github.com/chainreactors/files"
 	"github.com/chainreactors/words"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
@@ -102,12 +103,21 @@ func (g *Generator) SetFile(filename string) error {
 }
 
 func (g *Generator) SetRuleFile(filename string) error {
-	g.RuleFilename = filename
-	content, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return err
+	if files.IsExist(filename) {
+		g.RuleFilename = filename
+		content, err := ioutil.ReadFile(filename)
+		if err != nil {
+			return err
+		}
+		g.Rules = string(content)
+	} else {
+		if content, ok := pkg.Rules[filename]; ok {
+			g.Rules = content
+			return nil
+		} else {
+			return errors.New("not found file and not found preset rule," + filename)
+		}
 	}
-	g.Rules = string(content)
 
 	return nil
 }
