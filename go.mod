@@ -20,7 +20,7 @@ require (
 require (
 	github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8
 	github.com/chainreactors/logs v0.0.0-20231027080134-7a11bb413460
-	github.com/chainreactors/parsers v0.0.0-20231220104848-3a0b5a5bd8dc
+	github.com/chainreactors/parsers v0.0.0-20231227070753-8cda94b96b6c
 	github.com/chainreactors/utils v0.0.0-20231031063336-9477f1b23886
 	github.com/chainreactors/words v0.4.1-0.20231027073512-0ccf7e0f0e32
 	github.com/go-ldap/ldap/v3 v3.4.6
@@ -34,8 +34,6 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-replace (
-	github.com/go-sql-driver/mysql => ./external/github.com/go-sql-driver/mysql
-	github.com/hirochachacha/go-smb2 => ./external/github.com/hirochachacha/go-smb2
-	github.com/tomatome/grdp => ./external/github.com/tomatome/grdp
-)
+//github.com/go-sql-driver/mysql => ./external/github.com/go-sql-driver/mysql
+//github.com/hirochachacha/go-smb2 => ./external/github.com/hirochachacha/go-smb2
+replace github.com/tomatome/grdp => ./external/github.com/tomatome/grdp

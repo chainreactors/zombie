@@ -53,7 +53,7 @@ func (s *SmbPlugin) Unauth() (bool, error) {
 
 	_ = c.SetDeadline(time.Now().Add(time.Duration(s.Timeout) * time.Second))
 
-	conn, _, err := d.Dial(c)
+	conn, err := d.Dial(c)
 	if err != nil {
 		return false, err
 	}
@@ -111,7 +111,7 @@ func (s *SmbPlugin) Login() error {
 
 	_ = c.SetDeadline(time.Now().Add(time.Duration(s.Timeout) * time.Second))
 
-	conn, _, err := d.Dial(c)
+	conn, err := d.Dial(c)
 	if err != nil {
 		return err
 	}
