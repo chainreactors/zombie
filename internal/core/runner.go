@@ -103,35 +103,20 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 			Mod:      pkg.TaskModUnauth,
 		})
 		r.wg.Wait()
-		if target.Username != "" || target.Password != "" {
-			r.add(&pkg.Task{
-				IP:       target.IP,
-				Port:     target.Port,
-				Service:  target.Service,
-				Username: target.Username,
-				Password: target.Password,
-				Param:    target.Param,
-				Context:  rootContext,
-				Canceler: cancel,
-				Timeout:  r.Timeout,
-				Mod:      pkg.TaskModSniper,
-			})
-		} else {
-			ch := r.clusterBombGenerate(rootContext, target)
-		loop:
-			for {
-				select {
-				case task, ok := <-ch:
-					// 从生成器中取任务.
-					if ok {
-						r.add(task)
-					} else {
-						break loop
-					}
-				case <-rootContext.Done():
-					// todo 为断点续传做准备
+		ch := r.clusterBombGenerate(rootContext, target)
+	loop:
+		for {
+			select {
+			case task, ok := <-ch:
+				// 从生成器中取任务.
+				if ok {
+					r.add(task)
+				} else {
 					break loop
 				}
+			case <-rootContext.Done():
+				// todo 为断点续传做准备
+				break loop
 			}
 		}
 	}
@@ -144,13 +129,17 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *
 	ch := make(chan *pkg.Task)
 	var users, pwds []string
 	// 自动选择默认的用户名与密码字典
-	if r.Users == nil {
+	if target.Username != "" {
+		users = []string{target.Username}
+	} else if r.Users == nil {
 		users = pkg.UseDefaultUser(target.Service.String())
 	} else {
 		users = r.Users.RunAsSlice()
 	}
 
-	if r.Pwds == nil {
+	if target.Password != "" {
+		pwds = []string{target.Password}
+	} else if r.Pwds == nil {
 		pwds = pkg.UseDefaultPassword(target.Service.String(), r.Top)
 	} else {
 		pwds = r.Pwds.RunAsSlice()
