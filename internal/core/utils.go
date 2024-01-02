@@ -11,10 +11,12 @@ import (
 )
 
 type Target struct {
-	IP      string            `json:"ip"`
-	Port    string            `json:"port"`
-	Service pkg.Service       `json:"service"`
-	Param   map[string]string `json:"param"`
+	IP       string            `json:"ip"`
+	Port     string            `json:"port"`
+	Username string            `json:"username"`
+	Password string            `json:"password"`
+	Service  pkg.Service       `json:"service"`
+	Param    map[string]string `json:"param"`
 }
 
 func (t *Target) String() string {
@@ -72,6 +74,14 @@ func ParseUrl(u string) (*Target, bool) {
 		}
 	} else if t.Port != "" {
 		t.Service = pkg.GetDefault(t.Port)
+	}
+	if parsed.User != nil {
+		if parsed.User.Username() != "" {
+			t.Username = parsed.User.Username()
+		}
+		if pwd, _ := parsed.User.Password(); pwd != "" {
+			t.Password, _ = parsed.User.Password()
+		}
 	}
 
 	return t, true

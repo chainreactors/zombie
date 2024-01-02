@@ -31,41 +31,23 @@ type Runner struct {
 
 func (r *Runner) Run() {
 	go r.Output()
-	ch := r.targetGenerate()
-	switch r.Mod {
-	case "pitchfork":
-		r.RunWithPitchfork(ch)
-	case "clusterbomb":
-		r.RunWithClusterBomb(ch)
-	}
-}
-
-func (r *Runner) RunWithPitchfork(targets chan *Target) {
-	//rootContext, rootCancel := context.WithCancel(context.Background())
-	//for _, addr := range r.Addrs{
-	//	 for _, user := range r.Users{}
-	//}
-}
-
-func (r *Runner) RunWithClusterBomb(targets chan *Target) {
-	rootContext, cancel := context.WithCancel(context.Background())
 	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
-		ctx, cancel := context.WithCancel(task.Context) // current task context
+		ctx, tcancel := context.WithCancel(task.Context) // current task context
 		go func() {
 			var res *pkg.Result
 			if task.Mod == pkg.TaskModUnauth {
 				res = Unauth(task)
-			} else if task.Mod == pkg.TaskModBrute {
+			} else {
 				res = Brute(task)
 			}
 
 			r.OutputCh <- res
-			if res.OK && r.FirstOnly {
-				cancel()        // 退出当前任务
+			if res.OK && r.FirstOnly && task.Mod != pkg.TaskModSniper {
+				tcancel()       // 退出当前任务
 				task.Canceler() // 取消正在执行的所有任务
 			}
-			cancel()
+			tcancel()
 		}()
 
 		// 设置超时时间, 防止任务挂死
@@ -79,8 +61,37 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 			}
 		}
 	})
+	ch := r.targetGenerate()
+	switch r.Mod {
+	//case "pitchfork":
+	//	r.RunWithSniper(ch)
+	case "sniper":
+		r.RunWithSniper(ch)
+	case "clusterbomb":
+		r.RunWithClusterBomb(ch)
+	}
+}
 
-	// 执行
+func (r *Runner) RunWithSniper(targets chan *Target) {
+	for target := range targets {
+		r.add(&pkg.Task{
+			IP:       target.IP,
+			Port:     target.Port,
+			Service:  target.Service,
+			Username: target.Username,
+			Password: target.Password,
+			Param:    target.Param,
+			Context:  context.Background(),
+			Timeout:  r.Timeout,
+			Mod:      pkg.TaskModSniper,
+		})
+	}
+	r.wg.Wait()
+}
+
+func (r *Runner) RunWithClusterBomb(targets chan *Target) {
+	rootContext, cancel := context.WithCancel(context.Background())
+
 	for target := range targets {
 		r.add(&pkg.Task{
 			IP:       target.IP,
@@ -92,20 +103,35 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 			Mod:      pkg.TaskModUnauth,
 		})
 		r.wg.Wait()
-		ch := r.clusterBombGenerate(rootContext, target)
-	loop:
-		for {
-			select {
-			case task, ok := <-ch:
-				// 从生成器中取任务.
-				if ok {
-					r.add(task)
-				} else {
+		if target.Username != "" || target.Password != "" {
+			r.add(&pkg.Task{
+				IP:       target.IP,
+				Port:     target.Port,
+				Service:  target.Service,
+				Username: target.Username,
+				Password: target.Password,
+				Param:    target.Param,
+				Context:  rootContext,
+				Canceler: cancel,
+				Timeout:  r.Timeout,
+				Mod:      pkg.TaskModSniper,
+			})
+		} else {
+			ch := r.clusterBombGenerate(rootContext, target)
+		loop:
+			for {
+				select {
+				case task, ok := <-ch:
+					// 从生成器中取任务.
+					if ok {
+						r.add(task)
+					} else {
+						break loop
+					}
+				case <-rootContext.Done():
+					// todo 为断点续传做准备
 					break loop
 				}
-			case <-rootContext.Done():
-				// todo 为断点续传做准备
-				break loop
 			}
 		}
 	}
