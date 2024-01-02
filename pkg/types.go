@@ -12,6 +12,7 @@ import (
 const (
 	TaskModBrute = 0 + iota
 	TaskModUnauth
+	TaskModSniper
 )
 
 type Task struct {
