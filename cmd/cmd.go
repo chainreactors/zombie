@@ -10,7 +10,42 @@ import (
 
 func Zombie() {
 	var opt core.Option
-	_, err := flags.Parse(&opt)
+	parser := flags.NewParser(&opt, flags.Default)
+	parser.Usage = `
+
+	WIKI: https://chainreactors.github.io/wiki/zombie
+
+	QUICKSTART:
+		simple example:
+			zombie -i 1.1.1.1 -u root -s ssh
+	
+		brute multiple ssh targets(ip list):
+			zombie -I targets.txt -u root -p password -s ssh
+
+		brute from file and auto parse
+			zombie -I targets.txt
+	
+			targets.txt:
+			mysql://user:pass@1.1.1.1:3307  
+			ssh://user@2.2.2.2             
+			mssql://3.3.3.3:1433            
+	
+	
+		rude brute:
+			zombie -I targets.txt -U user.txt -P pass.txt
+
+	
+		brute from gogo dat:
+			zombie --gogo 1.dat
+	
+		brute from json file:
+			zombie -j 1.json
+	
+	
+		internal password generate:
+			zombie -l 1.txt -p google --weakpass
+`
+	_, err := parser.Parse()
 	if err != nil {
 		if err.(*flags.Error).Type != flags.ErrHelp {
 			fmt.Println(err.Error())
