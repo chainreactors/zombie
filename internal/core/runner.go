@@ -49,7 +49,9 @@ func (r *Runner) Run() {
 			}
 			select {
 			case <-ctx.Done():
+				return
 			case <-task.Context.Done():
+				return
 			default:
 				r.Output(res)
 			}
