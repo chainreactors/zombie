@@ -44,9 +44,11 @@ type OutputOptions struct {
 }
 
 type WordOptions struct {
-	Top           int  `long:"top" default:"0" description:"Int, top n words"`
-	ForceContinue bool `long:"force-continue" description:"Bool, force continue, not only stop when first success ever host"`
-	WeakPassWord  bool `long:"weakpass" description:"Bool, common weak password rule"`
+	Top             int  `long:"top" default:"0" description:"Int, top n words"`
+	ForceContinue   bool `long:"force-continue" description:"Bool, force continue, not only stop when first success ever host"`
+	WeakPassWord    bool `long:"weakpass" description:"Bool, common weak password rule"`
+	NoUnAuth        bool `long:"no-unauth" description:"Bool, not check unauth"`
+	NoCheckHoneyPot bool `long:"no-check-honeypot" description:"Bool, not check honeypot"`
 }
 
 type MiscOptions struct {
@@ -95,6 +97,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		FirstOnly: !opt.ForceContinue,
 		Option:    opt,
 		wg:        &sync.WaitGroup{},
+		outlock:   &sync.WaitGroup{},
 		OutputCh:  make(chan *pkg.Result),
 		Stat:      &pkg.Statistor{},
 	}

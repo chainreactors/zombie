@@ -6,14 +6,34 @@ import (
 	"fmt"
 	"github.com/chainreactors/logs"
 	"strconv"
+	"strings"
+	"sync"
 	"time"
 )
 
+type TaskMod int
+
 const (
-	TaskModBrute = 0 + iota
+	TaskModBrute TaskMod = 0 + iota
 	TaskModUnauth
+	TaskModCheck
 	TaskModSniper
 )
+
+func (m TaskMod) String() string {
+	switch m {
+	case TaskModBrute:
+		return "brute"
+	case TaskModUnauth:
+		return "unauth"
+	case TaskModCheck:
+		return "check"
+	case TaskModSniper:
+		return "sniper"
+	default:
+		return "unknown"
+	}
+}
 
 type Task struct {
 	IP       string             `json:"ip"`
@@ -22,11 +42,11 @@ type Task struct {
 	Username string             `json:"username"`
 	Password string             `json:"password"`
 	Param    map[string]string  `json:"-"`
-	Mod      int                `json:"-"`
+	Mod      TaskMod            `json:"-"`
 	Timeout  int                `json:"-"`
 	Context  context.Context    `json:"-"`
 	Canceler context.CancelFunc `json:"-"`
-	OutputCh chan *Result       `json:"-"`
+	Locker   *sync.Mutex        `json:"-"`
 }
 
 func (t *Task) Address() string {
@@ -72,11 +92,20 @@ type Result struct {
 }
 
 func (r *Result) String() string {
-	if r.Mod == TaskModUnauth {
-		return fmt.Sprintf("[+] %s://%s unauth\n", r.Service, r.Address())
-	} else {
-		return fmt.Sprintf("[+] %s://%s\t%s\t%s\n", r.Service, r.Address(), r.Username, r.Password)
+	var s strings.Builder
+	s.WriteString(fmt.Sprintf("[%s] ", r.Mod.String()))
+	s.WriteString(r.URI())
+	if r.Username != "" {
+		s.WriteString(" " + r.Username)
 	}
+	if r.Password != "" {
+		s.WriteString(" " + r.Password)
+	}
+	if len(r.Param) != 0 {
+		s.WriteString(" " + fmt.Sprintf("%v", r.Param))
+	}
+	s.WriteString(" success\n")
+	return s.String()
 }
 
 func (r *Result) Json() string {
