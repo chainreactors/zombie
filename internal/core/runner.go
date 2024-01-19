@@ -23,6 +23,7 @@ type Runner struct {
 	Targets   []*Target
 	Services  []string
 	OutputCh  chan *pkg.Result
+	outlock   *sync.WaitGroup
 	File      *files.File
 	OutFunc   func(string)
 	FirstOnly bool
@@ -30,19 +31,29 @@ type Runner struct {
 }
 
 func (r *Runner) Run() {
-	go r.Output()
+	go r.OutputHandler()
 	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
+		defer r.wg.Done()
 		task := i.(*pkg.Task)
 		ctx, tcancel := context.WithCancel(task.Context) // current task context
 		go func() {
 			var res *pkg.Result
 			if task.Mod == pkg.TaskModUnauth {
 				res = Unauth(task)
+				task.Locker.Unlock()
+			} else if task.Mod == pkg.TaskModCheck {
+				res = Brute(task)
+				task.Locker.Unlock()
 			} else {
 				res = Brute(task)
 			}
+			select {
+			case <-ctx.Done():
+			case <-task.Context.Done():
+			default:
+				r.Output(res)
+			}
 
-			r.OutputCh <- res
 			if res.OK && r.FirstOnly && task.Mod != pkg.TaskModSniper {
 				tcancel()       // 退出当前任务
 				task.Canceler() // 取消正在执行的所有任务
@@ -53,23 +64,24 @@ func (r *Runner) Run() {
 		// 设置超时时间, 防止任务挂死
 		select {
 		case <-ctx.Done():
+			//logs.Log.Debugf("current task %s %s %s cancel", task.URI(), task.Username, task.Password)
 		case <-task.Context.Done():
+			logs.Log.Debugf("all task %s cancel", task.URI())
 		case <-time.After(time.Duration(task.Timeout+1) * time.Second):
-			r.OutputCh <- &pkg.Result{
+			r.Output(&pkg.Result{
 				Task: task,
 				Err:  fmt.Errorf("timeout"),
-			}
+			})
 		}
 	})
 	ch := r.targetGenerate()
 	switch r.Mod {
-	//case "pitchfork":
-	//	r.RunWithSniper(ch)
 	case "sniper":
 		r.RunWithSniper(ch)
 	case "clusterbomb":
 		r.RunWithClusterBomb(ch)
 	}
+	r.outlock.Wait()
 }
 
 func (r *Runner) RunWithSniper(targets chan *Target) {
@@ -90,42 +102,59 @@ func (r *Runner) RunWithSniper(targets chan *Target) {
 }
 
 func (r *Runner) RunWithClusterBomb(targets chan *Target) {
-	rootContext, cancel := context.WithCancel(context.Background())
-
+	targetWG := &sync.WaitGroup{}
+	// unauth
 	for target := range targets {
-		r.add(&pkg.Task{
-			IP:       target.IP,
-			Port:     target.Port,
-			Service:  target.Service,
-			Context:  rootContext,
-			Canceler: cancel,
-			Timeout:  r.Timeout,
-			Mod:      pkg.TaskModUnauth,
-		})
-		r.wg.Wait()
-		ch := r.clusterBombGenerate(rootContext, target)
-	loop:
-		for {
-			select {
-			case task, ok := <-ch:
-				// 从生成器中取任务.
-				if ok {
-					r.add(task)
-				} else {
+		// check honey pot
+		targetWG.Add(1)
+		targetCtx, cancel := context.WithCancel(context.Background())
+		cur := target
+		go func() {
+			defer targetWG.Done()
+
+			if !r.NoCheckHoneyPot {
+				locker := &sync.Mutex{}
+				locker.Lock()
+				r.add(&pkg.Task{
+					IP:       cur.IP,
+					Port:     cur.Port,
+					Service:  cur.Service,
+					Context:  targetCtx,
+					Canceler: cancel,
+					Timeout:  r.Timeout,
+					Username: randomString(10),
+					Password: randomString(10),
+					Mod:      pkg.TaskModCheck,
+					Locker:   locker,
+				})
+				locker.Lock()
+				locker.Unlock()
+			}
+
+			ch := r.clusterBombGenerate(targetCtx, cancel, cur)
+		loop:
+			for {
+				select {
+				case task, ok := <-ch:
+					// 从生成器中取任务.
+					if ok {
+						r.add(task)
+					} else {
+						break loop
+					}
+				case <-targetCtx.Done():
+					// todo 为断点续传做准备
 					break loop
 				}
-			case <-rootContext.Done():
-				// todo 为断点续传做准备
-				break loop
 			}
-		}
+		}()
 	}
+	targetWG.Wait()
 	r.wg.Wait()
 }
 
-func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *pkg.Task {
+func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.CancelFunc, target *Target) chan *pkg.Task {
 	// 通过用户名与密码的笛卡尔积生成数据
-	tctx, canceler := context.WithCancel(ctx)
 	ch := make(chan *pkg.Task)
 	var users, pwds []string
 	// 自动选择默认的用户名与密码字典
@@ -144,35 +173,68 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, target *Target) chan *
 	} else {
 		pwds = r.Pwds.RunAsSlice()
 	}
+	wg := &sync.WaitGroup{}
 
 	// task生成器
 	go func() {
-	Loop:
+		defer close(ch)
 		for _, user := range users {
-			for _, pwd := range pwds {
-				if target.Service == "" {
-					logs.Log.Warn("unknown service " + target.Service.String())
-					continue
-				}
-				select {
-				case ch <- &pkg.Task{
-					IP:       target.IP,
-					Port:     target.Port,
-					Service:  target.Service,
-					Username: user,
-					Password: pwd,
-					Param:    target.Param,
-					Timeout:  r.Timeout,
-					Mod:      pkg.TaskModBrute,
-					Context:  tctx,
-					Canceler: canceler,
-				}:
-				case <-tctx.Done():
-					break Loop
-				}
+			select {
+			case <-ctx.Done():
+				return
+			default:
 			}
+			wg.Add(1)
+			usr := user
+			go func() {
+				defer wg.Done()
+				if !r.NoUnAuth {
+					userLocker := &sync.Mutex{}
+					userLocker.Lock()
+					ch <- &pkg.Task{
+						IP:       target.IP,
+						Port:     target.Port,
+						Service:  target.Service,
+						Username: usr,
+						Param:    target.Param,
+						Timeout:  r.Timeout,
+						Mod:      pkg.TaskModUnauth,
+						Context:  ctx,
+						Canceler: canceler,
+						Locker:   userLocker,
+					}
+					userLocker.Lock()
+					userLocker.Unlock()
+				}
+
+				for _, pwd := range pwds {
+					if target.Service == "" {
+						logs.Log.Warn("unknown service " + target.Service.String())
+						continue
+					}
+					select {
+					case ch <- &pkg.Task{
+						IP:       target.IP,
+						Port:     target.Port,
+						Service:  target.Service,
+						Username: usr,
+						Password: pwd,
+						Param:    target.Param,
+						Timeout:  r.Timeout,
+						Mod:      pkg.TaskModBrute,
+						Context:  ctx,
+						Canceler: canceler,
+					}:
+					case <-ctx.Done():
+						return
+					}
+				}
+
+			}()
+
+			wg.Wait()
 		}
-		close(ch)
+
 	}()
 	return ch
 }
@@ -199,9 +261,12 @@ func (r *Runner) add(task *pkg.Task) {
 	_ = r.Pool.Invoke(task)
 }
 
-var outed int
+func (r *Runner) Output(res *pkg.Result) {
+	r.OutputCh <- res
+	r.outlock.Add(1)
+}
 
-func (r *Runner) Output() {
+func (r *Runner) OutputHandler() {
 loop:
 	for {
 		select {
@@ -209,20 +274,15 @@ loop:
 			if !ok {
 				break loop
 			}
-			outed++
 			if result.OK {
 				if r.File != nil {
 					r.OutFunc(result.Format(r.Option.FileFormat))
 				}
 				logs.Log.Console(result.Format(r.Option.OutputFormat))
 			} else {
-				if result.Mod == pkg.TaskModUnauth {
-					logs.Log.Debugf("%s login failed, %s", result.URI(), result.Err.Error())
-				} else {
-					logs.Log.Debugf("%s %s %s login failed, %s", result.URI(), result.Username, result.Password, result.Err.Error())
-				}
+				logs.Log.Debugf("[%s] %s %s %s failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Err.Error())
 			}
-			r.wg.Done()
+			r.outlock.Done()
 		}
 	}
 }

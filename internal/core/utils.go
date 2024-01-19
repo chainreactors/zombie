@@ -5,6 +5,7 @@ import (
 	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/zombie/pkg"
+	"math/rand"
 	"net"
 	"net/url"
 	"strings"
@@ -111,4 +112,13 @@ func LoadGogoFile(filename string) ([]*Target, error) {
 		})
 	}
 	return targets, nil
+}
+
+func randomString(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	var sb strings.Builder
+	for i := 0; i < length; i++ {
+		sb.WriteByte(charset[rand.Intn(len(charset))])
+	}
+	return sb.String()
 }
