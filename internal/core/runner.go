@@ -69,10 +69,11 @@ func (r *Runner) Run() {
 			//logs.Log.Debugf("current task %s %s %s cancel", task.URI(), task.Username, task.Password)
 		case <-task.Context.Done():
 			logs.Log.Debugf("all task %s cancel", task.URI())
-		case <-time.After(time.Duration(task.Timeout+1) * time.Second):
+		case <-time.After(time.Duration(task.Timeout+10) * time.Second):
+			tcancel()
 			r.Output(&pkg.Result{
 				Task: task,
-				Err:  fmt.Errorf("timeout"),
+				Err:  fmt.Errorf("goroutine timeout, force cancel"),
 			})
 		}
 	})
@@ -233,10 +234,8 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 				}
 
 			}()
-
-			wg.Wait()
 		}
-
+		wg.Wait()
 	}()
 	return ch
 }
@@ -264,8 +263,8 @@ func (r *Runner) add(task *pkg.Task) {
 }
 
 func (r *Runner) Output(res *pkg.Result) {
-	r.OutputCh <- res
 	r.outlock.Add(1)
+	r.OutputCh <- res
 }
 
 func (r *Runner) OutputHandler() {
