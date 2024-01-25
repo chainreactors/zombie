@@ -9,35 +9,29 @@ import (
 
 type OraclePlugin struct {
 	*pkg.Task
-	Input string
-	conn  *sql.DB
+	//Input string
+	SID         string
+	ServiceName string
+	conn        *sql.DB
 }
 
 func (s *OraclePlugin) Unauth() (bool, error) {
 	return false, nil
 }
 
-//func (s *OraclePlugin) Query() bool {
-//	return true
-//}
-
 func (s *OraclePlugin) Login() error {
-	dataSourceName := fmt.Sprintf("oracle://%s:%s@%s:%s/%s?Connection TimeOut=%v&Connection Pool Timeout=%v", s.Username, s.Password, s.IP, s.Port, s.Param["instance"], s.Timeout, s.Timeout)
+	var err error
+	if s.ServiceName != "" {
+		s.conn, err = serviceNameLogin(s.Task, s.ServiceName)
+	} else {
+		s.conn, err = sidLogin(s.Task, s.SID)
+	}
 
-	conn, err := sql.Open("oracle", dataSourceName)
+	err = s.conn.Ping()
 	if err != nil {
 		return err
 	}
 
-	//conn.SetMaxOpenConns(60)
-	//conn.SetMaxIdleConns(60)
-
-	err = conn.Ping()
-	if err != nil {
-		return err
-	}
-
-	s.conn = conn
 	return err
 }
 
@@ -57,35 +51,27 @@ func (s *OraclePlugin) GetBasic() *pkg.Basic {
 	return &pkg.Basic{}
 }
 
-//func (s *OraclePlugin) SetQuery(query string) {
-//	s.Input = query
-//}
+func sidLogin(task *pkg.Task, sid string) (*sql.DB, error) {
+	if sid == "" {
+		sid = "orcl"
+	}
+	connStr := fmt.Sprintf("oracle://%s:%s@%s:%s/%s?connection_timeout=%d&connection_pool_timeout=%d", task.Username,
+		task.Password, task.IP, task.Port, sid, task.Timeout, task.Timeout)
 
-//func (s *OraclePlugin) Output(res interface{}) {
-//	//finres := res.(OracleService)
-//	////MysqlCollectInfo := ""
-//	////MysqlCollectInfo += fmt.Sprintf("IP: %v\tServer: %v\nVersion: %v\tOS: %v\nSummary: %v\n", finres.Ip, Utils.OutputType, finres.Version, finres.OS, finres.Count)
-//	////MysqlCollectInfo += fmt.Sprintf("general_log: %v\tgeneral_log_file: %v\n", finres.GeneralLog, finres.GeneralLogFile)
-//	////MysqlCollectInfo += fmt.Sprintf("plugin_dir: %v\tsecure_file_priv: %v\n", finres.PluginPath, finres.SecureFilePriv)
-//	////MysqlCollectInfo += "\n"
-//	////fmt.Println(MysqlCollectInfo)
-//	//switch utils.FileFormat {
-//	//case "raw":
-//	//	//Utils.TDatach <- MysqlCollectInfo
-//	//case "json":
-//	//	jsons, errs := json.Marshal(finres)
-//	//	if errs != nil {
-//	//		fmt.Println(errs.Error())
-//	//		return
-//	//	}
-//	//	utils.TDatach <- jsons
-//	//
-//	//}
-//
-//}
+	conn, err := sql.Open("oracle", connStr)
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
+}
 
-//func (s *OraclePlugin) GetInfo() bool {
-//	defer s.conn.Close()
-//
-//	return true
-//}
+func serviceNameLogin(task *pkg.Task, serviceName string) (*sql.DB, error) {
+	connStr := fmt.Sprintf("oracle://%s:%s@%s:%s/?service_name=%s&connection_timeout=%d&connection_pool_timeout=%d", task.Username,
+		task.Password, task.IP, task.Port, serviceName, task.Timeout, task.Timeout)
+
+	conn, err := sql.Open("oracle", connStr)
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
+}

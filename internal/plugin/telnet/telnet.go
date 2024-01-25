@@ -10,23 +10,35 @@ type TelnetPlugin struct {
 }
 
 func (s *TelnetPlugin) Unauth() (bool, error) {
-	return false, nil
+	port, _ := strconv.Atoi(s.Port)
+	c := &Client{
+		IPAddr:       s.IP,
+		Port:         port,
+		UserName:     "",
+		Password:     "",
+		conn:         nil,
+		LastResponse: "",
+		ServerType:   0,
+	}
+	err := c.Login()
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (s *TelnetPlugin) Login() error {
-
 	port, _ := strconv.Atoi(s.Port)
-	c := Init(s.IP, port)
-	err := c.Connect()
-	if err != nil {
-		return err
+	c := &Client{
+		IPAddr:       s.IP,
+		Port:         port,
+		UserName:     s.Username,
+		Password:     s.Password,
+		conn:         nil,
+		LastResponse: "",
+		ServerType:   3,
 	}
-
-	c.UserName = s.Username
-	c.Password = s.Password
-	c.ServerType = 3
-
-	err = c.Login()
+	err := c.Login()
 	if err != nil {
 		return err
 	}
@@ -47,11 +59,3 @@ func (s *TelnetPlugin) GetBasic() *pkg.Basic {
 	// todo list dbs
 	return &pkg.Basic{}
 }
-
-//func (s *TelnetService) SetQuery(query string) {
-//	//s.Input = query
-//}
-//
-//func (s *TelnetService) Output(res interface{}) {
-//
-//}

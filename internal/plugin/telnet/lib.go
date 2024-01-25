@@ -117,18 +117,6 @@ type Client struct {
 	ServerType   int
 }
 
-func Init(addr string, port int) *Client {
-	return &Client{
-		IPAddr:       addr,
-		Port:         port,
-		UserName:     "",
-		Password:     "",
-		conn:         nil,
-		LastResponse: "",
-		ServerType:   0,
-	}
-}
-
 func (c *Client) Connect() error {
 	conn, err := net.DialTimeout("tcp", c.netloc(), 5*time.Second)
 	if err != nil {
@@ -407,10 +395,10 @@ func (c *Client) loginForOnlyPassword() error {
 
 func (c *Client) loginForUsernameAndPassword() error {
 	c.writeContext(c.UserName)
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 2)
 	c.Clear() //清空一次输出
 	c.writeContext(c.Password)
-	time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 2)
 
 	responseString := c.readContext()
 	if c.isLoginFailed(responseString) {
