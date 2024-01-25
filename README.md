@@ -63,6 +63,7 @@ mssql://3.3.3.3
 
 <details>
   <summary>--weakpass 生成的密码</summary>
+
 ```
 admin
 Admin
@@ -281,6 +282,7 @@ Admin29
 Admin30
 Admin31
 ```
+
 </details>
 
 
