@@ -14,20 +14,21 @@ type Socks5Plugin struct {
 }
 
 func (s *Socks5Plugin) Unauth() (bool, error) {
-	Socks5Url := fmt.Sprintf("%s://%s:%s@%s:%s", s.Service, "", "", s.IP, s.Port)
-	proxyURL, _ := url.Parse(Socks5Url)
-	password, _ := proxyURL.User.Password()
-	dialer, _ := proxy.SOCKS5("tcp", proxyURL.Host, &proxy.Auth{User: proxyURL.User.Username(), Password: password}, proxy.Direct)
-	transport := &http.Transport{
-		Dial: dialer.Dial,
+	proxyURL, _ := url.Parse(fmt.Sprintf("socks5://%s:%s", s.IP, s.Port))
+	dialer, err := proxy.FromURL(proxyURL, proxy.Direct)
+	if err != nil {
+		return false, err
 	}
-
-	// 使用HTTP Transport创建HTTP客户端
 	client := &http.Client{
-		Transport: transport,
+		Transport: &http.Transport{
+			Dial: dialer.Dial,
+		},
 	}
-
-	req, err := http.NewRequest("GET", "http://127.0.0.1", nil)
+	var u string
+	if s.Url == "" {
+		u = "http://baidu.com"
+	}
+	req, err := http.NewRequest("GET", u, nil)
 	_, err = client.Do(req)
 	if err != nil {
 		return false, err
@@ -36,23 +37,26 @@ func (s *Socks5Plugin) Unauth() (bool, error) {
 }
 
 func (s *Socks5Plugin) Login() error {
-	Socks5Url := fmt.Sprintf("%s://%s:%s@%s:%s", s.Service, s.Username, s.Password, s.IP, s.Port)
-	proxyURL, err := url.Parse(Socks5Url)
+	proxyURL, err := url.Parse(fmt.Sprintf("socks5://%s:%s@%s:%s", s.Username, s.Password, s.IP, s.Port))
 	if err != nil {
 		return err
 	}
-	password, _ := proxyURL.User.Password()
-	dialer, _ := proxy.SOCKS5("tcp", proxyURL.Host, &proxy.Auth{User: proxyURL.User.Username(), Password: password}, proxy.Direct)
-	transport := &http.Transport{
-		Dial: dialer.Dial,
+	dialer, err := proxy.FromURL(proxyURL, proxy.Direct)
+	if err != nil {
+		return err
 	}
 
-	// 使用HTTP Transport创建HTTP客户端
 	client := &http.Client{
-		Transport: transport,
+		Transport: &http.Transport{
+			Dial: dialer.Dial,
+		},
 	}
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1", nil)
+	var u string
+	if s.Url == "" {
+		u = "http://baidu.com"
+	}
+	req, err := http.NewRequest("GET", u, nil)
 	_, err = client.Do(req)
 	if err != nil {
 		return err

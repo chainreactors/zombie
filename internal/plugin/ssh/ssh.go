@@ -6,18 +6,28 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	"strings"
 	"time"
 )
 
 type SshPlugin struct {
 	*pkg.Task
-	Cmd  string
+	//Cmd            string
 	conn *ssh.Client
 }
 
 func (s *SshPlugin) Login() error {
-	conn, err := SSHConnect(s.Task)
+	var auth []ssh.AuthMethod
+	if method, pkfile := pkg.ParseMethod(s.Password); method == "pk" && pkfile != "" {
+		auth = []ssh.AuthMethod{
+			publicKeyAuthFunc(pkfile),
+		}
+	} else {
+		auth = []ssh.AuthMethod{
+			ssh.Password(s.Password),
+		}
+	}
+
+	conn, err := SSHConnect(s.Task, auth)
 	if err != nil {
 		return err
 	}
@@ -26,7 +36,7 @@ func (s *SshPlugin) Login() error {
 }
 
 func (s *SshPlugin) Unauth() (bool, error) {
-	conn, err := SSHConnect(s.Task)
+	conn, err := SSHConnect(s.Task, []ssh.AuthMethod{ssh.Password("")})
 	if err != nil {
 		return false, err
 	}
@@ -50,7 +60,7 @@ func (s *SshPlugin) Name() string {
 	return s.Service.String()
 }
 
-func SSHConnect(task *pkg.Task) (conn *ssh.Client, err error) {
+func SSHConnect(task *pkg.Task, auth []ssh.AuthMethod) (conn *ssh.Client, err error) {
 	config := &ssh.ClientConfig{
 		User:    task.Username,
 		Timeout: time.Duration(task.Timeout) * time.Second,
@@ -58,16 +68,7 @@ func SSHConnect(task *pkg.Task) (conn *ssh.Client, err error) {
 			return nil
 		},
 	}
-
-	if strings.HasPrefix(task.Password, "pk:") {
-		config.Auth = []ssh.AuthMethod{
-			publicKeyAuthFunc(task.Password[3:]),
-		}
-	} else {
-		config.Auth = []ssh.AuthMethod{
-			ssh.Password(task.Password),
-		}
-	}
+	config.Auth = auth
 
 	conn, err = ssh.Dial("tcp", task.Address(), config)
 	if err != nil {

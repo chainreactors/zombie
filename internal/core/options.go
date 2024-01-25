@@ -34,7 +34,7 @@ type InputOptions struct {
 	GogoFile      string            `short:"g" long:"gogo" description:"File, input gogo result filename"`
 	ServiceName   string            `short:"s" long:"service" description:"String, input service name"`
 	FilterService string            `short:"S" long:"filter-service" description:"String, filter service when input json/gogo file"`
-	Param         map[string]string `long:"param" description:"param"`
+	Param         map[string]string `long:"param" description:"params"`
 }
 
 type OutputOptions struct {

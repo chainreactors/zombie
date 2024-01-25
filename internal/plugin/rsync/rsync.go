@@ -33,7 +33,6 @@ func (s *RsyncPlugin) Login() error {
 	}
 
 	return nil
-
 }
 
 func (s *RsyncPlugin) Name() string {

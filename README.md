@@ -111,8 +111,6 @@ google2022
   * kibana
   * tomcat
 * SOCKS5
-* TELNET
-* RSYNC
 * telnet
 * HTTP 401
 * POP3
@@ -127,6 +125,7 @@ google2022
   * RSTP
   * HTTP PROXY
   * rlogin
+  * RSYNC
   * zookeeper
   * memcache
   * amqp
@@ -146,6 +145,7 @@ google2022
 * 支持neutron引擎, 允许通过模板配置插件
 * 新增密码策略限制的功能, 减少爆破次数
 * 新增爆破限制的功能, 防止被封禁
+
 ## Make
 
 ```bash
