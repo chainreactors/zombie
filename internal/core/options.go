@@ -20,16 +20,15 @@ type Option struct {
 }
 
 type InputOptions struct {
-	IP            string            `short:"i" long:"ip" alias:"ipp" description:"String, input ip"`
+	IP            []string          `short:"i" long:"ip" alias:"ipp" description:"String, input ip"`
 	IPFile        string            `short:"I" long:"IP" description:"File, input ip list filename"`
 	Username      []string          `short:"u" long:"user" description:"Strings, input usernames"`
 	UsernameFile  string            `short:"U" long:"USER" description:"File, input username list filename"`
-	UsernameWord  string            `long:"userword" description:"String, input username generator dsl"`
 	UsernameRule  string            `long:"userrule" description:"String, input username generator rule filename"`
 	Password      []string          `short:"p" long:"pwd" description:"String, input passwords"`
 	PasswordFile  string            `short:"P" long:"PWD" description:"File, input password list filename"`
-	PasswordWord  string            `long:"pwdword" description:"String, input password generator dsl"`
 	PasswordRule  string            `long:"pwdrule" description:"String, input password generator rule filename"`
+	Dictionaries  []string          `short:"d" long:"dict" description:"Strings, input dictionaries"`
 	JsonFile      string            `short:"j" long:"json" description:"File, input json result filename"`
 	GogoFile      string            `short:"g" long:"gogo" description:"File, input gogo result filename"`
 	ServiceName   string            `short:"s" long:"service" description:"String, input service name"`
@@ -53,13 +52,13 @@ type WordOptions struct {
 
 type MiscOptions struct {
 	Threads int    `short:"t" default:"100" description:"Int, threads"`
-	Timeout int    `short:"d" long:"timeout" default:"5" description:"Int, timeout"`
+	Timeout int    `long:"timeout" default:"5" description:"Int, timeout"`
 	Mod     string `short:"m" default:"clusterbomb" description:"String, mod"`
 	Debug   bool   `long:"debug" description:"Bool, enable debug"`
 }
 
 func (opt *Option) Validate() error {
-	if opt.IP == "" && opt.IPFile == "" && opt.JsonFile == "" && opt.GogoFile == "" {
+	if len(opt.IP) == 0 && opt.IPFile == "" && opt.JsonFile == "" && opt.GogoFile == "" {
 		return errors.New("please input ip or or file or json file or gogo file")
 	}
 	if opt.WeakPassWord && (opt.Password == nil && opt.PasswordFile == "") {
@@ -116,15 +115,17 @@ func (opt *Option) Prepare() (*Runner, error) {
 		if err != nil {
 			return nil, err
 		}
+		logs.Log.Importantf("load %s targets from json: %s ", len(targets), opt.JsonFile)
 	} else if opt.GogoFile != "" {
 		targets, err = LoadGogoFile(opt.GogoFile)
 		if err != nil {
 			return nil, err
 		}
+		logs.Log.Importantf("load %s targets from gogo: %s ", len(targets), opt.GogoFile)
 	} else {
 		var ipslice []string
-		if opt.IP != "" {
-			ipslice = strings.Split(opt.IP, ",")
+		if opt.IP != nil {
+			ipslice = opt.IP
 		} else if opt.IPFile != "" {
 			ipg, err := NewGeneratorWithFile(opt.IPFile)
 			if err != nil {
@@ -144,42 +145,62 @@ func (opt *Option) Prepare() (*Runner, error) {
 			if !ok {
 				t = SimpleParseUrl(input)
 			}
-			// 如果指定了service, 将会覆盖json或gogo中的字段
-			if opt.ServiceName != "" {
-				t.UpdateService(opt.ServiceName)
-			}
-			if t.Service == "" {
-				logs.Log.Warn(t.String() + " null service")
-				continue
-			}
-
-			// 命令行中指定的 param 会覆盖原有的配置
-			if opt.Param != nil {
-				t.Param = opt.Param
-			}
 
 			targets = append(targets, t)
 		}
+		if opt.IPFile != "" {
+			logs.Log.Importantf("load %s targets from file: %s", len(targets), opt.IPFile)
+		}
 	}
 
+	for _, t := range targets {
+		// 如果指定了service, 将会覆盖json或gogo中的字段
+		if opt.ServiceName != "" {
+			t.UpdateService(opt.ServiceName)
+		}
+		if t.Service == "" {
+			logs.Log.Warn(t.String() + " null service")
+			continue
+		}
+
+		// 命令行中指定的 param 会覆盖原有的配置
+		if opt.Param != nil {
+			t.Param = opt.Param
+		}
+	}
 	runner.Targets = targets
+
+	var dicts [][]string
+	if opt.Dictionaries != nil {
+		dicts = make([][]string, len(opt.Dictionaries))
+		for i, f := range opt.Dictionaries {
+			dicts[i], err = loadFileToSlice(f)
+			if err != nil {
+				return nil, err
+			}
+		}
+		logs.Log.Importantf("load dictionaries: %s", strings.Join(opt.Dictionaries, " ,"))
+	}
 
 	var users, pwds *Generator
 	// load username
 	if opt.Username != nil {
-		users = NewGeneratorWithInput(opt.Username)
+		if len(opt.Username) == 1 && dicts != nil {
+			users, err = NewGeneratorWithWord(opt.Username[0], dicts, nil)
+			if err != nil {
+				return nil, err
+			}
+			logs.Log.Importantf("parse username from %s", opt.Username[0])
+		} else {
+			users = NewGeneratorWithInput(opt.Username)
+		}
 	} else if opt.UsernameFile != "" {
 		users, err = NewGeneratorWithFile(opt.UsernameFile)
 		if err != nil {
 			return nil, err
 		}
-	} else if opt.UsernameWord != "" {
-		users, err = NewGeneratorWithWord(opt.UsernameWord, nil, nil)
-		if err != nil {
-			return nil, err
-		}
+		logs.Log.Importantf("load username from %s", opt.UsernameFile)
 	}
-
 	if opt.UsernameRule != "" {
 		err := users.SetRuleFile(opt.UsernameRule)
 		if err != nil {
@@ -190,17 +211,21 @@ func (opt *Option) Prepare() (*Runner, error) {
 
 	// load password
 	if opt.Password != nil {
-		pwds = NewGeneratorWithInput(opt.Password)
+		if len(opt.Password) == 1 && dicts != nil {
+			pwds, err = NewGeneratorWithWord(opt.Password[0], dicts, nil)
+			if err != nil {
+				return nil, err
+			}
+			logs.Log.Importantf("parse password from %s", opt.Password[0])
+		} else {
+			pwds = NewGeneratorWithInput(opt.Password)
+		}
 	} else if opt.PasswordFile != "" {
 		pwds, err = NewGeneratorWithFile(opt.PasswordFile)
 		if err != nil {
 			return nil, err
 		}
-	} else if opt.PasswordWord != "" {
-		pwds, err = NewGeneratorWithWord(opt.PasswordWord, nil, nil)
-		if err != nil {
-			return nil, err
-		}
+		logs.Log.Importantf("load password from %s", opt.PasswordFile)
 	}
 	if opt.PasswordRule != "" {
 		err := pwds.SetRuleFile(opt.PasswordRule)
@@ -216,5 +241,4 @@ func (opt *Option) Prepare() (*Runner, error) {
 	runner.Pwds = pwds
 
 	return runner, nil
-
 }
