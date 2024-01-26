@@ -47,13 +47,13 @@ type WordOptions struct {
 	ForceContinue   bool `long:"force-continue" description:"Bool, force continue, not only stop when first success ever host"`
 	WeakPassWord    bool `long:"weakpass" description:"Bool, common weak password rule"`
 	NoUnAuth        bool `long:"no-unauth" description:"Bool, not check unauth"`
-	NoCheckHoneyPot bool `long:"no-check-honeypot" description:"Bool, not check honeypot"`
+	NoCheckHoneyPot bool `long:"no-honeypot" description:"Bool, not check honeypot"`
 }
 
 type MiscOptions struct {
 	Threads int    `short:"t" default:"100" description:"Int, threads"`
 	Timeout int    `long:"timeout" default:"5" description:"Int, timeout"`
-	Mod     string `short:"m" default:"clusterbomb" description:"String, mod"`
+	Mod     string `short:"m" description:"String, mod"`
 	Debug   bool   `long:"debug" description:"Bool, enable debug"`
 }
 
@@ -100,6 +100,13 @@ func (opt *Option) Prepare() (*Runner, error) {
 		OutputCh:  make(chan *pkg.Result),
 		Stat:      &pkg.Statistor{},
 	}
+
+	if opt.Mod != "" {
+		runner.Mod = opt.Mod
+	} else {
+		runner.Mod = ModBomb
+	}
+	logs.Log.Importantf("mod: %s, check-unauth: %t, check-honeypot: %t", runner.Mod, !runner.NoUnAuth, !runner.NoCheckHoneyPot)
 
 	if opt.ServiceName != "" {
 		runner.Services = strings.Split(strings.ToLower(opt.ServiceName), ",")
@@ -172,14 +179,17 @@ func (opt *Option) Prepare() (*Runner, error) {
 
 	var dicts [][]string
 	if opt.Dictionaries != nil {
+		var s strings.Builder
 		dicts = make([][]string, len(opt.Dictionaries))
 		for i, f := range opt.Dictionaries {
 			dicts[i], err = loadFileToSlice(f)
 			if err != nil {
 				return nil, err
 			}
+			s.WriteString(fmt.Sprintf("%s: %ditems", f, len(dicts[i])))
 		}
-		logs.Log.Importantf("load dictionaries: %s", strings.Join(opt.Dictionaries, " ,"))
+
+		logs.Log.Importantf("load dictionaries: %s", s.String())
 	}
 
 	var users, pwds *Generator
@@ -216,7 +226,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 			if err != nil {
 				return nil, err
 			}
-			logs.Log.Importantf("parse password from %s", opt.Password[0])
+			logs.Log.Importantf("parse password from %s ", opt.Password[0])
 		} else {
 			pwds = NewGeneratorWithInput(opt.Password)
 		}

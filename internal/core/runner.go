@@ -13,6 +13,11 @@ import (
 	"time"
 )
 
+var (
+	ModSniper = "sniper"
+	ModBomb   = "clusterbomb"
+)
+
 type Runner struct {
 	*Option
 	wg        *sync.WaitGroup
@@ -77,11 +82,12 @@ func (r *Runner) Run() {
 			})
 		}
 	})
+
 	ch := r.targetGenerate()
 	switch r.Mod {
-	case "sniper":
+	case ModSniper:
 		r.RunWithSniper(ch)
-	case "clusterbomb":
+	case ModBomb:
 		r.RunWithClusterBomb(ch)
 	}
 	r.outlock.Wait()
