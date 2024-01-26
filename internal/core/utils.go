@@ -5,6 +5,7 @@ import (
 	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/zombie/pkg"
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/url"
@@ -112,6 +113,23 @@ func LoadGogoFile(filename string) ([]*Target, error) {
 		})
 	}
 	return targets, nil
+}
+
+func loadFileToSlice(filename string) ([]string, error) {
+	var ss []string
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	ss = strings.Split(strings.TrimSpace(string(content)), "\n")
+
+	// 统一windows与linux的回车换行差异
+	for i, word := range ss {
+		ss[i] = strings.TrimSpace(word)
+	}
+
+	return ss, nil
 }
 
 func randomString(length int) string {
