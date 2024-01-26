@@ -65,6 +65,8 @@ github.com/chainreactors/words v0.4.1-0.20231227140735-8be65d4b390e h1:c/c2HQOGM
 github.com/chainreactors/words v0.4.1-0.20231227140735-8be65d4b390e/go.mod h1:DUDx7PdsMEm5PvVhzkFyppzpiUhQb8dOJaWjVc1SMVk=
 github.com/chainreactors/words v0.4.1-0.20231227144711-467c1954322c h1:gkPx9lwkJURAnveWN2PLBBeGcQ6HbMbpAJojq2SBzGc=
 github.com/chainreactors/words v0.4.1-0.20231227144711-467c1954322c/go.mod h1:DUDx7PdsMEm5PvVhzkFyppzpiUhQb8dOJaWjVc1SMVk=
+github.com/chainreactors/words v0.4.1-0.20240126095632-02379f43c9f7 h1:ej4OCRRFNWFpzFO40rZgwAsPqzS8HvJcAwgsNOuTTEo=
+github.com/chainreactors/words v0.4.1-0.20240126095632-02379f43c9f7/go.mod h1:DUDx7PdsMEm5PvVhzkFyppzpiUhQb8dOJaWjVc1SMVk=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
