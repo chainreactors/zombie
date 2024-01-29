@@ -94,7 +94,10 @@ func Dispatch(task *pkg.Task) (Plugin, error) {
 		return &http.HttpPlugin{Task: task}, nil
 	case pkg.SOCKS5Service:
 		task.Timeout = 10
-		return &socks5.Socks5Plugin{Task: task}, nil
+		return &socks5.Socks5Plugin{
+			Task: task,
+			Url:  task.Param["url"],
+		}, nil
 	case pkg.TELNETService:
 		return &telnet.TelnetPlugin{Task: task}, nil
 	case pkg.POP3Service:
