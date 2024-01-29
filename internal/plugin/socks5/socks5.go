@@ -24,11 +24,11 @@ func (s *Socks5Plugin) Unauth() (bool, error) {
 			Dial: dialer.Dial,
 		},
 	}
-	var u string
+
 	if s.Url == "" {
-		u = "http://baidu.com"
+		s.Url = "http://baidu.com"
 	}
-	req, err := http.NewRequest("GET", u, nil)
+	req, err := http.NewRequest("GET", s.Url, nil)
 	_, err = client.Do(req)
 	if err != nil {
 		return false, err
@@ -52,11 +52,10 @@ func (s *Socks5Plugin) Login() error {
 		},
 	}
 
-	var u string
 	if s.Url == "" {
-		u = "http://baidu.com"
+		s.Url = "http://baidu.com"
 	}
-	req, err := http.NewRequest("GET", u, nil)
+	req, err := http.NewRequest("GET", s.Url, nil)
 	_, err = client.Do(req)
 	if err != nil {
 		return err
