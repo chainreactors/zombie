@@ -2,8 +2,6 @@ package rsync
 
 import (
 	"github.com/chainreactors/zombie/pkg"
-	"strconv"
-	"strings"
 )
 
 type RsyncPlugin struct {
@@ -11,8 +9,15 @@ type RsyncPlugin struct {
 }
 
 func (s *RsyncPlugin) Unauth() (bool, error) {
-	//TODO implement me
-	panic("implement me")
+	ver, modules, err := RsyncDetect(s.Address(), s.Timeout)
+	if err != nil {
+		return false, err
+	}
+	err = RsyncUnauth(s.Address(), ver, modules, s.Timeout)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 //func (s *RsyncPlugin) Query() bool {
@@ -24,10 +29,12 @@ func (s *RsyncPlugin) Unauth() (bool, error) {
 //}
 
 func (s *RsyncPlugin) Login() error {
-	res, Libs := RsyncDetect(s.IP, s.Port)
-	version := strings.Split(res, "\n")[0]
-	SmallVersion, _ := strconv.ParseFloat(strings.Split(version, " ")[1], 64)
-	err := RsyncLogin(s.IP, s.Port, s.Username, s.Password, Libs[0], SmallVersion)
+	ver, modules, err := RsyncDetect(s.Address(), s.Timeout)
+	if err != nil {
+		return err
+	}
+
+	err = RsyncLogin(s.Address(), s.Username, s.Password, ver, modules, s.Timeout)
 	if err != nil {
 		return err
 	}
@@ -47,10 +54,3 @@ func (s *RsyncPlugin) GetBasic() *pkg.Basic {
 func (s *RsyncPlugin) Close() error {
 	return pkg.NilConnError{s.Service}
 }
-
-//func (s *RsyncPlugin) SetQuery(query string) {
-//}
-//
-//func (s *RsyncPlugin) Output(res interface{}) {
-//
-//}

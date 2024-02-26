@@ -1,128 +1,126 @@
 package rsync
 
 import (
+	"bytes"
 	"crypto/md5"
 	"errors"
 	"fmt"
 	"github.com/chainreactors/utils/encode"
+	"github.com/chainreactors/zombie/pkg"
 	"golang.org/x/crypto/md4"
-	"net"
+	"strconv"
 	"strings"
-	"time"
 )
 
-func RsyncDetect(ip string, port string) (string, []string) {
-	s := "@RSYNCD: 31.0"
-	conn, err := net.DialTimeout("tcp", ip+":"+port, 8*time.Second)
+func RsyncDetect(target string, timeout int) (float64, []string, error) {
+	conn, err := pkg.NewSocket("tcp", target, timeout)
+	if err != nil {
+		return 0, nil, nil
+	}
 	defer conn.Close()
 
+	rev, err := conn.Request([]byte("@RSYNCD: 31.0\n\n"), 1024)
 	if err != nil {
-		fmt.Println(err)
+		return 0, nil, nil
 	}
-
-	_, err = conn.Write([]byte(s + "\n"))
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	var rev = make([]byte, 1024)
-	_, err = conn.Read(rev)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	version := strings.TrimSpace(string(rev))
-
-	s = "\n"
-	_, err = conn.Write([]byte(s))
-
-	var Lib = make([]string, 10)
-	i := 0
-
-	for true {
-		var rev1 = make([]byte, 1024)
-		_, err = conn.Read(rev1)
+	if bytes.Contains(rev, []byte("@RSYNCD: ")) && len(rev) > 13 {
+		ver, err := strconv.ParseFloat(string(rev[9:13]), 32)
 		if err != nil {
-			fmt.Println(err)
+			return 0, nil, nil
 		}
-
-		Libs := strings.TrimSpace(string(rev1))
-
-		ModuleName := strings.Split(strings.Replace(Libs, " ", "", len(Libs)), "\n")
-		for _, v := range ModuleName {
-			RealName := strings.Split(v, "\t")
-			if RealName[0] != "" && strings.Contains(RealName[0], "@RSYNCD:EXIT") == false {
-				Lib[i] = RealName[0]
-				i++
-			} else if strings.Contains(RealName[0], "@RSYNCD:EXIT") {
-				break
+		if ss := strings.Split(string(rev), "\n"); len(ss) > 1 {
+			modules := strings.Fields(ss[1])
+			if len(modules) > 0 {
+				return ver, modules, nil
 			}
 		}
-
-		break
-
+		return ver, nil, nil
 	}
-
-	return version, Lib
+	return 0, nil, errors.New("not rsync")
 }
 
-func RsyncLogin(ip, port, user, passwd string, mod string, SmallVersion float64) error {
-	s := []byte("@RSYNCD: 31." + "\n")
-
-	conn, err := net.DialTimeout("tcp", ip+":"+port, 8*time.Second)
+func RsyncLogin(target, user, passwd string, ver float64, modules []string, timeout int) error {
+	conn, err := pkg.NewSocket("tcp", target, timeout)
 	defer conn.Close()
 
 	if err != nil {
 		return err
 	}
-	_, err = conn.Write(s)
 
-	if err != nil {
-		return err
-	}
-	var rev = make([]byte, 1024)
-	_, err = conn.Read(rev)
+	_, err = conn.Request([]byte(fmt.Sprintf("@RSYNCD: %f \n", ver)), 1024)
 	if err != nil {
 		return err
 	}
 
-	_, err = conn.Write([]byte(mod + "\n"))
-
-	var rev2 = make([]byte, 1024)
-	_, err = conn.Read(rev2)
-	if err != nil {
-		return err
-	}
-
-	challenge := strings.Split(string(rev2), " ")
-	c := challenge[len(challenge)-1]
-	c1 := strings.Split(passwd+c, "\n")
-
-	var hash []byte
-	if SmallVersion >= 30 {
-		md := md5.New()
-		md.Write([]byte(c1[0]))
-		hash = md.Sum(nil)
+	var data []byte
+	if len(modules) > 0 {
+		data = []byte(modules[0] + "\n")
 	} else {
-		md := md4.New()
-		md.Write([]byte(c1[0]))
-		hash = md.Sum(nil)
+		data = []byte("\n")
 	}
-
-	AutoData := encode.Base64Encode(hash)
-	a := strings.Replace(AutoData, "==", "", len(AutoData))
-
-	_, err = conn.Write([]byte(user + " " + a + "\n"))
+	rev2, err := conn.Request(data, 1024)
 	if err != nil {
 		return err
 	}
-	var rev3 = make([]byte, 1024)
-	_, err = conn.Read(rev3)
+
+	if !bytes.Contains(rev2, []byte("@RSYNCD: AUTHREQD")) {
+		return errors.New("not found challenge")
+	}
+	if ss := strings.Fields(string(rev2)); len(ss) < 2 {
+		return errors.New("not found challenge")
+	} else {
+		challenge := ss[2]
+		c1 := passwd + challenge
+		var hash []byte
+		if ver >= 30 {
+			md := md5.New()
+			md.Write([]byte(c1))
+			hash = md.Sum(nil)
+		} else {
+			md := md4.New()
+			md.Write([]byte(c1))
+			hash = md.Sum(nil)
+		}
+
+		c2 := encode.Base64Encode(hash)
+		c2 = strings.Trim(c2, "=")
+		rev3, err := conn.Request([]byte(user+" "+c2+"\n"), 1024)
+		if err != nil {
+			return err
+		}
+		if strings.Contains(string(rev3), "OK") {
+			return nil
+		}
+	}
+
+	return errors.New("rsync auth failed")
+}
+
+func RsyncUnauth(target string, ver float64, modules []string, timeout int) error {
+	conn, err := pkg.NewSocket("tcp", target, timeout)
+	defer conn.Close()
+
 	if err != nil {
 		return err
 	}
-	if strings.Contains(string(rev3), "OK") {
+
+	_, err = conn.Request([]byte(fmt.Sprintf("@RSYNCD: %f \n", ver)), 1024)
+	if err != nil {
+		return err
+	}
+
+	var data []byte
+	if len(modules) > 0 {
+		data = []byte(modules[0] + "\n")
+	} else {
+		data = []byte("\n")
+	}
+	rev, err := conn.Request(data, 1024)
+	if err != nil {
+		return err
+	}
+	if bytes.Contains(rev, []byte("@RSYNCD: OK")) {
 		return nil
 	}
-	return errors.New("rsync connect error")
+	return errors.New("not unauth rsyncd")
 }

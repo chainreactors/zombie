@@ -13,6 +13,7 @@ import (
 	"github.com/chainreactors/zombie/internal/plugin/postgre"
 	"github.com/chainreactors/zombie/internal/plugin/rdp"
 	"github.com/chainreactors/zombie/internal/plugin/redis"
+	"github.com/chainreactors/zombie/internal/plugin/rsync"
 	"github.com/chainreactors/zombie/internal/plugin/smb"
 	"github.com/chainreactors/zombie/internal/plugin/snmp"
 	"github.com/chainreactors/zombie/internal/plugin/socks5"
@@ -102,8 +103,8 @@ func Dispatch(task *pkg.Task) (Plugin, error) {
 		return &telnet.TelnetPlugin{Task: task}, nil
 	case pkg.POP3Service:
 		return &pop3.Pop3Plugin{Task: task}, nil
-	//case pkg.RSYNCService:
-	//	return &rsync.RsyncPlugin{Task: task}, nil
+	case pkg.RSYNCService:
+		return &rsync.RsyncPlugin{Task: task}, nil
 	default:
 		return nil, ErrKnownPlugin
 	}
