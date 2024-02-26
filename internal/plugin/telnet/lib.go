@@ -3,7 +3,6 @@ package telnet
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"net"
 	"regexp"
 	"strings"
@@ -107,18 +106,33 @@ const (
 	UsernameAndPassword
 )
 
+func NewClient(addr string, username, password string, timeout time.Duration) (*Client, error) {
+	client := &Client{
+		Addr:       addr,
+		UserName:   username,
+		Password:   password,
+		Timeout:    timeout,
+		ServerType: UsernameAndPassword,
+	}
+	err := client.Connect()
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
+
 type Client struct {
-	IPAddr       string
-	Port         int
+	conn         net.Conn
+	Addr         string
 	UserName     string
 	Password     string
-	conn         net.Conn
 	LastResponse string
 	ServerType   int
+	Timeout      time.Duration
 }
 
 func (c *Client) Connect() error {
-	conn, err := net.DialTimeout("tcp", c.netloc(), 5*time.Second)
+	conn, err := net.DialTimeout("tcp", c.Addr, c.Timeout)
 	if err != nil {
 		return err
 	}
@@ -165,10 +179,6 @@ func (c *Client) readContext() string {
 	c.LastResponse = strings.ReplaceAll(c.LastResponse, "\x0d\x0a", "\n")
 	//c.LastResponse = chinese.ToUTF8(c.LastResponse)
 	return c.LastResponse
-}
-
-func (c *Client) netloc() string {
-	return fmt.Sprintf("%s:%d", c.IPAddr, c.Port)
 }
 
 func (c *Client) close() {

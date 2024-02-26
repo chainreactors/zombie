@@ -18,7 +18,6 @@ import (
 	"github.com/chainreactors/zombie/internal/plugin/snmp"
 	"github.com/chainreactors/zombie/internal/plugin/socks5"
 	"github.com/chainreactors/zombie/internal/plugin/ssh"
-	"github.com/chainreactors/zombie/internal/plugin/telnet"
 	"github.com/chainreactors/zombie/internal/plugin/vnc"
 	"github.com/chainreactors/zombie/pkg"
 )
@@ -99,8 +98,8 @@ func Dispatch(task *pkg.Task) (Plugin, error) {
 			Task: task,
 			Url:  task.Param["url"],
 		}, nil
-	case pkg.TELNETService:
-		return &telnet.TelnetPlugin{Task: task}, nil
+	//case pkg.TELNETService:
+	//	return &telnet.TelnetPlugin{Task: task}, nil
 	case pkg.POP3Service:
 		return &pop3.Pop3Plugin{Task: task}, nil
 	case pkg.RSYNCService:
