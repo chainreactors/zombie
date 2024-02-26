@@ -2,7 +2,6 @@ package telnet
 
 import (
 	"github.com/chainreactors/zombie/pkg"
-	"strconv"
 )
 
 type TelnetPlugin struct {
@@ -10,17 +9,11 @@ type TelnetPlugin struct {
 }
 
 func (s *TelnetPlugin) Unauth() (bool, error) {
-	port, _ := strconv.Atoi(s.Port)
-	c := &Client{
-		IPAddr:       s.IP,
-		Port:         port,
-		UserName:     "",
-		Password:     "",
-		conn:         nil,
-		LastResponse: "",
-		ServerType:   0,
+	c, err := NewClient(s.Address(), "", "", s.Duration())
+	if err != nil {
+		return false, err
 	}
-	err := c.Login()
+	err = c.Login()
 	if err != nil {
 		return false, err
 	}
@@ -28,17 +21,11 @@ func (s *TelnetPlugin) Unauth() (bool, error) {
 }
 
 func (s *TelnetPlugin) Login() error {
-	port, _ := strconv.Atoi(s.Port)
-	c := &Client{
-		IPAddr:       s.IP,
-		Port:         port,
-		UserName:     s.Username,
-		Password:     s.Password,
-		conn:         nil,
-		LastResponse: "",
-		ServerType:   3,
+	c, err := NewClient(s.Address(), s.Username, s.Password, s.Duration())
+	if err != nil {
+		return err
 	}
-	err := c.Login()
+	err = c.Login()
 	if err != nil {
 		return err
 	}
