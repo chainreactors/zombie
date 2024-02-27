@@ -80,7 +80,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 	var file *files.File
 	var outfunc func(string)
 	if opt.OutputFile != "" {
-		file, err = files.NewFile(opt.OutputFile, false, true, true)
+		file, err = files.NewFile(opt.OutputFile, false, false, true)
 		if err != nil {
 			return nil, err
 		}
@@ -122,13 +122,13 @@ func (opt *Option) Prepare() (*Runner, error) {
 		if err != nil {
 			return nil, err
 		}
-		logs.Log.Importantf("load %s targets from json: %s ", len(targets), opt.JsonFile)
+		logs.Log.Importantf("load %d targets from json: %s ", len(targets), opt.JsonFile)
 	} else if opt.GogoFile != "" {
 		targets, err = LoadGogoFile(opt.GogoFile)
 		if err != nil {
 			return nil, err
 		}
-		logs.Log.Importantf("load %s targets from gogo: %s ", len(targets), opt.GogoFile)
+		logs.Log.Importantf("load %d targets from gogo: %s ", len(targets), opt.GogoFile)
 	} else {
 		var ipslice []string
 		if opt.IP != nil {

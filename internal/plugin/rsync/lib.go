@@ -41,12 +41,10 @@ func RsyncDetect(target string, timeout int) (float64, []string, error) {
 
 func RsyncLogin(target, user, passwd string, ver float64, modules []string, timeout int) error {
 	conn, err := pkg.NewSocket("tcp", target, timeout)
-	defer conn.Close()
-
 	if err != nil {
 		return err
 	}
-
+	defer conn.Close()
 	_, err = conn.Request([]byte(fmt.Sprintf("@RSYNCD: %f \n", ver)), 1024)
 	if err != nil {
 		return err
@@ -98,12 +96,10 @@ func RsyncLogin(target, user, passwd string, ver float64, modules []string, time
 
 func RsyncUnauth(target string, ver float64, modules []string, timeout int) error {
 	conn, err := pkg.NewSocket("tcp", target, timeout)
-	defer conn.Close()
-
 	if err != nil {
 		return err
 	}
-
+	defer conn.Close()
 	_, err = conn.Request([]byte(fmt.Sprintf("@RSYNCD: %f \n", ver)), 1024)
 	if err != nil {
 		return err
