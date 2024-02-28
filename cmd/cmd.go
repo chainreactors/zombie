@@ -52,6 +52,20 @@ func Zombie() {
 		return
 	}
 
+	err = pkg.Load()
+	if err != nil {
+		logs.Log.Error(err.Error())
+		return
+	}
+
+	if opt.ListService {
+		fmt.Println("support service list:")
+		for k, _ := range pkg.Services {
+			fmt.Println(k)
+		}
+		return
+	}
+
 	if err = opt.Validate(); err != nil {
 		logs.Log.Error(err.Error())
 		return
@@ -61,10 +75,6 @@ func Zombie() {
 		logs.Log.Level = logs.Debug
 	}
 
-	err = pkg.Load()
-	if err != nil {
-		return
-	}
 	runner, err := opt.Prepare()
 	if err != nil {
 		logs.Log.Error(err.Error())
