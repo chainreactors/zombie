@@ -133,8 +133,8 @@ func (s *SnmpPlugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *SnmpPlugin) GetBasic() *pkg.Basic {
-	return &pkg.Basic{}
+func (s *SnmpPlugin) GetResult() *pkg.Result {
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func (s *SnmpPlugin) Close() error {

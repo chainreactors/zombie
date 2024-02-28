@@ -51,9 +51,9 @@ func (s *SshPlugin) Close() error {
 	return pkg.NilConnError{s.Service}
 }
 
-func (s *SshPlugin) GetBasic() *pkg.Basic {
+func (s *SshPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func (s *SshPlugin) Name() string {

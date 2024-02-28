@@ -9,10 +9,7 @@ import (
 var ErrNoUnauth = errors.New("cannot unauth login")
 
 func Unauth(task *pkg.Task) *pkg.Result {
-	conn, err := plugin.Dispatch(task)
-	if err != nil {
-		return pkg.NewResult(task, err)
-	}
+	conn := plugin.Dispatch(task)
 	ok, err := conn.Unauth()
 	if err != nil {
 		return pkg.NewResult(task, err)
@@ -20,19 +17,15 @@ func Unauth(task *pkg.Task) *pkg.Result {
 	if !ok {
 		return pkg.NewResult(task, ErrNoUnauth)
 	}
-	return pkg.NewResult(task, nil)
+	return conn.GetResult()
 }
 
 func Brute(task *pkg.Task) *pkg.Result {
-	conn, err := plugin.Dispatch(task)
-	if err != nil {
-		return pkg.NewResult(task, err)
-	}
-	err = conn.Login()
+	conn := plugin.Dispatch(task)
+	err := conn.Login()
 	if err != nil {
 		return pkg.NewResult(task, err)
 	}
 	defer conn.Close()
-
-	return pkg.NewResult(task, nil)
+	return conn.GetResult()
 }

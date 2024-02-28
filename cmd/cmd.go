@@ -60,17 +60,11 @@ func Zombie() {
 	if opt.Debug {
 		logs.Log.Level = logs.Debug
 	}
-	err = pkg.LoadKeyword()
-	if err != nil {
-		logs.Log.Error(err.Error())
-		return
-	}
-	err = pkg.LoadRules()
-	if err != nil {
-		logs.Log.Error(err.Error())
-		return
-	}
 
+	err = pkg.Load()
+	if err != nil {
+		return
+	}
 	runner, err := opt.Prepare()
 	if err != nil {
 		logs.Log.Error(err.Error())

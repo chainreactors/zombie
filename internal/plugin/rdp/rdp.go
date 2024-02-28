@@ -51,9 +51,9 @@ func (s *RdpPlugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *RdpPlugin) GetBasic() *pkg.Basic {
+func (s *RdpPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 //func (s *RdpPlugin) SetQuery(query string) {

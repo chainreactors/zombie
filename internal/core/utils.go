@@ -18,6 +18,7 @@ type Target struct {
 	Username string            `json:"username"`
 	Password string            `json:"password"`
 	Service  pkg.Service       `json:"service"`
+	Scheme   string            `json:"scheme"`
 	Param    map[string]string `json:"param"`
 }
 
@@ -74,6 +75,7 @@ func ParseUrl(u string) (*Target, bool) {
 		if t.Port == "" {
 			t.Port = t.Service.DefaultPort()
 		}
+		t.Scheme = parsed.Scheme
 	} else if t.Port != "" {
 		t.Service = pkg.GetDefault(t.Port)
 	}

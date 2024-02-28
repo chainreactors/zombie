@@ -8,6 +8,7 @@ import (
 	"github.com/chainreactors/zombie/internal/plugin/mongo"
 	"github.com/chainreactors/zombie/internal/plugin/mssql"
 	"github.com/chainreactors/zombie/internal/plugin/mysql"
+	"github.com/chainreactors/zombie/internal/plugin/neutron"
 	"github.com/chainreactors/zombie/internal/plugin/oracle"
 	"github.com/chainreactors/zombie/internal/plugin/pop3"
 	"github.com/chainreactors/zombie/internal/plugin/postgre"
@@ -30,81 +31,83 @@ type Plugin interface {
 	Name() string
 	Unauth() (bool, error)
 	Login() error
-	//Execute() ([]byte, error)
 	Close() error
-	GetBasic() *pkg.Basic
+	GetResult() *pkg.Result
 }
 
-func Dispatch(task *pkg.Task) (Plugin, error) {
+func Dispatch(task *pkg.Task) Plugin {
 	switch task.Service {
 	case pkg.POSTGRESQLService:
 		return &postgre.PostgresPlugin{
 			Task:   task,
 			Dbname: task.Param["dbname"],
-		}, nil
+		}
 	case pkg.MSSQLService:
 		return &mssql.MssqlPlugin{
 			Task:     task,
 			Instance: task.Param["instance"],
-		}, nil
+		}
 	case pkg.MYSQLService:
-		return &mysql.MysqlPlugin{Task: task}, nil
+		return &mysql.MysqlPlugin{Task: task}
 	case pkg.ORACLEService:
 		return &oracle.OraclePlugin{
 			Task:        task,
 			SID:         task.Param["sid"],
 			ServiceName: task.Param["service_name"],
-		}, nil
+		}
 	case pkg.SNMPService:
-		return &snmp.SnmpPlugin{Task: task}, nil
+		return &snmp.SnmpPlugin{Task: task}
 	case pkg.SSHService:
 		return &ssh.SshPlugin{
 			Task: task,
-		}, nil
+		}
 	case pkg.RDPService:
-		return &rdp.RdpPlugin{Task: task}, nil
+		return &rdp.RdpPlugin{Task: task}
 	case pkg.SMBService:
-		return &smb.SmbPlugin{Task: task}, nil
+		return &smb.SmbPlugin{Task: task}
 	case pkg.FTPService:
-		return &ftp.FtpPlugin{Task: task}, nil
+		return &ftp.FtpPlugin{Task: task}
 	case pkg.MONGOService:
-		return &mongo.MongoPlugin{Task: task}, nil
+		return &mongo.MongoPlugin{Task: task}
 	case pkg.VNCService:
-		return &vnc.VNCPlugin{Task: task}, nil
+		return &vnc.VNCPlugin{Task: task}
 	case pkg.REDISService:
-		return &redis.RedisPlugin{Task: task}, nil
+		return &redis.RedisPlugin{Task: task}
 	case pkg.LDAPService:
-		return &ldap.LdapPlugin{Task: task}, nil
+		return &ldap.LdapPlugin{Task: task}
 	case pkg.HTTPService:
 		return &http.HttpPlugin{
 			Task: task,
 			Path: task.Param["path"],
-		}, nil
+		}
 	case pkg.HTTPSService:
 		return &http.HttpPlugin{
 			Task: task,
 			Path: task.Param["path"],
-		}, nil
-	case pkg.TomcatService:
-		return &http.HttpPlugin{
-			Task: task,
-			Path: "manager",
-		}, nil
+		}
+	//case pkg.TomcatService:
+	//	return &http.HttpPlugin{
+	//		Task: task,
+	//		Path: "manager",
+	//	}, nil
 	case pkg.KibanaService:
-		return &http.HttpPlugin{Task: task}, nil
+		return &http.HttpPlugin{Task: task}
 	case pkg.SOCKS5Service:
 		task.Timeout = 10
 		return &socks5.Socks5Plugin{
 			Task: task,
 			Url:  task.Param["url"],
-		}, nil
+		}
 	//case pkg.TELNETService:
 	//	return &telnet.TelnetPlugin{Task: task}, nil
 	case pkg.POP3Service:
-		return &pop3.Pop3Plugin{Task: task}, nil
+		return &pop3.Pop3Plugin{Task: task}
 	case pkg.RSYNCService:
-		return &rsync.RsyncPlugin{Task: task}, nil
+		return &rsync.RsyncPlugin{Task: task}
 	default:
-		return nil, ErrKnownPlugin
+		return &neutron.NeutronPlugin{
+			Task:    task,
+			Service: task.Service,
+		}
 	}
 }

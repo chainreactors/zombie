@@ -71,9 +71,9 @@ func (s *PostgresPlugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *PostgresPlugin) GetBasic() *pkg.Basic {
+func (s *PostgresPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func (s *PostgresPlugin) Close() error {

@@ -73,7 +73,7 @@ func (s *Socks5Plugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *Socks5Plugin) GetBasic() *pkg.Basic {
+func (s *Socks5Plugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }

@@ -43,9 +43,9 @@ func (s *MongoPlugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *MongoPlugin) GetBasic() *pkg.Basic {
+func (s *MongoPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func (s *MongoPlugin) Login() error {

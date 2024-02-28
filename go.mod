@@ -14,12 +14,13 @@ require (
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/panjf2000/ants/v2 v2.4.3
 	github.com/sijms/go-ora/v2 v2.2.15
-	golang.org/x/crypto v0.14.0
+	golang.org/x/crypto v0.19.0
 )
 
 require (
 	github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8
 	github.com/chainreactors/logs v0.0.0-20231027080134-7a11bb413460
+	github.com/chainreactors/neutron v0.0.0-20240228080958-3c2cb3d3011a
 	github.com/chainreactors/parsers v0.0.0-20231227070753-8cda94b96b6c
 	github.com/chainreactors/utils v0.0.0-20231031063336-9477f1b23886
 	github.com/chainreactors/words v0.4.1-0.20240126095632-02379f43c9f7
@@ -30,7 +31,7 @@ require (
 	github.com/onsi/gomega v1.19.0 // indirect
 	github.com/tomatome/grdp v0.0.0-00010101000000-000000000000
 	go.mongodb.org/mongo-driver v1.12.0
-	golang.org/x/net v0.10.0
+	golang.org/x/net v0.21.0
 	sigs.k8s.io/yaml v1.3.0
 )
 

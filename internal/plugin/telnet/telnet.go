@@ -42,7 +42,7 @@ func (s *TelnetPlugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *TelnetPlugin) GetBasic() *pkg.Basic {
+func (s *TelnetPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }

@@ -46,9 +46,9 @@ func (s *OraclePlugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *OraclePlugin) GetBasic() *pkg.Basic {
+func (s *OraclePlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func sidLogin(task *pkg.Task, sid string) (*sql.DB, error) {

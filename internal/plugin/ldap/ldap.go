@@ -50,9 +50,9 @@ func (s *LdapPlugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *LdapPlugin) GetBasic() *pkg.Basic {
+func (s *LdapPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 //func (s *LdapPlugin) SetQuery(query string) {

@@ -42,9 +42,9 @@ func (s *FtpPlugin) Login() error {
 	return nil
 }
 
-func (s *FtpPlugin) GetBasic() *pkg.Basic {
+func (s *FtpPlugin) GetResult() *pkg.Result {
 	// todo list root dir
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func (s *FtpPlugin) Close() error {
