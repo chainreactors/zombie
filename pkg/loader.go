@@ -2,10 +2,11 @@ package pkg
 
 import (
 	"encoding/json"
-	templates "github.com/chainreactors/neutron/templates_gogo"
+	"github.com/chainreactors/logs"
+	"github.com/chainreactors/neutron/common"
+	templates "github.com/chainreactors/neutron/templates"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/words/mask"
-	"strings"
 )
 
 var (
@@ -13,6 +14,10 @@ var (
 	Keywords    map[string][]string            = make(map[string][]string)
 	TemplateMap map[string]*templates.Template = make(map[string]*templates.Template)
 )
+
+func init() {
+	common.NeutronLog = logs.NewLogger(100)
+}
 
 func LoadKeyword() error {
 	// load mask
@@ -76,15 +81,13 @@ func LoadTemplates() error {
 		return err
 	}
 	for _, template := range t {
-		for _, tag := range strings.Split(template.Info.Tags, ",") {
-			if name, ok := Services.GetName(Service(tag)); ok {
-				err = template.Compile(nil)
-				if err != nil {
-					iutils.Fatal("" + err.Error())
-				}
-				TemplateMap[name] = template
-				break
+		if template.Info.Zombie != "" {
+			Services[Service(template.Info.Zombie)] = ""
+			err := template.Compile(nil)
+			if err != nil {
+				return err
 			}
+			TemplateMap[template.Info.Zombie] = template
 		}
 	}
 	return nil

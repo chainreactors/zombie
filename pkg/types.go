@@ -81,7 +81,7 @@ func (t *Task) Address() string {
 }
 
 func (t *Task) URI() string {
-	return t.Service.String() + "://" + t.Address()
+	return t.Scheme + "://" + t.Address()
 }
 
 func (t *Task) URL() string {
@@ -133,7 +133,8 @@ func (r *Result) String() string {
 	if len(r.Param) != 0 {
 		s.WriteString(" " + fmt.Sprintf("%v", r.Param))
 	}
-	s.WriteString(" success\n")
+
+	s.WriteString(", " + r.Service.String() + " login successfully\n")
 	return s.String()
 }
 
@@ -160,37 +161,29 @@ func (r *Result) Format(form string) string {
 type services map[Service]string
 
 var Services services = map[Service]string{
-	FTPService:         "21",
-	SSHService:         "22",
-	SMBService:         "445",
-	MSSQLService:       "1433",
-	MYSQLService:       "3306",
-	POSTGRESQLService:  "5432",
-	REDISService:       "6379",
-	ESService:          "9200",
-	MONGOService:       "27017",
-	VNCService:         "5900",
-	RDPService:         "3389",
-	SNMPService:        "161",
-	ORACLEService:      "1521",
-	LDAPService:        "389",
-	HTTPService:        "80",
-	HTTPSService:       "443",
-	TomcatService:      "8080",
-	TomcatAliasService: "8080",
-	KibanaService:      "5601",
-	SOCKS5Service:      "1080",
-	TELNETService:      "23",
-	POP3Service:        "110",
-	RSYNCService:       "873",
+	FTPService:        "21",
+	SSHService:        "22",
+	SMBService:        "445",
+	MSSQLService:      "1433",
+	MYSQLService:      "3306",
+	POSTGRESQLService: "5432",
+	REDISService:      "6379",
+	ESService:         "9200",
+	MONGOService:      "27017",
+	VNCService:        "5900",
+	RDPService:        "3389",
+	SNMPService:       "161",
+	ORACLEService:     "1521",
+	LDAPService:       "389",
+	HTTPService:       "80",
+	HTTPSService:      "443",
+	SOCKS5Service:     "1080",
+	TELNETService:     "23",
+	POP3Service:       "110",
+	RSYNCService:      "873",
 }
 
 func (ss services) GetName(s Service) (string, bool) {
-	switch s {
-	case TomcatAliasService:
-		s = TomcatService
-	}
-
 	_, ok := ss[s]
 
 	return s.String(), ok
@@ -199,31 +192,27 @@ func (ss services) GetName(s Service) (string, bool) {
 type Service string
 
 var (
-	FTPService         Service = "ftp"
-	SSHService         Service = "ssh"
-	SMBService         Service = "smb"
-	MSSQLService       Service = "mssql"
-	MYSQLService       Service = "mysql"
-	POSTGRESQLService  Service = "postgresql"
-	REDISService       Service = "redis"
-	ESService          Service = "es"
-	MONGOService       Service = "mongo"
-	VNCService         Service = "vnc"
-	RDPService         Service = "rdp"
-	SNMPService        Service = "snmp"
-	ORACLEService      Service = "oracle"
-	HTTPService        Service = "http"
-	HTTPSService       Service = "https"
-	TomcatService      Service = "tomcat"
-	TomcatAliasService Service = "tomcat-manager"
-	ElasticService     Service = "elastic"
-	KibanaService      Service = "kibana"
-	LDAPService        Service = "ldap"
-	SOCKS5Service      Service = "socks5"
-	TELNETService      Service = "telnet"
-	POP3Service        Service = "pop3"
-	RSYNCService       Service = "rsync"
-	UnknownService     Service = ""
+	FTPService        Service = "ftp"
+	SSHService        Service = "ssh"
+	SMBService        Service = "smb"
+	MSSQLService      Service = "mssql"
+	MYSQLService      Service = "mysql"
+	POSTGRESQLService Service = "postgresql"
+	REDISService      Service = "redis"
+	ESService         Service = "es"
+	MONGOService      Service = "mongo"
+	VNCService        Service = "vnc"
+	RDPService        Service = "rdp"
+	SNMPService       Service = "snmp"
+	ORACLEService     Service = "oracle"
+	HTTPService       Service = "http"
+	HTTPSService      Service = "https"
+	LDAPService       Service = "ldap"
+	SOCKS5Service     Service = "socks5"
+	TELNETService     Service = "telnet"
+	POP3Service       Service = "pop3"
+	RSYNCService      Service = "rsync"
+	UnknownService    Service = ""
 )
 
 func (s Service) String() string {

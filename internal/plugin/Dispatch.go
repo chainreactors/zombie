@@ -85,13 +85,6 @@ func Dispatch(task *pkg.Task) Plugin {
 			Task: task,
 			Path: task.Param["path"],
 		}
-	//case pkg.TomcatService:
-	//	return &http.HttpPlugin{
-	//		Task: task,
-	//		Path: "manager",
-	//	}, nil
-	case pkg.KibanaService:
-		return &http.HttpPlugin{Task: task}
 	case pkg.SOCKS5Service:
 		task.Timeout = 10
 		return &socks5.Socks5Plugin{
