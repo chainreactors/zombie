@@ -291,7 +291,7 @@ loop:
 				}
 				logs.Log.Console(result.Format(r.Option.OutputFormat))
 			} else {
-				logs.Log.Debugf("[%s] %s %s %s failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Err.Error())
+				logs.Log.Debugf("[%s] %s %s %s ,%s login failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Service.String(), result.Err.Error())
 			}
 			r.outlock.Done()
 		}
