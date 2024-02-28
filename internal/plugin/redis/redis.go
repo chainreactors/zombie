@@ -40,7 +40,7 @@ func (s *RedisPlugin) Unauth() (bool, error) {
 }
 
 func (s *RedisPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *RedisPlugin) GetResult() *pkg.Result {

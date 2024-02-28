@@ -43,7 +43,7 @@ func (s *RsyncPlugin) Login() error {
 }
 
 func (s *RsyncPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *RsyncPlugin) GetResult() *pkg.Result {

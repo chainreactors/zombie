@@ -68,7 +68,7 @@ func (s *PostgresPlugin) Unauth() (bool, error) {
 }
 
 func (s *PostgresPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *PostgresPlugin) GetResult() *pkg.Result {

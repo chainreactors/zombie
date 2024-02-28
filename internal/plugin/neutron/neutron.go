@@ -10,15 +10,15 @@ import (
 
 type NeutronPlugin struct {
 	*pkg.Task
-	Service pkg.Service
+	Service string
 }
 
 func (s *NeutronPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *NeutronPlugin) Unauth() (bool, error) {
-	if template, ok := pkg.TemplateMap[s.Service.String()]; ok {
+	if template, ok := pkg.TemplateMap[s.Service]; ok {
 		usr, pwd, err := NeutronScan(s.Scheme,
 			s.Address(),
 			nil,
@@ -34,7 +34,7 @@ func (s *NeutronPlugin) Unauth() (bool, error) {
 }
 
 func (s *NeutronPlugin) Login() error {
-	if template, ok := pkg.TemplateMap[s.Service.String()]; ok {
+	if template, ok := pkg.TemplateMap[s.Service]; ok {
 		_, _, err := NeutronScan(s.Scheme,
 			s.Address(),
 			map[string]interface{}{

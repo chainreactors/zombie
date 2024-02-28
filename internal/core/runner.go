@@ -172,7 +172,7 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 	if target.Username != "" {
 		users = []string{target.Username}
 	} else if r.Users == nil {
-		users = pkg.UseDefaultUser(target.Service.String())
+		users = pkg.UseDefaultUser(target.Service)
 	} else {
 		users = r.Users.RunAsSlice()
 	}
@@ -180,7 +180,7 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 	if target.Password != "" {
 		pwds = []string{target.Password}
 	} else if r.Pwds == nil {
-		pwds = pkg.UseDefaultPassword(target.Service.String(), r.Top)
+		pwds = pkg.UseDefaultPassword(target.Service, r.Top)
 	} else {
 		pwds = r.Pwds.RunAsSlice()
 	}
@@ -221,7 +221,7 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 
 				for _, pwd := range pwds {
 					if target.Service == "" {
-						logs.Log.Warn("unknown service " + target.Service.String())
+						logs.Log.Warn("unknown service " + target.Service)
 						continue
 					}
 					select {
@@ -255,7 +255,7 @@ func (r *Runner) targetGenerate() chan *Target {
 	go func() {
 		// 通过targets生成目标
 		for _, target := range r.Targets {
-			if r.Services == nil || (r.Services != nil && iutils.StringsContains(r.Services, target.Service.String())) {
+			if r.Services == nil || (r.Services != nil && iutils.StringsContains(r.Services, target.Service)) {
 				// 如果从gogo中输入的目标, 可以通过-s过滤特定的服务进行扫描
 				ch <- target
 			}
@@ -291,7 +291,7 @@ loop:
 				}
 				logs.Log.Console(result.Format(r.Option.OutputFormat))
 			} else {
-				logs.Log.Debugf("[%s] %s %s %s ,%s login failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Service.String(), result.Err.Error())
+				logs.Log.Debugf("[%s] %s %s %s ,%s login failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Service, result.Err.Error())
 			}
 			r.outlock.Done()
 		}

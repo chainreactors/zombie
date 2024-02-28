@@ -48,7 +48,7 @@ func (s *RdpPlugin) Close() error {
 }
 
 func (s *RdpPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *RdpPlugin) GetResult() *pkg.Result {

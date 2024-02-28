@@ -124,7 +124,7 @@ func (s *SmbPlugin) Close() error {
 }
 
 func (s *SmbPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *SmbPlugin) GetResult() *pkg.Result {

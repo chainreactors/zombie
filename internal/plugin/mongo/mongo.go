@@ -40,7 +40,7 @@ func (s *MongoPlugin) Unauth() (bool, error) {
 }
 
 func (s *MongoPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *MongoPlugin) GetResult() *pkg.Result {

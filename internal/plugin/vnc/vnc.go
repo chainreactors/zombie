@@ -71,7 +71,7 @@ func (s *VNCPlugin) Close() error {
 //}
 
 func (s *VNCPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *VNCPlugin) GetResult() *pkg.Result {

@@ -43,7 +43,7 @@ func (s *OraclePlugin) Close() error {
 }
 
 func (s *OraclePlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *OraclePlugin) GetResult() *pkg.Result {

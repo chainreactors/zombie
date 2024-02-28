@@ -57,7 +57,7 @@ func (s *SshPlugin) GetResult() *pkg.Result {
 }
 
 func (s *SshPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func SSHConnect(task *pkg.Task, auth []ssh.AuthMethod) (conn *ssh.Client, err error) {

@@ -37,55 +37,55 @@ type Plugin interface {
 
 func Dispatch(task *pkg.Task) Plugin {
 	switch task.Service {
-	case pkg.POSTGRESQLService:
+	case pkg.POSTGRESQLService.String():
 		return &postgre.PostgresPlugin{
 			Task:   task,
 			Dbname: task.Param["dbname"],
 		}
-	case pkg.MSSQLService:
+	case pkg.MSSQLService.String():
 		return &mssql.MssqlPlugin{
 			Task:     task,
 			Instance: task.Param["instance"],
 		}
-	case pkg.MYSQLService:
+	case pkg.MYSQLService.String():
 		return &mysql.MysqlPlugin{Task: task}
-	case pkg.ORACLEService:
+	case pkg.ORACLEService.String():
 		return &oracle.OraclePlugin{
 			Task:        task,
 			SID:         task.Param["sid"],
 			ServiceName: task.Param["service_name"],
 		}
-	case pkg.SNMPService:
+	case pkg.SNMPService.String():
 		return &snmp.SnmpPlugin{Task: task}
-	case pkg.SSHService:
+	case pkg.SSHService.String():
 		return &ssh.SshPlugin{
 			Task: task,
 		}
-	case pkg.RDPService:
+	case pkg.RDPService.String():
 		return &rdp.RdpPlugin{Task: task}
-	case pkg.SMBService:
+	case pkg.SMBService.String():
 		return &smb.SmbPlugin{Task: task}
-	case pkg.FTPService:
+	case pkg.FTPService.String():
 		return &ftp.FtpPlugin{Task: task}
-	case pkg.MONGOService:
+	case pkg.MONGOService.String():
 		return &mongo.MongoPlugin{Task: task}
-	case pkg.VNCService:
+	case pkg.VNCService.String():
 		return &vnc.VNCPlugin{Task: task}
-	case pkg.REDISService:
+	case pkg.REDISService.String():
 		return &redis.RedisPlugin{Task: task}
-	case pkg.LDAPService:
+	case pkg.LDAPService.String():
 		return &ldap.LdapPlugin{Task: task}
-	case pkg.HTTPService:
+	case pkg.HTTPService.String():
 		return &http.HttpPlugin{
 			Task: task,
 			Path: task.Param["path"],
 		}
-	case pkg.HTTPSService:
+	case pkg.HTTPSService.String():
 		return &http.HttpPlugin{
 			Task: task,
 			Path: task.Param["path"],
 		}
-	case pkg.SOCKS5Service:
+	case pkg.SOCKS5Service.String():
 		task.Timeout = 10
 		return &socks5.Socks5Plugin{
 			Task: task,
@@ -93,9 +93,9 @@ func Dispatch(task *pkg.Task) Plugin {
 		}
 	//case pkg.TELNETService:
 	//	return &telnet.TelnetPlugin{Task: task}, nil
-	case pkg.POP3Service:
+	case pkg.POP3Service.String():
 		return &pop3.Pop3Plugin{Task: task}
-	case pkg.RSYNCService:
+	case pkg.RSYNCService.String():
 		return &rsync.RsyncPlugin{Task: task}
 	default:
 		return &neutron.NeutronPlugin{
