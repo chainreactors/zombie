@@ -51,10 +51,11 @@ type WordOptions struct {
 }
 
 type MiscOptions struct {
-	Threads int    `short:"t" default:"100" description:"Int, threads"`
-	Timeout int    `long:"timeout" default:"5" description:"Int, timeout"`
-	Mod     string `short:"m" description:"String, mod"`
-	Debug   bool   `long:"debug" description:"Bool, enable debug"`
+	Threads     int    `short:"t" default:"100" description:"Int, threads"`
+	Timeout     int    `long:"timeout" default:"5" description:"Int, timeout"`
+	Mod         string `short:"m" description:"String, mod"`
+	Debug       bool   `long:"debug" description:"Bool, enable debug"`
+	ListService bool   `short:"l" long:"list" description:"Bool, list all service"`
 }
 
 func (opt *Option) Validate() error {
