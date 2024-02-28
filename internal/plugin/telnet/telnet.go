@@ -39,7 +39,7 @@ func (s *TelnetPlugin) Close() error {
 }
 
 func (s *TelnetPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *TelnetPlugin) GetResult() *pkg.Result {

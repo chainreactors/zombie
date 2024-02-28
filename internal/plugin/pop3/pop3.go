@@ -39,7 +39,7 @@ func (s *Pop3Plugin) Login() error {
 }
 
 func (s *Pop3Plugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *Pop3Plugin) GetResult() *pkg.Result {

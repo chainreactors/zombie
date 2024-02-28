@@ -130,7 +130,7 @@ func (s *SnmpPlugin) Login() error {
 }
 
 func (s *SnmpPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *SnmpPlugin) GetResult() *pkg.Result {

@@ -47,7 +47,7 @@ func (s *LdapPlugin) Close() error {
 }
 
 func (s *LdapPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *LdapPlugin) GetResult() *pkg.Result {

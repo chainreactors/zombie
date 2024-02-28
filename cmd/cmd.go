@@ -59,9 +59,9 @@ func Zombie() {
 	}
 
 	if opt.ListService {
-		fmt.Println("support service list:")
-		for k, _ := range pkg.Services {
-			fmt.Println(k)
+		fmt.Println("support service list:\n    service\t\tsource\n	---------------\t\t------")
+		for k, s := range pkg.Services {
+			fmt.Printf("    %15s\t\t%s\n", k, s.Source)
 		}
 		return
 	}

@@ -16,7 +16,7 @@ type MssqlPlugin struct {
 }
 
 func (s *MssqlPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *MssqlPlugin) Login() error {

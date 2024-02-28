@@ -17,7 +17,7 @@ type Target struct {
 	Port     string            `json:"port"`
 	Username string            `json:"username"`
 	Password string            `json:"password"`
-	Service  pkg.Service       `json:"service"`
+	Service  string            `json:"service"`
 	Scheme   string            `json:"scheme"`
 	Param    map[string]string `json:"param"`
 }
@@ -27,9 +27,9 @@ func (t *Target) String() string {
 }
 
 func (t *Target) UpdateService(s string) {
-	t.Service = pkg.Service(strings.ToLower(s))
+	t.Service = strings.ToLower(s)
 	if t.Port == "" {
-		t.Port = t.Service.DefaultPort()
+		t.Port = pkg.Services.DefaultPort(t.Service)
 	}
 }
 
@@ -71,9 +71,9 @@ func ParseUrl(u string) (*Target, bool) {
 	}
 
 	if parsed.Scheme != "" {
-		t.Service = pkg.Service(parsed.Scheme)
+		t.Service = parsed.Scheme
 		if t.Port == "" {
-			t.Port = t.Service.DefaultPort()
+			t.Port = pkg.Services.DefaultPort(t.Service)
 		}
 		t.Scheme = parsed.Scheme
 	} else if t.Port != "" {
@@ -111,7 +111,7 @@ func LoadGogoFile(filename string) ([]*Target, error) {
 		targets = append(targets, &Target{
 			IP:      t.IP,
 			Port:    t.Port,
-			Service: pkg.Service(t.Service),
+			Service: t.Service,
 		})
 	}
 	return targets, nil

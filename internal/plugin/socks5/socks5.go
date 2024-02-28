@@ -70,7 +70,7 @@ func (s *Socks5Plugin) Close() error {
 }
 
 func (s *Socks5Plugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *Socks5Plugin) GetResult() *pkg.Result {

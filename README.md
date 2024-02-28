@@ -307,14 +307,26 @@ Admin31
 * LDAP
 * SNMP
 * RDP 
-* HTTP/HTTPS 401 
-  * kibana
-  * tomcat
+* HTTP/HTTPS 401
 * SOCKS5
 * telnet
 * HTTP 401
 * POP3
 * SOCKS5
+
+### 通过neutron支持的服务
+
+* jenkins
+* minio
+* nacos
+* nexus
+* rabbitmq
+* ruijie_ap
+* snmp_manage
+* tomcat
+* weblogic
+* xxl-job
+* zte-epon
 
 
 ### TODO
@@ -331,10 +343,6 @@ Admin31
   * amqp
   * mqtt
   * http
-    * rabbitmq management
-    * solr
-    * webdav
-    * ...
   * web
     * weblogic
     * websphere

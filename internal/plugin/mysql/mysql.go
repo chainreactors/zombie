@@ -22,7 +22,7 @@ type MysqlPlugin struct {
 }
 
 func (s *MysqlPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *MysqlPlugin) Unauth() (bool, error) {

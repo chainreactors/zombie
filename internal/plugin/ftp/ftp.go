@@ -12,7 +12,7 @@ type FtpPlugin struct {
 }
 
 func (s *FtpPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *FtpPlugin) Unauth() (bool, error) {

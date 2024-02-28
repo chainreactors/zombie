@@ -18,11 +18,11 @@ var (
 )
 
 type NilConnError struct {
-	Service Service
+	Service string
 }
 
 func (e NilConnError) Error() string {
-	return e.Service.String() + " has nil conn"
+	return e.Service + " has nil conn"
 }
 
 type TimeoutError struct {
@@ -64,7 +64,7 @@ func (m TaskMod) String() string {
 type Task struct {
 	IP       string             `json:"ip"`
 	Port     string             `json:"port"`
-	Service  Service            `json:"service"`
+	Service  string             `json:"service"`
 	Username string             `json:"username"`
 	Password string             `json:"password"`
 	Scheme   string             `json:"scheme"`
@@ -134,7 +134,7 @@ func (r *Result) String() string {
 		s.WriteString(" " + fmt.Sprintf("%v", r.Param))
 	}
 
-	s.WriteString(", " + r.Service.String() + " login successfully\n")
+	s.WriteString(", " + r.Service + " login successfully\n")
 	return s.String()
 }
 
@@ -155,132 +155,6 @@ func (r *Result) Format(form string) string {
 		return ""
 	default:
 		return r.String()
-	}
-}
-
-type services map[Service]string
-
-var Services services = map[Service]string{
-	FTPService:        "21",
-	SSHService:        "22",
-	SMBService:        "445",
-	MSSQLService:      "1433",
-	MYSQLService:      "3306",
-	POSTGRESQLService: "5432",
-	REDISService:      "6379",
-	ESService:         "9200",
-	MONGOService:      "27017",
-	VNCService:        "5900",
-	RDPService:        "3389",
-	SNMPService:       "161",
-	ORACLEService:     "1521",
-	LDAPService:       "389",
-	HTTPService:       "80",
-	HTTPSService:      "443",
-	SOCKS5Service:     "1080",
-	TELNETService:     "23",
-	POP3Service:       "110",
-	RSYNCService:      "873",
-}
-
-func (ss services) GetName(s Service) (string, bool) {
-	_, ok := ss[s]
-
-	return s.String(), ok
-}
-
-type Service string
-
-var (
-	FTPService        Service = "ftp"
-	SSHService        Service = "ssh"
-	SMBService        Service = "smb"
-	MSSQLService      Service = "mssql"
-	MYSQLService      Service = "mysql"
-	POSTGRESQLService Service = "postgresql"
-	REDISService      Service = "redis"
-	ESService         Service = "es"
-	MONGOService      Service = "mongo"
-	VNCService        Service = "vnc"
-	RDPService        Service = "rdp"
-	SNMPService       Service = "snmp"
-	ORACLEService     Service = "oracle"
-	HTTPService       Service = "http"
-	HTTPSService      Service = "https"
-	LDAPService       Service = "ldap"
-	SOCKS5Service     Service = "socks5"
-	TELNETService     Service = "telnet"
-	POP3Service       Service = "pop3"
-	RSYNCService      Service = "rsync"
-	UnknownService    Service = ""
-)
-
-func (s Service) String() string {
-	return string(s)
-}
-func (s Service) DefaultPort() string {
-	if port, ok := Services[s]; ok {
-		return port
-	}
-	return ""
-}
-
-func GetDefault(s string) Service {
-	switch s {
-	case "22":
-		return SSHService
-	case "21":
-		return FTPService
-	case "445":
-		return SMBService
-	case "1433":
-		return MSSQLService
-	case "3306":
-		return MYSQLService
-	case "5432":
-		return POSTGRESQLService
-	case "6379":
-		return REDISService
-	case "9200":
-		return ESService
-	case "27017":
-		return MONGOService
-	case "5900":
-		return VNCService
-	case "3389":
-		return RDPService
-	case "161":
-		return SNMPService
-	case "1521":
-		return ORACLEService
-	case "80":
-		return HTTPService
-	case "443":
-		return HTTPSService
-	case "389":
-		return LDAPService
-	default:
-		return UnknownService
-	}
-}
-
-func UseDefaultPassword(service string, top int) []string {
-	if pwds, ok := Keywords[service+"_pwd"]; ok {
-		if top == 0 || top > len(pwds) {
-			return pwds
-		} else {
-			return pwds[:top]
-		}
-	} else {
-		return []string{"admin"}
-	}
-}
-
-func UseDefaultUser(service string) []string {
-	if users, ok := Keywords[service+"_user"]; ok {
-		return users
-	} else {
-		return []string{"admin"}
 	}
 }
 

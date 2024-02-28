@@ -18,7 +18,7 @@ func (s *HttpPlugin) Unauth() (bool, error) {
 }
 
 func (s *HttpPlugin) Name() string {
-	return s.Service.String()
+	return s.Service
 }
 
 func (s *HttpPlugin) Login() error {
