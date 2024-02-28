@@ -14,14 +14,6 @@ func (s *Pop3Plugin) Unauth() (bool, error) {
 	return false, nil
 }
 
-//func (s *Pop3Plugin) Query() bool {
-//	return false
-//}
-//
-//func (s *Pop3Plugin) GetInfo() bool {
-//	return false
-//}
-
 func (s *Pop3Plugin) Login() error {
 	port, _ := strconv.Atoi(s.Port)
 
@@ -50,9 +42,9 @@ func (s *Pop3Plugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *Pop3Plugin) GetBasic() *pkg.Basic {
+func (s *Pop3Plugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func (s *Pop3Plugin) Close() error {

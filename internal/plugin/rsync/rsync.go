@@ -46,9 +46,9 @@ func (s *RsyncPlugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *RsyncPlugin) GetBasic() *pkg.Basic {
+func (s *RsyncPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func (s *RsyncPlugin) Close() error {

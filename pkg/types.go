@@ -3,12 +3,18 @@ package pkg
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/chainreactors/logs"
+	"github.com/chainreactors/parsers"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+)
+
+var (
+	InterruptError = errors.New("interrupt")
 )
 
 type NilConnError struct {
@@ -61,6 +67,7 @@ type Task struct {
 	Service  Service            `json:"service"`
 	Username string             `json:"username"`
 	Password string             `json:"password"`
+	Scheme   string             `json:"scheme"`
 	Param    map[string]string  `json:"-"`
 	Mod      TaskMod            `json:"-"`
 	Timeout  int                `json:"-"`
@@ -78,7 +85,7 @@ func (t *Task) URI() string {
 }
 
 func (t *Task) URL() string {
-	return fmt.Sprintf("%s://%s:%s@%s:%s", t.Service, t.Username, t.Password, t.IP, t.Port)
+	return fmt.Sprintf("%s://%s:%s@%s:%s", t.Scheme, t.Username, t.Password, t.IP, t.Port)
 }
 
 func (t *Task) UintPort() uint16 {
@@ -107,8 +114,10 @@ func NewResult(task *Task, err error) *Result {
 
 type Result struct {
 	*Task
-	OK  bool
-	Err error
+	Vulns      parsers.Vulns
+	Extracteds parsers.Extracteds
+	OK         bool
+	Err        error
 }
 
 func (r *Result) String() string {
@@ -148,63 +157,74 @@ func (r *Result) Format(form string) string {
 	}
 }
 
-//var (
-//	ValueableSlice = []string{"PWD", "PASS", "PASSWORD", "CERT", "EMAIL", "MOBILE", "PAPER"}
-//)
+type services map[Service]string
+
+var Services services = map[Service]string{
+	FTPService:         "21",
+	SSHService:         "22",
+	SMBService:         "445",
+	MSSQLService:       "1433",
+	MYSQLService:       "3306",
+	POSTGRESQLService:  "5432",
+	REDISService:       "6379",
+	ESService:          "9200",
+	MONGOService:       "27017",
+	VNCService:         "5900",
+	RDPService:         "3389",
+	SNMPService:        "161",
+	ORACLEService:      "1521",
+	LDAPService:        "389",
+	HTTPService:        "80",
+	HTTPSService:       "443",
+	TomcatService:      "8080",
+	TomcatAliasService: "8080",
+	KibanaService:      "5601",
+	SOCKS5Service:      "1080",
+	TELNETService:      "23",
+	POP3Service:        "110",
+	RSYNCService:       "873",
+}
+
+func (ss services) GetName(s Service) (string, bool) {
+	switch s {
+	case TomcatAliasService:
+		s = TomcatService
+	}
+
+	_, ok := ss[s]
+
+	return s.String(), ok
+}
 
 type Service string
 
 var (
-	FTPService        Service = "ftp"
-	SSHService        Service = "ssh"
-	SMBService        Service = "smb"
-	MSSQLService      Service = "mssql"
-	MYSQLService      Service = "mysql"
-	POSTGRESQLService Service = "postgresql"
-	REDISService      Service = "redis"
-	ESService         Service = "es"
-	MONGOService      Service = "mongo"
-	VNCService        Service = "vnc"
-	RDPService        Service = "rdp"
-	SNMPService       Service = "snmp"
-	ORACLEService     Service = "oracle"
-	HTTPService       Service = "http"
-	HTTPSService      Service = "https"
-	TomcatService     Service = "tomcat"
-	ElasticService    Service = "elastic"
-	KibanaService     Service = "kibana"
-	LDAPService       Service = "ldap"
-	SOCKS5Service     Service = "socks5"
-	TELNETService     Service = "telnet"
-	POP3Service       Service = "pop3"
-	RSYNCService      Service = "rsync"
-	UnknownService    Service = ""
+	FTPService         Service = "ftp"
+	SSHService         Service = "ssh"
+	SMBService         Service = "smb"
+	MSSQLService       Service = "mssql"
+	MYSQLService       Service = "mysql"
+	POSTGRESQLService  Service = "postgresql"
+	REDISService       Service = "redis"
+	ESService          Service = "es"
+	MONGOService       Service = "mongo"
+	VNCService         Service = "vnc"
+	RDPService         Service = "rdp"
+	SNMPService        Service = "snmp"
+	ORACLEService      Service = "oracle"
+	HTTPService        Service = "http"
+	HTTPSService       Service = "https"
+	TomcatService      Service = "tomcat"
+	TomcatAliasService Service = "tomcat-manager"
+	ElasticService     Service = "elastic"
+	KibanaService      Service = "kibana"
+	LDAPService        Service = "ldap"
+	SOCKS5Service      Service = "socks5"
+	TELNETService      Service = "telnet"
+	POP3Service        Service = "pop3"
+	RSYNCService       Service = "rsync"
+	UnknownService     Service = ""
 )
-
-var Services = map[Service]string{
-	FTPService:        "21",
-	SSHService:        "22",
-	SMBService:        "445",
-	MSSQLService:      "1433",
-	MYSQLService:      "3306",
-	POSTGRESQLService: "5432",
-	REDISService:      "6379",
-	ESService:         "9200",
-	MONGOService:      "27017",
-	VNCService:        "5900",
-	RDPService:        "3389",
-	SNMPService:       "161",
-	ORACLEService:     "1521",
-	LDAPService:       "389",
-	HTTPService:       "80",
-	HTTPSService:      "443",
-	TomcatService:     "8080",
-	KibanaService:     "5601",
-	SOCKS5Service:     "1080",
-	TELNETService:     "23",
-	POP3Service:       "110",
-	RSYNCService:      "873",
-}
 
 func (s Service) String() string {
 	return string(s)

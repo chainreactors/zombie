@@ -64,9 +64,9 @@ func (s *HttpPlugin) Login() error {
 //	}
 //}
 
-func (s *HttpPlugin) GetBasic() *pkg.Basic {
+func (s *HttpPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func (s *HttpPlugin) Close() error {

@@ -59,9 +59,9 @@ func (s *MssqlPlugin) Unauth() (bool, error) {
 	s.conn = conn
 	return true, nil
 }
-func (s *MssqlPlugin) GetBasic() *pkg.Basic {
+func (s *MssqlPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func (s *MssqlPlugin) Close() error {

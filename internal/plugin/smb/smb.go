@@ -127,7 +127,7 @@ func (s *SmbPlugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *SmbPlugin) GetBasic() *pkg.Basic {
+func (s *SmbPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }

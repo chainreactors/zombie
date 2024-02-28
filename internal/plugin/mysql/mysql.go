@@ -66,9 +66,9 @@ func (s *MysqlPlugin) Login() error {
 	return nil
 }
 
-func (s *MysqlPlugin) GetBasic() *pkg.Basic {
+func (s *MysqlPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func (s *MysqlPlugin) Close() error {

@@ -43,9 +43,9 @@ func (s *RedisPlugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *RedisPlugin) GetBasic() *pkg.Basic {
+func (s *RedisPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
 
 func (s *RedisPlugin) Close() error {

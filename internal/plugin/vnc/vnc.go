@@ -74,7 +74,7 @@ func (s *VNCPlugin) Name() string {
 	return s.Service.String()
 }
 
-func (s *VNCPlugin) GetBasic() *pkg.Basic {
+func (s *VNCPlugin) GetResult() *pkg.Result {
 	// todo list dbs
-	return &pkg.Basic{}
+	return &pkg.Result{Task: s.Task, OK: true}
 }
