@@ -309,31 +309,43 @@ Admin31
 * RDP 
 * HTTP/HTTPS 401
 * SOCKS5
-* telnet
 * HTTP 401
 * POP3
 * SOCKS5
 
-### 通过neutron支持的服务
+### 通过neutron template支持的服务
 
-* jenkins
-* minio
-* nacos
-* nexus
+* apollo
+* canal
+* hikvision_camer
 * rabbitmq
 * ruijie_ap
-* snmp_manage
-* tomcat
-* weblogic
-* xxl-job
 * zte-epon
+* h3c_router
+* minio
+* snmp_manage
+* nacos
+* gitlab
+* huawei_ibmc
+* weblogic
+* activemq
+* boda
+* dubbo
+* grafana
+* jenkins
+* tomcat
+* apisix
+* druid
+* nexus
+* xxl-job
+
 
 
 ### TODO
 
-* 支持基本信息收集
-* 支持基本的后利用(希望能像cme一样)
-* 支持更多协议
+-[ ] 支持基本信息收集
+-[ ] 支持基本的后利用(希望能像cme一样)
+-[ ] 支持更多协议
   * RSTP
   * HTTP PROXY
   * rlogin
@@ -343,16 +355,9 @@ Admin31
   * amqp
   * mqtt
   * http
-  * web
-    * weblogic
-    * websphere
-    * jenkins
-    * grafana
-    * zabbix
-    * ...
-* 支持neutron引擎, 允许通过模板配置插件
-* 新增密码策略限制的功能, 减少爆破次数
-* 新增爆破限制的功能, 防止被封禁
+-[x] 支持neutron引擎, 允许通过模板配置插件
+-[ ] 新增密码策略限制的功能, 减少爆破次数
+-[ ] 新增爆破限制的功能, 防止被封禁
 
 ## Make
 

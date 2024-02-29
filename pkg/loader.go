@@ -3,8 +3,10 @@ package pkg
 import (
 	"encoding/json"
 	templates "github.com/chainreactors/neutron/templates"
+	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/words/mask"
+	"strings"
 )
 
 var (
@@ -75,13 +77,24 @@ func LoadTemplates() error {
 		return err
 	}
 	for _, template := range t {
+		if template.Info.Zombie == "" {
+			continue
+		}
+		Services[template.Info.Zombie] = &Service{Name: template.Info.Name, Source: "template"}
+		err := template.Compile(nil)
+		if err != nil {
+			return err
+		}
+		TemplateMap[template.Info.Zombie] = template
+
+		// load gogo_finger-zombie-service map
 		if template.Info.Zombie != "" {
-			Services[template.Info.Zombie] = &Service{Name: template.Info.Name, Source: "template"}
-			err := template.Compile(nil)
-			if err != nil {
-				return err
+			for _, tag := range template.GetTags() {
+				parsers.ZombieMap[strings.ToLower(tag)] = template.Info.Zombie
 			}
-			TemplateMap[template.Info.Zombie] = template
+			for _, finger := range template.Fingers {
+				parsers.ZombieMap[finger] = template.Info.Zombie
+			}
 		}
 	}
 	return nil

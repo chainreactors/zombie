@@ -71,6 +71,8 @@ github.com/chainreactors/neutron v0.0.0-20240228093200-692745c39581 h1:NfDKuqsMz
 github.com/chainreactors/neutron v0.0.0-20240228093200-692745c39581/go.mod h1:nhCtnrfRsXxIlsI3LBW1ZGA7diwU/VmgFngaBdtTLiw=
 github.com/chainreactors/parsers v0.0.0-20231227070753-8cda94b96b6c h1:QOmvly5wtxR9nvBROReKPyCMxtlALEn7RI0+JQIvNRg=
 github.com/chainreactors/parsers v0.0.0-20231227070753-8cda94b96b6c/go.mod h1:V2w16sBSSiBlmsDR4A0Q9PIk9+TP/6coTXv6olvTI6M=
+github.com/chainreactors/parsers v0.0.0-20240229065700-b803c0d0bb3d h1:h2hwmr/eZvrmnH9eVR2PLpRnlNee4PKD9SvGKO73ax8=
+github.com/chainreactors/parsers v0.0.0-20240229065700-b803c0d0bb3d/go.mod h1:IS0hrYnccfJKU0NA12zdZk4mM7k/Qt4qnzMnFGBFLZI=
 github.com/chainreactors/utils v0.0.0-20231031063336-9477f1b23886 h1:lS2T/uE9tg1MNDPrb44wawbNlD24zBlWoG0H+ZdwDAk=
 github.com/chainreactors/utils v0.0.0-20231031063336-9477f1b23886/go.mod h1:JA4eiQZm+7AsfjXBcIzIdVKBEhDCb16eNtWFCGTxlvs=
 github.com/chainreactors/words v0.4.1-0.20240126095632-02379f43c9f7 h1:ej4OCRRFNWFpzFO40rZgwAsPqzS8HvJcAwgsNOuTTEo=
