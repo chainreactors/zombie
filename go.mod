@@ -20,8 +20,8 @@ require (
 require (
 	github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8
 	github.com/chainreactors/logs v0.0.0-20231027080134-7a11bb413460
-	github.com/chainreactors/neutron v0.0.0-20240228093200-692745c39581
-	github.com/chainreactors/parsers v0.0.0-20240229065700-b803c0d0bb3d
+	github.com/chainreactors/neutron v0.0.0-20240301100258-c162c45ff0e6
+	github.com/chainreactors/parsers v0.0.0-20240301095314-82aa51c2fd31
 	github.com/chainreactors/utils v0.0.0-20231031063336-9477f1b23886
 	github.com/chainreactors/words v0.4.1-0.20240126095632-02379f43c9f7
 	github.com/go-ldap/ldap/v3 v3.4.6
