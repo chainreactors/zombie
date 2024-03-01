@@ -97,6 +97,7 @@ func LoadTemplates() error {
 			}
 		}
 	}
+	parsers.RegisterZombieServiceAlias()
 	return nil
 }
 
