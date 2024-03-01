@@ -55,9 +55,6 @@ func (s *MysqlPlugin) Login() error {
 		return err
 	}
 
-	//conn.SetMaxOpenConns(60)
-	//conn.SetMaxIdleConns(60)
-
 	err = conn.Ping()
 	if err != nil {
 		return err

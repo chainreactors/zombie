@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/chainreactors/logs"
+	"github.com/chainreactors/neutron/common"
 	"github.com/chainreactors/neutron/templates"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/jessevdk/go-flags"
@@ -12,6 +14,11 @@ import (
 type Option struct {
 	IP       string `short:"i" long:"ip" alias:"ipp" description:"String, input ip"`
 	Template string `short:"t" long:"template" description:"File, input template"`
+}
+
+func init() {
+	common.NeutronLog = logs.Log
+	logs.Log.SetLevel(logs.Debug)
 }
 
 func main() {
@@ -43,17 +50,19 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		logs.Log.Importantf("load template %s:%s success", opt.Template, template.Id)
 	} else {
 		panic("please choice template file")
 	}
-
+	logs.Log.Importantf("start execute %s", template.Id)
 	res, err := template.Execute(opt.IP, nil)
 	if err != nil {
 		panic(err)
 	}
+	logs.Log.Importantf("execute %s finished", template.Id)
 	if res == nil {
-		fmt.Println("no result")
+		logs.Log.Warn("no result")
 		return
 	}
-	fmt.Println(opt.IP, template.Id, iutils.ToString(res.PayloadValues["username"]), iutils.ToString(res.PayloadValues["password"]))
+	logs.Log.Infof(opt.IP, template.Id, iutils.ToString(res.PayloadValues["username"]), iutils.ToString(res.PayloadValues["password"]))
 }
