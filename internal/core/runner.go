@@ -9,6 +9,8 @@ import (
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/panjf2000/ants/v2"
+	"github.com/vbauerster/mpb/v8"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -20,8 +22,10 @@ var (
 
 type Runner struct {
 	*Option
+	progress  *mpb.Progress
+	bar       *pkg.Bar
+	stat      *pkg.Statistor
 	wg        *sync.WaitGroup
-	Stat      *pkg.Statistor
 	Users     *Generator
 	Pwds      *Generator
 	Addrs     utils.Addrs
@@ -40,18 +44,24 @@ func (r *Runner) Run() {
 	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		defer r.wg.Done()
 		task := i.(*pkg.Task)
+		defer func() {
+			if task.Locker != nil {
+				task.Locker.Unlock()
+			}
+		}()
 		ctx, tcancel := context.WithCancel(task.Context) // current task context
 		go func() {
 			var res *pkg.Result
+			// dispatch mod
 			if task.Mod == pkg.TaskModUnauth {
 				res = Unauth(task)
-				task.Locker.Unlock()
 			} else if task.Mod == pkg.TaskModCheck {
 				res = Brute(task)
-				task.Locker.Unlock()
 			} else {
 				res = Brute(task)
 			}
+
+			// 如果已经该目标的相关任务已经完成, 忽略后续输出
 			select {
 			case <-ctx.Done():
 				return
@@ -74,14 +84,17 @@ func (r *Runner) Run() {
 			//logs.Log.Debugf("current task %s %s %s cancel", task.URI(), task.Username, task.Password)
 		case <-task.Context.Done():
 			logs.Log.Debugf("all task %s cancel", task.URI())
-		case <-time.After(time.Duration(task.Timeout+10) * time.Second):
+		case <-time.After(time.Duration(task.Timeout*2) * time.Second):
 			tcancel()
 			r.Output(&pkg.Result{
 				Task: task,
 				Err:  fmt.Errorf("goroutine timeout, force cancel"),
 			})
 		}
-	})
+	}, ants.WithPanicHandler(func(err interface{}) {
+		debug.PrintStack()
+		r.wg.Done()
+	}))
 
 	ch := r.targetGenerate()
 	switch r.Mod {
@@ -121,7 +134,6 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 		cur := target
 		go func() {
 			defer targetWG.Done()
-
 			if !r.NoCheckHoneyPot {
 				locker := &sync.Mutex{}
 				locker.Lock()
@@ -246,6 +258,9 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 			}()
 		}
 		wg.Wait()
+		if r.bar != nil {
+			r.bar.Done()
+		}
 	}()
 	return ch
 }
@@ -267,8 +282,9 @@ func (r *Runner) targetGenerate() chan *Target {
 }
 
 func (r *Runner) add(task *pkg.Task) {
+	r.stat.Cur = task.String()
 	r.wg.Add(1)
-	r.Stat.Count++
+	r.stat.Count++
 	_ = r.Pool.Invoke(task)
 }
 

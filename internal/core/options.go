@@ -7,9 +7,11 @@ import (
 	"github.com/chainreactors/files"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/zombie/pkg"
+	"github.com/vbauerster/mpb/v8"
 	"io/ioutil"
 	"strings"
 	"sync"
+	"time"
 )
 
 type Option struct {
@@ -56,6 +58,7 @@ type MiscOptions struct {
 	Mod         string `short:"m" description:"String, mod"`
 	Debug       bool   `long:"debug" description:"Bool, enable debug"`
 	ListService bool   `short:"l" long:"list" description:"Bool, list all service"`
+	Bar         bool   `long:"bar" description:"Bool, enable bar"`
 }
 
 func (opt *Option) Validate() error {
@@ -99,7 +102,12 @@ func (opt *Option) Prepare() (*Runner, error) {
 		wg:        &sync.WaitGroup{},
 		outlock:   &sync.WaitGroup{},
 		OutputCh:  make(chan *pkg.Result),
-		Stat:      &pkg.Statistor{},
+		stat:      &pkg.Statistor{},
+	}
+
+	if opt.Bar {
+		runner.progress = mpb.New(mpb.WithRefreshRate(200 * time.Millisecond))
+		logs.Log.SetOutput(runner.progress)
 	}
 
 	if opt.Mod != "" {
@@ -251,5 +259,8 @@ func (opt *Option) Prepare() (*Runner, error) {
 	}
 	runner.Pwds = pwds
 
+	if runner.progress != nil {
+		runner.bar = pkg.NewBar("targets", len(targets), runner.stat, runner.progress)
+	}
 	return runner, nil
 }

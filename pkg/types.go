@@ -76,6 +76,10 @@ type Task struct {
 	Locker   *sync.Mutex        `json:"-"`
 }
 
+func (t *Task) String() string {
+	return fmt.Sprintf("%s://%s:%s", t.Service, t.IP, t.Port)
+}
+
 func (t *Task) Address() string {
 	return t.IP + ":" + t.Port
 }

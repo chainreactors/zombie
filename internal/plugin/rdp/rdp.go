@@ -55,11 +55,3 @@ func (s *RdpPlugin) GetResult() *pkg.Result {
 	// todo list dbs
 	return &pkg.Result{Task: s.Task, OK: true}
 }
-
-//func (s *RdpPlugin) SetQuery(query string) {
-//	//s.Input = query
-//}
-//
-//func (s *RdpPlugin) Output(res interface{}) {
-//
-//}
