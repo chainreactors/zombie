@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/chainreactors/zombie/pkg"
 	rdpclient "github.com/tomatome/grdp/client"
-	"sync"
 )
 
 type RdpPlugin struct {
@@ -25,18 +24,17 @@ func (s *RdpPlugin) Login() error {
 	if err != nil {
 		return err
 	}
-	var wg sync.WaitGroup
-	wg.Add(1)
+	readyChan := make(chan bool)
+	defer close(readyChan)
 	client.OnReady(func() {
-		wg.Done()
+		readyChan <- true
 	})
-	wg.Wait()
+	<-readyChan
 	s.conn = client
 	return nil
 }
 
 func (s *RdpPlugin) Close() error {
-	return nil
 }
 
 func (s *RdpPlugin) Name() string {
