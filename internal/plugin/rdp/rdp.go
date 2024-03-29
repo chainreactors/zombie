@@ -16,14 +16,6 @@ func (s *RdpPlugin) Unauth() (bool, error) {
 	return false, nil
 }
 
-//func (s *RdpPlugin) Query() bool {
-//	return false
-//}
-//
-//func (s *RdpPlugin) GetInfo() bool {
-//	return false
-//}
-
 func (s *RdpPlugin) Login() error {
 	client := rdpclient.NewClient(s.Address(), s.Username, s.Password, rdpclient.TC_RDP, nil)
 	if client == nil {

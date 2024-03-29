@@ -63,8 +63,10 @@ github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8 h1:8Plpi6haQbU
 github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8/go.mod h1:/Xa9YXhjBlaC33JTD6ZTJFig6pcplak2IDcovf42/6A=
 github.com/chainreactors/logs v0.0.0-20231027080134-7a11bb413460 h1:QYmvaEZHa0e3aQ9Aui9gkm3klPO+yHo5SoPTkoltr78=
 github.com/chainreactors/logs v0.0.0-20231027080134-7a11bb413460/go.mod h1:VZFqkFDGmp7/JOMeraW+YI7kTGcgz9fgc/HArVFnrGQ=
-github.com/chainreactors/neutron v0.0.0-20240301110513-43e97736a0a0 h1:7xZ+ebEmwU9aC+zPUSnJEgrHpf8+iKzzFlAIr+abbx8=
-github.com/chainreactors/neutron v0.0.0-20240301110513-43e97736a0a0/go.mod h1:SIJhRs9LYuE+znKjyPlS6R2BrU3PynWaW2Nlu+ZVnR0=
+github.com/chainreactors/neutron v0.0.0-20240307115454-4c114f8be54d h1:S06CDQZE0RIcijalh4tFFoAhxAZngiH8buQFSJMzWSU=
+github.com/chainreactors/neutron v0.0.0-20240307115454-4c114f8be54d/go.mod h1:SIJhRs9LYuE+znKjyPlS6R2BrU3PynWaW2Nlu+ZVnR0=
+github.com/chainreactors/neutron v0.0.0-20240312093424-9a92c2183ef1 h1:iScpVUOVdTBI0fU92ceU9KEzmTNFth/txSvqh7AcmF0=
+github.com/chainreactors/neutron v0.0.0-20240312093424-9a92c2183ef1/go.mod h1:SIJhRs9LYuE+znKjyPlS6R2BrU3PynWaW2Nlu+ZVnR0=
 github.com/chainreactors/parsers v0.0.0-20240301112247-d985ce2a8425 h1:SO+9FTntf85ruXOg01GZRVZtpf1Ffa2xXtzg/vhHiBY=
 github.com/chainreactors/parsers v0.0.0-20240301112247-d985ce2a8425/go.mod h1:IS0hrYnccfJKU0NA12zdZk4mM7k/Qt4qnzMnFGBFLZI=
 github.com/chainreactors/utils v0.0.0-20231031063336-9477f1b23886 h1:lS2T/uE9tg1MNDPrb44wawbNlD24zBlWoG0H+ZdwDAk=
