@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/zombie/internal/core"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/jessevdk/go-flags"
 )
+
+var ver = "dev"
 
 func Zombie() {
 	var opt core.Option
@@ -46,9 +49,14 @@ func Zombie() {
 `
 	_, err := parser.Parse()
 	if err != nil {
-		if err.(*flags.Error).Type != flags.ErrHelp {
+		if !errors.Is(err, flags.ErrHelp) {
 			fmt.Println(err.Error())
 		}
+		return
+	}
+
+	if opt.Version {
+		fmt.Println(ver)
 		return
 	}
 
