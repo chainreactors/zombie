@@ -59,6 +59,7 @@ type MiscOptions struct {
 	Debug       bool   `long:"debug" description:"Bool, enable debug"`
 	ListService bool   `short:"l" long:"list" description:"Bool, list all service"`
 	Bar         bool   `long:"bar" description:"Bool, enable bar"`
+	Version     bool   `long:"version" description:"Bool, show version"`
 }
 
 func (opt *Option) Validate() error {
