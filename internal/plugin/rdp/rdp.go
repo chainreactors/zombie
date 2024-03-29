@@ -35,6 +35,7 @@ func (s *RdpPlugin) Login() error {
 }
 
 func (s *RdpPlugin) Close() error {
+	return nil
 }
 
 func (s *RdpPlugin) Name() string {
