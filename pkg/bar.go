@@ -14,7 +14,7 @@ func NewBar(u string, total int, stat *Statistor, p *mpb.Progress) *Bar {
 		}
 	}
 	bar := p.AddBar(int64(total),
-		mpb.BarFillerClearOnComplete(),
+		mpb.BarRemoveOnComplete(),
 		mpb.PrependDecorators(
 			decor.Name(u, decor.WC{W: len(u) + 1, C: decor.DindentRight}), // 这里调整了装饰器的参数
 			decor.NewAverageSpeed(0, "% .0f/s ", time.Now()),

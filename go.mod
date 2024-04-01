@@ -20,7 +20,7 @@ require (
 require (
 	github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8
 	github.com/chainreactors/logs v0.0.0-20231027080134-7a11bb413460
-	github.com/chainreactors/neutron v0.0.0-20240312093424-9a92c2183ef1
+	github.com/chainreactors/neutron v0.0.0-20240329012448-1d75b5406fd6
 	github.com/chainreactors/parsers v0.0.0-20240301112247-d985ce2a8425
 	github.com/chainreactors/utils v0.0.0-20231031063336-9477f1b23886
 	github.com/chainreactors/words v0.4.1-0.20240126095632-02379f43c9f7
@@ -33,7 +33,7 @@ require (
 	github.com/vbauerster/mpb/v8 v8.7.2
 	go.mongodb.org/mongo-driver v1.12.0
 	golang.org/x/net v0.21.0
-	sigs.k8s.io/yaml v1.3.0
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
@@ -69,7 +69,6 @@ require (
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
 //github.com/go-sql-driver/mysql => ./external/github.com/go-sql-driver/mysql
