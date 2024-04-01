@@ -72,7 +72,10 @@ func NeutronScan(scheme, target string, payload map[string]interface{}, template
 		return "", "", err
 	}
 	if res == nil {
-		return "", "", errors.New(fmt.Sprintf("%s failed", template.Id))
+		return "", "", errors.New(fmt.Sprintf("nil result, %s", template.Id))
+	}
+	if !res.Matched {
+		return "", "", errors.New(fmt.Sprintf("not matched, %s", template.Id))
 	}
 	return iutils.ToString(res.PayloadValues["username"]), iutils.ToString(res.PayloadValues["password"]), nil
 }
