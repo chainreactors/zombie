@@ -103,7 +103,9 @@ func (opt *Option) Prepare() (*Runner, error) {
 		wg:        &sync.WaitGroup{},
 		outlock:   &sync.WaitGroup{},
 		OutputCh:  make(chan *pkg.Result),
-		stat:      &pkg.Statistor{},
+		stat: &pkg.Statistor{
+			Tasks: make(map[string]int),
+		},
 	}
 
 	if opt.Bar {

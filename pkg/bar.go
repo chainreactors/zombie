@@ -25,7 +25,7 @@ func NewBar(u string, total int, stat *Statistor, p *mpb.Progress) *Bar {
 		),
 		mpb.AppendDecorators(
 			decor.Any(func(s decor.Statistics) string {
-				return fmt.Sprintf("tasks: %d ", stat.Count)
+				return fmt.Sprintf("tasks: %d ", stat.Total)
 			}),
 			decor.Percentage(),
 			decor.Elapsed(decor.ET_STYLE_GO, decor.WC{W: 4}),

@@ -42,9 +42,9 @@ type Runner struct {
 func (r *Runner) Run() {
 	go r.OutputHandler()
 	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
-		defer r.wg.Done()
 		task := i.(*pkg.Task)
 		defer func() {
+			r.wg.Done()
 			if task.Locker != nil {
 				task.Locker.Unlock()
 			}
@@ -104,6 +104,9 @@ func (r *Runner) Run() {
 		r.RunWithClusterBomb(ch)
 	}
 	r.outlock.Wait()
+	close(r.OutputCh)
+	logs.Log.Importantf("total: %d, success: %d", r.stat.Total, r.stat.Success)
+	logs.Log.Importantf("%s", r.stat.TaskString())
 }
 
 func (r *Runner) RunWithSniper(targets chan *Target) {
@@ -132,6 +135,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 		targetWG.Add(1)
 		targetCtx, cancel := context.WithCancel(context.Background())
 		cur := target
+
 		go func() {
 			defer targetWG.Done()
 			if !r.NoCheckHoneyPot {
@@ -283,13 +287,17 @@ func (r *Runner) targetGenerate() chan *Target {
 
 func (r *Runner) add(task *pkg.Task) {
 	r.stat.Cur = task.String()
+	r.stat.Tasks[task.Service]++
 	r.wg.Add(1)
-	r.stat.Count++
+	r.stat.Total++
 	_ = r.Pool.Invoke(task)
 }
 
 func (r *Runner) Output(res *pkg.Result) {
 	r.outlock.Add(1)
+	if res.OK {
+		r.stat.Success++
+	}
 	r.OutputCh <- res
 }
 
