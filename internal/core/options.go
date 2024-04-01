@@ -9,6 +9,7 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/vbauerster/mpb/v8"
 	"io/ioutil"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -109,7 +110,10 @@ func (opt *Option) Prepare() (*Runner, error) {
 	}
 
 	if opt.Bar {
-		runner.progress = mpb.New(mpb.WithRefreshRate(200 * time.Millisecond))
+		runner.progress = mpb.New(
+			mpb.WithRefreshRate(200*time.Millisecond),
+			mpb.WithOutput(os.Stdout),
+		)
 		logs.Log.SetOutput(runner.progress)
 	}
 

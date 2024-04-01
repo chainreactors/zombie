@@ -104,9 +104,10 @@ func (r *Runner) Run() {
 		r.RunWithClusterBomb(ch)
 	}
 	r.outlock.Wait()
+	time.Sleep(1 * time.Second)
 	close(r.OutputCh)
-	logs.Log.Importantf("total: %d, success: %d", r.stat.Total, r.stat.Success)
 	logs.Log.Importantf("%s", r.stat.TaskString())
+	logs.Log.Importantf("total: %d, success: %d", r.stat.Total, r.stat.Success)
 }
 
 func (r *Runner) RunWithSniper(targets chan *Target) {
