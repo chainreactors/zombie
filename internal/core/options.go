@@ -103,6 +103,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		Option:    opt,
 		wg:        &sync.WaitGroup{},
 		outlock:   &sync.WaitGroup{},
+		addlock:   &sync.Mutex{},
 		OutputCh:  make(chan *pkg.Result),
 		stat: &pkg.Statistor{
 			Tasks: make(map[string]int),
@@ -172,7 +173,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 			targets = append(targets, t)
 		}
 		if opt.IPFile != "" {
-			logs.Log.Importantf("load %s targets from file: %s", len(targets), opt.IPFile)
+			logs.Log.Importantf("load %d targets from file: %s", len(targets), opt.IPFile)
 		}
 	}
 
