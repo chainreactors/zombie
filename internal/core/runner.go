@@ -26,13 +26,14 @@ type Runner struct {
 	bar       *pkg.Bar
 	stat      *pkg.Statistor
 	wg        *sync.WaitGroup
+	outlock   *sync.WaitGroup
+	addlock   *sync.Mutex
 	Users     *Generator
 	Pwds      *Generator
 	Addrs     utils.Addrs
 	Targets   []*Target
 	Services  []string
 	OutputCh  chan *pkg.Result
-	outlock   *sync.WaitGroup
 	File      *files.File
 	OutFunc   func(string)
 	FirstOnly bool
@@ -288,9 +289,11 @@ func (r *Runner) targetGenerate() chan *Target {
 
 func (r *Runner) add(task *pkg.Task) {
 	r.stat.Cur = task.String()
+	r.addlock.Lock()
 	r.stat.Tasks[task.Service]++
 	r.wg.Add(1)
 	r.stat.Total++
+	r.addlock.Unlock()
 	_ = r.Pool.Invoke(task)
 }
 
