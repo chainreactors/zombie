@@ -44,7 +44,7 @@ func Zombie() {
 		brute from json file:
 			zombie -j 1.json
 
-		internal password generate:
+		weak password generate:
 			zombie -l 1.txt -p google --weakpass
 `
 	_, err := parser.Parse()
