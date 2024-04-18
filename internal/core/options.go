@@ -49,15 +49,15 @@ type WordOptions struct {
 	Top             int  `long:"top" default:"0" description:"Int, top n words"`
 	ForceContinue   bool `long:"force-continue" description:"Bool, force continue, not only stop when first success ever host"`
 	WeakPassWord    bool `long:"weakpass" description:"Bool, common weak password rule"`
-	NoUnAuth        bool `long:"no-unauth" description:"Bool, not check unauth"`
-	NoCheckHoneyPot bool `long:"no-honeypot" description:"Bool, not check honeypot"`
+	NoUnAuth        bool `long:"no-unauth" description:"Bool, skip check unauth"`
+	NoCheckHoneyPot bool `long:"no-honeypot" description:"Bool, skip check honeypot"`
 }
 
 type MiscOptions struct {
 	Raw         bool   `long:"raw" description:"Bool, parser raw username/password"`
 	Threads     int    `short:"t" default:"100" description:"Int, threads"`
 	Timeout     int    `long:"timeout" default:"5" description:"Int, timeout"`
-	Mod         string `short:"m" description:"String, mod"`
+	Mod         string `short:"m" default:"clusterbomb" description:"String, clusterbomb/sniper"`
 	Debug       bool   `long:"debug" description:"Bool, enable debug"`
 	ListService bool   `short:"l" long:"list" description:"Bool, list all service"`
 	Bar         bool   `long:"bar" description:"Bool, enable bar"`
@@ -119,11 +119,6 @@ func (opt *Option) Prepare() (*Runner, error) {
 		logs.Log.SetOutput(runner.progress)
 	}
 
-	if opt.Mod != "" {
-		runner.Mod = opt.Mod
-	} else {
-		runner.Mod = ModBomb
-	}
 	logs.Log.Importantf("mod: %s, check-unauth: %t, check-honeypot: %t", runner.Mod, !runner.NoUnAuth, !runner.NoCheckHoneyPot)
 
 	if opt.ServiceName != "" {
