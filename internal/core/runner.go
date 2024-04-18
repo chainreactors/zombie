@@ -18,7 +18,12 @@ import (
 var (
 	ModSniper = "sniper"
 	ModBomb   = "clusterbomb"
+	RunOpt    = &runOpt{}
 )
+
+type runOpt struct {
+	Raw bool
+}
 
 type Runner struct {
 	*Option

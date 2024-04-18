@@ -171,15 +171,3 @@ type Basic struct {
 	Input string
 	Data  string
 }
-
-func ParseMethod(input string) (string, string) {
-	if strings.HasPrefix(input, "pk:") {
-		return "pk", input[3:]
-	} else if strings.HasPrefix(input, "hash:") {
-		return "hash", input[5:]
-	} else if strings.HasPrefix(input, "raw:") {
-		return "raw", input[4:]
-	} else {
-		return "", input
-	}
-}

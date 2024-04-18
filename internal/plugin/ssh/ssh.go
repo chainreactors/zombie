@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"github.com/chainreactors/zombie/internal/core"
 	"github.com/chainreactors/zombie/pkg"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
@@ -17,7 +18,7 @@ type SshPlugin struct {
 
 func (s *SshPlugin) Login() error {
 	var auth []ssh.AuthMethod
-	if method, pkfile := pkg.ParseMethod(s.Password); method == "pk" && pkfile != "" {
+	if method, pkfile := core.ParseMethod(s.Password); method == "pk" && pkfile != "" {
 		auth = []ssh.AuthMethod{
 			publicKeyAuthFunc(pkfile),
 		}

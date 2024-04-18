@@ -31,3 +31,18 @@ func randomString(length int) string {
 	}
 	return sb.String()
 }
+
+func ParseMethod(input string) (string, string) {
+	if RunOpt.Raw {
+		return "", input
+	}
+	if strings.HasPrefix(input, "pk:") {
+		return "pk", input[3:]
+	} else if strings.HasPrefix(input, "hash:") {
+		return "hash", input[5:]
+	} else if strings.HasPrefix(input, "raw:") {
+		return "raw", input[4:]
+	} else {
+		return "", input
+	}
+}
