@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/chainreactors/fingers/common"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/parsers"
 	"strconv"
@@ -85,7 +86,11 @@ func (t *Task) Address() string {
 }
 
 func (t *Task) URI() string {
-	return t.Scheme + "://" + t.Address()
+	if t.Scheme != "" {
+		return t.Scheme + "://" + t.Address()
+	} else {
+		return t.Service + "://" + t.Address()
+	}
 }
 
 func (t *Task) URL() string {
@@ -118,7 +123,7 @@ func NewResult(task *Task, err error) *Result {
 
 type Result struct {
 	*Task
-	Vulns      parsers.Vulns
+	Vulns      common.Vulns
 	Extracteds parsers.Extracteds
 	OK         bool
 	Err        error
@@ -172,7 +177,7 @@ func ParseMethod(input string) (string, string) {
 		return "pk", input[3:]
 	} else if strings.HasPrefix(input, "hash:") {
 		return "hash", input[5:]
-	} else if strings.HasPrefix(input, "raw") {
+	} else if strings.HasPrefix(input, "raw:") {
 		return "raw", input[4:]
 	} else {
 		return "", input

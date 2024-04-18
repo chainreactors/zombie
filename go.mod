@@ -19,10 +19,10 @@ require (
 
 require (
 	github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8
-	github.com/chainreactors/logs v0.0.0-20231027080134-7a11bb413460
-	github.com/chainreactors/neutron v0.0.0-20240329012448-1d75b5406fd6
-	github.com/chainreactors/parsers v0.0.0-20240301112247-d985ce2a8425
-	github.com/chainreactors/utils v0.0.0-20231031063336-9477f1b23886
+	github.com/chainreactors/logs v0.0.0-20240207121836-c946f072f81f
+	github.com/chainreactors/neutron v0.0.0-20240417160347-cb9446e38283
+	github.com/chainreactors/parsers v0.0.0-20240415080936-e3e484abe2f7
+	github.com/chainreactors/utils v0.0.0-20240302165634-2b8494c9cfc3
 	github.com/chainreactors/words v0.4.1-0.20240126095632-02379f43c9f7
 	github.com/go-ldap/ldap/v3 v3.4.6
 	github.com/jessevdk/go-flags v1.5.0
@@ -35,6 +35,8 @@ require (
 	golang.org/x/net v0.21.0
 	sigs.k8s.io/yaml v1.4.0
 )
+
+require github.com/chainreactors/fingers v0.0.0-20240304115656-fa8ca9fc375f
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect

@@ -80,7 +80,7 @@ func Zombie() {
 	}
 
 	if opt.Debug {
-		logs.Log.Level = logs.Debug
+		logs.Log.SetLevel(logs.Debug)
 	}
 
 	runner, err := opt.Prepare()
