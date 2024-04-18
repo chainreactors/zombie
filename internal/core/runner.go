@@ -148,6 +148,7 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 					Port:     cur.Port,
 					Service:  cur.Service,
 					Scheme:   cur.Scheme,
+					Param:    cur.Param,
 					Context:  targetCtx,
 					Canceler: cancel,
 					Timeout:  r.Timeout,

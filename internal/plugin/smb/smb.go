@@ -100,7 +100,7 @@ func (s *SmbPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Logoff()
 	}
-	return pkg.NilConnError{Service: s.Service}
+	return nil
 }
 
 func (s *SmbPlugin) Name() string {

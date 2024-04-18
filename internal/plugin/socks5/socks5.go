@@ -66,7 +66,7 @@ func (s *Socks5Plugin) Login() error {
 }
 
 func (s *Socks5Plugin) Close() error {
-	return pkg.NilConnError{s.Service}
+	return nil
 }
 
 func (s *Socks5Plugin) Name() string {

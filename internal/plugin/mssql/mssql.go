@@ -68,5 +68,5 @@ func (s *MssqlPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
-	return pkg.NilConnError{s.Service}
+	return nil
 }

@@ -51,5 +51,5 @@ func (s *FtpPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Quit()
 	}
-	return pkg.NilConnError{Service: s.Service}
+	return nil
 }

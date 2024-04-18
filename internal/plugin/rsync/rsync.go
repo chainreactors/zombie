@@ -52,5 +52,5 @@ func (s *RsyncPlugin) GetResult() *pkg.Result {
 }
 
 func (s *RsyncPlugin) Close() error {
-	return pkg.NilConnError{s.Service}
+	return nil
 }

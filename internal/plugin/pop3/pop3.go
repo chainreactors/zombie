@@ -48,7 +48,7 @@ func (s *Pop3Plugin) GetResult() *pkg.Result {
 }
 
 func (s *Pop3Plugin) Close() error {
-	return pkg.NilConnError{s.Service}
+	return nil
 }
 
 //

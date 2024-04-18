@@ -35,7 +35,7 @@ func (s *TelnetPlugin) Login() error {
 }
 
 func (s *TelnetPlugin) Close() error {
-	return pkg.NilConnError{Service: s.Service}
+	return nil
 }
 
 func (s *TelnetPlugin) Name() string {

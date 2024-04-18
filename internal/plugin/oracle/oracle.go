@@ -39,7 +39,7 @@ func (s *OraclePlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
-	return pkg.NilConnError{s.Service}
+	return nil
 }
 
 func (s *OraclePlugin) Name() string {

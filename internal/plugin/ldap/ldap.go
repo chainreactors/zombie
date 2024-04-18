@@ -40,10 +40,9 @@ func (s *LdapPlugin) Login() error {
 
 func (s *LdapPlugin) Close() error {
 	if s.conn != nil {
-		s.conn.Close()
-		return nil
+		return s.conn.Close()
 	}
-	return pkg.NilConnError{s.Service}
+	return nil
 }
 
 func (s *LdapPlugin) Name() string {

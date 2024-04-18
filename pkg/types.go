@@ -15,17 +15,11 @@ import (
 )
 
 var (
-	InterruptError = errors.New("interrupt")
-	RunOpt         = &runOpt{}
+	InterruptError      = errors.New("interrupt")
+	ErrorWrongUserOrPwd = errors.New("wrong username or password")
+
+	RunOpt = &runOpt{}
 )
-
-type NilConnError struct {
-	Service string
-}
-
-func (e NilConnError) Error() string {
-	return e.Service + " has nil conn"
-}
 
 type TimeoutError struct {
 	err     error
