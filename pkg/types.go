@@ -16,6 +16,7 @@ import (
 
 var (
 	InterruptError = errors.New("interrupt")
+	RunOpt         = &runOpt{}
 )
 
 type NilConnError struct {
@@ -167,7 +168,21 @@ func (r *Result) Format(form string) string {
 	}
 }
 
-type Basic struct {
-	Input string
-	Data  string
+type runOpt struct {
+	Raw bool
+}
+
+func ParseMethod(input string) (string, string) {
+	if RunOpt.Raw {
+		return "", input
+	}
+	if strings.HasPrefix(input, "pk:") {
+		return "pk", input[3:]
+	} else if strings.HasPrefix(input, "hash:") {
+		return "hash", input[5:]
+	} else if strings.HasPrefix(input, "raw:") {
+		return "raw", input[4:]
+	} else {
+		return "", input
+	}
 }
