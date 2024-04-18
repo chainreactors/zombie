@@ -80,7 +80,7 @@ func (s *PostgresPlugin) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
-	return pkg.NilConnError{s.Service}
+	return nil
 }
 
 //func GetPostBaseInfo(SqlCon *sql.DB) *PostgreInf {

@@ -79,11 +79,13 @@ func Dispatch(task *pkg.Task) Plugin {
 		return &http.HttpPlugin{
 			Task: task,
 			Path: task.Param["path"],
+			Host: task.Param["host"],
 		}
 	case pkg.HTTPSService.String():
 		return &http.HttpPlugin{
 			Task: task,
 			Path: task.Param["path"],
+			Host: task.Param["host"],
 		}
 	case pkg.SOCKS5Service.String():
 		task.Timeout = 10

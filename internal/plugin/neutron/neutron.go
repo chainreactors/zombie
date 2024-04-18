@@ -11,6 +11,7 @@ import (
 type NeutronPlugin struct {
 	*pkg.Task
 	Service string
+	Host    string
 }
 
 func (s *NeutronPlugin) Name() string {
@@ -55,7 +56,7 @@ func (s *NeutronPlugin) GetResult() *pkg.Result {
 }
 
 func (s *NeutronPlugin) Close() error {
-	return pkg.NilConnError{s.Service}
+	return nil
 }
 
 func NeutronScan(scheme, target string, payload map[string]interface{}, template *templates.Template) (string, string, error) {
