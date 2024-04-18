@@ -1,10 +1,9 @@
 package smb
 
 import (
-	"encoding/hex"
+	"github.com/chainreactors/utils/encode"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/hirochachacha/go-smb2"
-	//"github.com/hirochachacha/go-smb2"
 	"net"
 	"strings"
 	"time"
@@ -27,33 +26,19 @@ func (s *SmbPlugin) Unauth() (bool, error) {
 		user = ""
 	}
 
+	dialer := &smb2.Dialer{}
+	dialer.Initiator = &smb2.NTLMInitiator{
+		User:     user,
+		Domain:   domain,
+		Password: "",
+	}
+
 	c, err := net.DialTimeout("tcp", s.Address(), time.Duration(s.Timeout)*time.Second)
 	if err != nil {
 		return false, err
 	}
 
-	d := &smb2.Dialer{}
-	if strings.HasPrefix(s.Password, "hash:") {
-		hash := s.Password[5:]
-		buf := make([]byte, len(hash)/2)
-		hex.Decode(buf, []byte(hash))
-		d.Initiator = &smb2.NTLMInitiator{
-			User:   user,
-			Domain: domain,
-			Hash:   buf,
-		}
-	} else {
-		d.Initiator = &smb2.NTLMInitiator{
-			User:   user,
-			Domain: domain,
-			//Hash: buf,
-			Password: "",
-		}
-	}
-
-	_ = c.SetDeadline(time.Now().Add(time.Duration(s.Timeout) * time.Second))
-
-	conn, err := d.Dial(c)
+	conn, err := dialer.Dial(c)
 	if err != nil {
 		return false, err
 	}
@@ -77,33 +62,28 @@ func (s *SmbPlugin) Login() error {
 		user = s.Username
 	}
 
+	dialer := &smb2.Dialer{}
+	method, pwd := pkg.ParseMethod(s.Password)
+	if method == "hash" {
+		dialer.Initiator = &smb2.NTLMInitiator{
+			User:   user,
+			Domain: domain,
+			Hash:   encode.UnHexlify(pwd),
+		}
+	} else {
+		dialer.Initiator = &smb2.NTLMInitiator{
+			User:     user,
+			Domain:   domain,
+			Password: s.Password,
+		}
+	}
+
 	c, err := net.DialTimeout("tcp", s.Address(), time.Duration(s.Timeout)*time.Second)
 	if err != nil {
 		return err
 	}
 
-	d := &smb2.Dialer{}
-	if strings.HasPrefix(s.Password, "hash:") {
-		hash := s.Password[5:]
-		buf := make([]byte, len(hash)/2)
-		hex.Decode(buf, []byte(hash))
-		d.Initiator = &smb2.NTLMInitiator{
-			User:   user,
-			Domain: domain,
-			Hash:   buf,
-		}
-	} else {
-		d.Initiator = &smb2.NTLMInitiator{
-			User:   user,
-			Domain: domain,
-			//Hash: buf,
-			Password: s.Password,
-		}
-	}
-
-	_ = c.SetDeadline(time.Now().Add(time.Duration(s.Timeout) * time.Second))
-
-	conn, err := d.Dial(c)
+	conn, err := dialer.Dial(c)
 	if err != nil {
 		return err
 	}
