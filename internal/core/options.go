@@ -54,6 +54,7 @@ type WordOptions struct {
 }
 
 type MiscOptions struct {
+	Raw         bool   `long:"raw" description:"Bool, parser raw username/password"`
 	Threads     int    `short:"t" default:"100" description:"Int, threads"`
 	Timeout     int    `long:"timeout" default:"5" description:"Int, timeout"`
 	Mod         string `short:"m" description:"String, mod"`
