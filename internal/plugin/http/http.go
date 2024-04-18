@@ -40,7 +40,7 @@ func (s *HttpPlugin) Login() error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode == 401 || resp.StatusCode == 403 {
+	if resp.StatusCode != 200 {
 		return pkg.ErrorWrongUserOrPwd
 	}
 	return nil
