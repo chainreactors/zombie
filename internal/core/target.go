@@ -91,11 +91,16 @@ func ParseUrl(u string) (*Target, bool) {
 
 func SimpleParseUrl(u string) *Target {
 	result := strings.Split(u, ":")
-	t := &Target{
-		IP:   result[0],
-		Port: result[1],
+	if len(result) == 1 {
+		return &Target{
+			IP: result[0],
+		}
+	} else {
+		return &Target{
+			IP:   result[0],
+			Port: result[1],
+		}
 	}
-	return t
 }
 
 func LoadGogoFile(filename string) ([]*Target, error) {

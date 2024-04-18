@@ -160,7 +160,6 @@ func (opt *Option) Prepare() (*Runner, error) {
 
 		// 处理输入参数
 		for _, input := range ipslice {
-			t := &Target{}
 			t, ok := ParseUrl(input)
 			if !ok {
 				t = SimpleParseUrl(input)
@@ -184,7 +183,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		}
 
 		// 命令行中指定的 param 会覆盖原有的配置
-		if opt.Param != nil {
+		if len(opt.Param) > 0 {
 			t.Param = opt.Param
 		}
 	}
