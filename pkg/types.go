@@ -40,6 +40,7 @@ const (
 	TaskModUnauth
 	TaskModCheck
 	TaskModSniper
+	TaskModPitchfork
 )
 
 func (m TaskMod) String() string {
@@ -52,6 +53,8 @@ func (m TaskMod) String() string {
 		return "check"
 	case TaskModSniper:
 		return "sniper"
+	case TaskModPitchfork:
+		return "pitchfork"
 	default:
 		return "unknown"
 	}

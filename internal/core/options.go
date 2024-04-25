@@ -27,6 +27,8 @@ type InputOptions struct {
 	IPFile        string            `short:"I" long:"IP" description:"File, input ip list filename"`
 	Username      []string          `short:"u" long:"user" description:"Strings, input usernames"`
 	UsernameFile  string            `short:"U" long:"USER" description:"File, input username list filename"`
+	Auth          []string          `short:"a" long:"auth" description:"Strings, input auth, username::password"`
+	AuthFile      string            `short:"A" long:"AUTH" description:"File, input auth list filename"`
 	UsernameRule  string            `long:"userrule" description:"String, input username generator rule filename"`
 	Password      []string          `short:"p" long:"pwd" description:"String, input passwords"`
 	PasswordFile  string            `short:"P" long:"PWD" description:"File, input password list filename"`
@@ -204,7 +206,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		logs.Log.Importantf("load dictionaries: %s", s.String())
 	}
 
-	var users, pwds *Generator
+	var users, pwds, auths *Generator
 	// load username
 	if opt.Username != nil {
 		if len(opt.Username) == 1 && dicts != nil {
@@ -261,6 +263,18 @@ func (opt *Option) Prepare() (*Runner, error) {
 		}
 	}
 	runner.Pwds = pwds
+
+	// load auth pair
+	if opt.Auth != nil {
+		auths = NewGeneratorWithInput(opt.Auth)
+	} else if opt.AuthFile != "" {
+		auths, err = NewGeneratorWithFile(opt.AuthFile)
+		if err != nil {
+			return nil, err
+		}
+		logs.Log.Importantf("load auth from %s", opt.AuthFile)
+	}
+	runner.Auths = auths
 
 	if runner.progress != nil {
 		runner.bar = pkg.NewBar("targets", len(targets), runner.stat, runner.progress)

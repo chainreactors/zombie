@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/zombie/pkg"
 	"net"
@@ -101,23 +100,4 @@ func SimpleParseUrl(u string) *Target {
 			Port: result[1],
 		}
 	}
-}
-
-func LoadGogoFile(filename string) ([]*Target, error) {
-	gd, err := parsers.ParseGogoData(filename)
-	if err != nil {
-		return nil, err
-	}
-	ptargets := gd.ToZombie()
-	var targets []*Target
-	for _, t := range ptargets {
-		targets = append(targets, &Target{
-			IP:      t.IP,
-			Port:    t.Port,
-			Service: t.Service,
-			Scheme:  t.Scheme,
-			Param:   t.Param,
-		})
-	}
-	return targets, nil
 }
