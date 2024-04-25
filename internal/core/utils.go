@@ -1,10 +1,30 @@
 package core
 
 import (
+	"github.com/chainreactors/parsers"
 	"io/ioutil"
 	"math/rand"
 	"strings"
 )
+
+func LoadGogoFile(filename string) ([]*Target, error) {
+	gd, err := parsers.ParseGogoData(filename)
+	if err != nil {
+		return nil, err
+	}
+	ptargets := gd.ToZombie()
+	var targets []*Target
+	for _, t := range ptargets {
+		targets = append(targets, &Target{
+			IP:      t.IP,
+			Port:    t.Port,
+			Service: t.Service,
+			Scheme:  t.Scheme,
+			Param:   t.Param,
+		})
+	}
+	return targets, nil
+}
 
 func loadFileToSlice(filename string) ([]string, error) {
 	var ss []string
@@ -21,6 +41,18 @@ func loadFileToSlice(filename string) ([]string, error) {
 	}
 
 	return ss, nil
+}
+
+func parseAuthPair(auth string) (string, string) {
+	pair := strings.Split(auth, "::")
+	switch len(pair) {
+	case 1:
+		return auth, ""
+	case 2:
+		return pair[0], pair[1]
+	default:
+		return pair[0], auth[strings.Index(auth, "::")+2:]
+	}
 }
 
 func randomString(length int) string {

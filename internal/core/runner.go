@@ -16,20 +16,23 @@ import (
 )
 
 var (
-	ModSniper = "sniper"
-	ModBomb   = "clusterbomb"
+	ModSniper    = "sniper"
+	ModBomb      = "clusterbomb"
+	ModPitchFork = "pitchfork"
 )
 
 type Runner struct {
 	*Option
-	progress  *mpb.Progress
-	bar       *pkg.Bar
-	stat      *pkg.Statistor
-	wg        *sync.WaitGroup
-	outlock   *sync.WaitGroup
-	addlock   *sync.Mutex
+	progress *mpb.Progress
+	bar      *pkg.Bar
+	stat     *pkg.Statistor
+	wg       *sync.WaitGroup
+	outlock  *sync.WaitGroup
+	addlock  *sync.Mutex
+
 	Users     *Generator
 	Pwds      *Generator
+	Auths     *Generator
 	Addrs     utils.Addrs
 	Targets   []*Target
 	Services  []string
@@ -103,6 +106,10 @@ func (r *Runner) Run() {
 		r.RunWithSniper(ch)
 	case ModBomb:
 		r.RunWithClusterBomb(ch)
+	case ModPitchFork:
+		r.RunWithPitchfork(ch)
+	default:
+		return
 	}
 	r.outlock.Wait()
 	time.Sleep(1 * time.Second)
@@ -113,6 +120,7 @@ func (r *Runner) Run() {
 
 func (r *Runner) RunWithSniper(targets chan *Target) {
 	for target := range targets {
+		targetCtx, cancel := context.WithCancel(context.Background())
 		r.add(&pkg.Task{
 			IP:       target.IP,
 			Port:     target.Port,
@@ -121,10 +129,39 @@ func (r *Runner) RunWithSniper(targets chan *Target) {
 			Username: target.Username,
 			Password: target.Password,
 			Param:    target.Param,
-			Context:  context.Background(),
+			Context:  targetCtx,
+			Canceler: cancel,
 			Timeout:  r.Timeout,
 			Mod:      pkg.TaskModSniper,
 		})
+	}
+	r.wg.Wait()
+}
+
+func (r *Runner) RunWithPitchfork(target chan *Target) {
+	var pairs [][]string
+	for _, auth := range r.Auths.RunAsSlice() {
+		username, password := parseAuthPair(auth)
+		pairs = append(pairs, []string{username, password})
+	}
+
+	for target := range target {
+		targetCtx, cancel := context.WithCancel(context.Background())
+		for _, pair := range pairs {
+			r.add(&pkg.Task{
+				IP:       target.IP,
+				Port:     target.Port,
+				Service:  target.Service,
+				Scheme:   target.Scheme,
+				Username: pair[0],
+				Password: pair[1],
+				Param:    target.Param,
+				Context:  targetCtx,
+				Canceler: cancel,
+				Timeout:  r.Timeout,
+				Mod:      pkg.TaskModPitchfork,
+			})
+		}
 	}
 	r.wg.Wait()
 }
