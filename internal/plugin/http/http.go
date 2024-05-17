@@ -2,7 +2,6 @@ package http
 
 import (
 	"fmt"
-	"github.com/chainreactors/utils/encode"
 	"github.com/chainreactors/zombie/pkg"
 	"net/http"
 )
@@ -34,8 +33,7 @@ func (s *HttpPlugin) Login() error {
 	if s.Host != "" {
 		req.Host = s.Host
 	}
-	auth := fmt.Sprintf("Basic %s", encode.Base64Encode([]byte(fmt.Sprintf("%s:%s", s.Username, s.Password))))
-	req.Header.Add("Authorization", auth)
+	req.SetBasicAuth(s.Username, s.Password)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
