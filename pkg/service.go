@@ -103,7 +103,7 @@ func UseDefaultPassword(service string, top int) []string {
 			return pwds[:top]
 		}
 	} else {
-		return []string{"admin"}
+		return Keywords["top10_pwd"]
 	}
 }
 
@@ -111,6 +111,6 @@ func UseDefaultUser(service string) []string {
 	if users, ok := Keywords[service+"_user"]; ok {
 		return users
 	} else {
-		return []string{"admin"}
+		return Keywords["top10_user"]
 	}
 }
