@@ -33,6 +33,7 @@ func (s *HttpPlugin) Login() error {
 	if s.Host != "" {
 		req.Host = s.Host
 	}
+	req.Header.Set("User-Agent", pkg.RandomUA())
 	req.SetBasicAuth(s.Username, s.Password)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
