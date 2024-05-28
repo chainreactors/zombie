@@ -67,8 +67,8 @@ func SSHConnect(task *pkg.Task, auth []ssh.AuthMethod) (conn *ssh.Client, err er
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
+		Auth: auth,
 	}
-	config.Auth = auth
 
 	conn, err = ssh.Dial("tcp", task.Address(), config)
 	if err != nil {
