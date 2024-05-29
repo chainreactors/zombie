@@ -179,17 +179,31 @@ func (opt *Option) Prepare() (*Runner, error) {
 		if opt.ServiceName != "" {
 			t.UpdateService(opt.ServiceName)
 		}
+
 		if t.Service == "" {
 			logs.Log.Warn(t.String() + " null service")
 			continue
+		}
+
+		if opt.FilterService != "" {
+			var ok bool
+			for _, s := range strings.Split(opt.FilterService, ",") {
+				if s == t.Service {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
 		}
 
 		// 命令行中指定的 param 会覆盖原有的配置
 		if len(opt.Param) > 0 {
 			t.Param = opt.Param
 		}
+		runner.Targets = append(runner.Targets, t)
 	}
-	runner.Targets = targets
 
 	var dicts [][]string
 	if opt.Dictionaries != nil {
