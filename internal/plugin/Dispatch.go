@@ -90,6 +90,11 @@ func Dispatch(task *pkg.Task) Plugin {
 			Path: task.Param["path"],
 			Host: task.Param["host"],
 		}
+	case pkg.HTTPProxyService.String():
+		return &http.HTTPProxyPlugin{
+			Task:    task,
+			TestURL: task.Param["url"],
+		}
 	case pkg.GETService.String():
 		return http.NewHTTPPlugin("GET", task)
 	case pkg.PostService.String():

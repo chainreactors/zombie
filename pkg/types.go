@@ -64,6 +64,8 @@ var (
 	AmqpService       = &Service{Name: "amqp", DefaultPort: "5672", Source: "plugin"}
 	MqttService       = &Service{Name: "mqtt", DefaultPort: "1883", Source: "plugin"}
 	MemcachedService  = &Service{Name: "memcached", DefaultPort: "11211", Source: "plugin"}
+	HTTPProxyService  = &Service{Name: "http_proxy", DefaultPort: "8080", Source: "plugin"}
+	HTTPDigestService = &Service{Name: "digest", DefaultPort: "80", Source: "plugin"}
 )
 
 var Services = services{}
@@ -107,7 +109,12 @@ func RegisterServices() {
 	Services.Register(TELNETService)
 	Services.Register(POP3Service)
 	Services.Register(RSYNCService)
-
+	Services.Register(ZookeeperService)
+	Services.Register(AmqpService)
+	Services.Register(MqttService)
+	Services.Register(MemcachedService)
+	Services.Register(HTTPProxyService)
+	Services.Register(HTTPDigestService)
 	// alias service
 	Services.Register(&Service{Name: "tomcat", DefaultPort: "8080", Source: "plugin"})
 }

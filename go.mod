@@ -41,6 +41,8 @@ require (
 	sigs.k8s.io/yaml v1.4.0
 )
 
+require github.com/xinsnake/go-http-digest-auth-client v0.6.0
+
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
