@@ -12,7 +12,7 @@ type RdpPlugin struct {
 }
 
 func (s *RdpPlugin) Unauth() (bool, error) {
-	return false, nil
+	return false, pkg.NotImplUnauthorized
 }
 
 func (s *RdpPlugin) Login() error {

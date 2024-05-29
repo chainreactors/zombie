@@ -76,17 +76,21 @@ func Dispatch(task *pkg.Task) Plugin {
 	case pkg.LDAPService.String():
 		return &ldap.LdapPlugin{Task: task}
 	case pkg.HTTPService.String():
-		return &http.HttpPlugin{
+		return &http.HttpAuthPlugin{
 			Task: task,
 			Path: task.Param["path"],
 			Host: task.Param["host"],
 		}
 	case pkg.HTTPSService.String():
-		return &http.HttpPlugin{
+		return &http.HttpAuthPlugin{
 			Task: task,
 			Path: task.Param["path"],
 			Host: task.Param["host"],
 		}
+	case pkg.GETService.String():
+		return http.NewHTTPPlugin("GET", task)
+	case pkg.PostService.String():
+		return http.NewHTTPPlugin("POST", task)
 	case pkg.SOCKS5Service.String():
 		task.Timeout = 10
 		return &socks5.Socks5Plugin{
