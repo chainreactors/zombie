@@ -11,7 +11,7 @@ type Pop3Plugin struct {
 }
 
 func (s *Pop3Plugin) Unauth() (bool, error) {
-	return false, nil
+	return false, pkg.NotImplUnauthorized
 }
 
 func (s *Pop3Plugin) Login() error {

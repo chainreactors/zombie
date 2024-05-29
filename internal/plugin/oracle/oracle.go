@@ -16,7 +16,7 @@ type OraclePlugin struct {
 }
 
 func (s *OraclePlugin) Unauth() (bool, error) {
-	return false, nil
+	return false, pkg.NotImplUnauthorized
 }
 
 func (s *OraclePlugin) Login() error {

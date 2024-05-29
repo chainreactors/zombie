@@ -17,8 +17,8 @@ import (
 var (
 	InterruptError      = errors.New("interrupt")
 	ErrorWrongUserOrPwd = errors.New("wrong username or password")
-
-	RunOpt = &runOpt{}
+	NotImplUnauthorized = errors.New("not implemented unauthorized")
+	RunOpt              = &runOpt{}
 )
 
 type TimeoutError struct {
@@ -52,6 +52,8 @@ var (
 	ORACLEService     = &Service{Name: "oracle", DefaultPort: "1521", Source: "plugin"}
 	HTTPService       = &Service{Name: "http", DefaultPort: "80", Source: "plugin"}
 	HTTPSService      = &Service{Name: "https", DefaultPort: "443", Source: "plugin"}
+	GETService        = &Service{Name: "get", DefaultPort: "80", Source: "plugin"}
+	PostService       = &Service{Name: "post", DefaultPort: "80", Source: "plugin"}
 	LDAPService       = &Service{Name: "ldap", DefaultPort: "389", Source: "plugin"}
 	SOCKS5Service     = &Service{Name: "socks5", DefaultPort: "1080", Source: "plugin"}
 	TELNETService     = &Service{Name: "telnet", DefaultPort: "23", Source: "plugin"}
@@ -94,6 +96,8 @@ func RegisterServices() {
 	Services.Register(ORACLEService)
 	Services.Register(HTTPService)
 	Services.Register(HTTPSService)
+	Services.Register(GETService)
+	Services.Register(PostService)
 	Services.Register(LDAPService)
 	Services.Register(SOCKS5Service)
 	Services.Register(TELNETService)
