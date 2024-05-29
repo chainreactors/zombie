@@ -95,6 +95,10 @@ func Dispatch(task *pkg.Task) Plugin {
 			Task:    task,
 			TestURL: task.Param["url"],
 		}
+	case pkg.HTTPDigestService.String():
+		return &http.HTTPDigestPlugin{
+			Task: task,
+		}
 	case pkg.GETService.String():
 		return http.NewHTTPPlugin("GET", task)
 	case pkg.PostService.String():
