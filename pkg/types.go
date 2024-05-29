@@ -38,6 +38,7 @@ func init() {
 }
 
 var (
+	UnknownService    = &Service{Name: "unknown", DefaultPort: "", Source: "unknown"}
 	FTPService        = &Service{Name: "ftp", DefaultPort: "21", Source: "plugin"}
 	SSHService        = &Service{Name: "ssh", DefaultPort: "22", Source: "plugin"}
 	SMBService        = &Service{Name: "smb", DefaultPort: "445", Source: "plugin"}
@@ -59,7 +60,10 @@ var (
 	TELNETService     = &Service{Name: "telnet", DefaultPort: "23", Source: "plugin"}
 	POP3Service       = &Service{Name: "pop3", DefaultPort: "110", Source: "plugin"}
 	RSYNCService      = &Service{Name: "rsync", DefaultPort: "873", Source: "plugin"}
-	UnknownService    = &Service{Name: "unknown", DefaultPort: "", Source: "unknown"}
+	ZookeeperService  = &Service{Name: "zookeeper", DefaultPort: "2181", Source: "plugin"}
+	AmqpService       = &Service{Name: "amqp", DefaultPort: "5672", Source: "plugin"}
+	MqttService       = &Service{Name: "mqtt", DefaultPort: "1883", Source: "plugin"}
+	MemcachedService  = &Service{Name: "memcached", DefaultPort: "11211", Source: "plugin"}
 )
 
 var Services = services{}

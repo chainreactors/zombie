@@ -5,7 +5,9 @@ import (
 	"github.com/chainreactors/zombie/internal/plugin/ftp"
 	"github.com/chainreactors/zombie/internal/plugin/http"
 	"github.com/chainreactors/zombie/internal/plugin/ldap"
+	"github.com/chainreactors/zombie/internal/plugin/memcache"
 	"github.com/chainreactors/zombie/internal/plugin/mongo"
+	"github.com/chainreactors/zombie/internal/plugin/mq"
 	"github.com/chainreactors/zombie/internal/plugin/mssql"
 	"github.com/chainreactors/zombie/internal/plugin/mysql"
 	"github.com/chainreactors/zombie/internal/plugin/neutron"
@@ -20,6 +22,7 @@ import (
 	"github.com/chainreactors/zombie/internal/plugin/socks5"
 	"github.com/chainreactors/zombie/internal/plugin/ssh"
 	"github.com/chainreactors/zombie/internal/plugin/vnc"
+	"github.com/chainreactors/zombie/internal/plugin/zookeeper"
 	"github.com/chainreactors/zombie/pkg"
 )
 
@@ -103,6 +106,14 @@ func Dispatch(task *pkg.Task) Plugin {
 		return &pop3.Pop3Plugin{Task: task}
 	case pkg.RSYNCService.String():
 		return &rsync.RsyncPlugin{Task: task}
+	case pkg.ZookeeperService.String():
+		return &zookeeper.ZookeeperPlugin{Task: task}
+	case pkg.MemcachedService.String():
+		return &memcache.MemcachePlugin{Task: task}
+	case pkg.MqttService.String():
+		return &mq.MQTTPlugin{Task: task}
+	case pkg.AmqpService.String():
+		return &mq.AMQPPlugin{Task: task}
 	default:
 		return &neutron.NeutronPlugin{
 			Task:    task,
