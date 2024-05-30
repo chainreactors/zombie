@@ -28,15 +28,27 @@ func UseDefaultPassword(service string, top int) []string {
 			return pwds[:top]
 		}
 	} else {
-		return Keywords["top10_pwd"]
+		if top == 0 || top >= 10 {
+			return Keywords["top10_pwd"]
+		} else {
+			return Keywords["top10_pwd"][:top]
+		}
 	}
 }
 
-func UseDefaultUser(service string) []string {
+func UseDefaultUser(service string, top int) []string {
 	if users, ok := Keywords[service+"_user"]; ok {
-		return users
+		if top == 0 || top > len(users) {
+			return users
+		} else {
+			return users[:top]
+		}
 	} else {
-		return Keywords["top10_user"]
+		if top == 0 || top >= 10 {
+			return Keywords["top10_user"]
+		} else {
+			return Keywords["top10_user"][:top]
+		}
 	}
 }
 
