@@ -228,7 +228,7 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 	if target.Username != "" {
 		users = []string{target.Username}
 	} else if r.Users == nil {
-		users = pkg.UseDefaultUser(target.Service)
+		users = pkg.UseDefaultUser(target.Service, r.Top)
 	} else {
 		users = r.Users.RunAsSlice()
 	}
