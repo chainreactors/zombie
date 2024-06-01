@@ -17,14 +17,7 @@ type SmbPlugin struct {
 }
 
 func (s *SmbPlugin) Unauth() (bool, error) {
-	var user, domain string
-
-	if strings.Contains(s.Username, "/") {
-		user = strings.Split(s.Username, "/")[1]
-		domain = strings.Split(s.Username, "/")[0]
-	} else {
-		user = ""
-	}
+	user, domain := pkg.SplitUserDomain(s.Username)
 
 	dialer := &smb2.Dialer{}
 	dialer.Initiator = &smb2.NTLMInitiator{
