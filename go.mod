@@ -34,14 +34,16 @@ require (
 	github.com/onsi/gomega v1.19.0 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20201211165307-7117e9ea2414
 	github.com/streadway/amqp v1.1.0
-	github.com/tomatome/grdp v0.0.0-00010101000000-000000000000
 	github.com/vbauerster/mpb/v8 v8.7.2
 	go.mongodb.org/mongo-driver v1.12.0
 	golang.org/x/net v0.21.0
 	sigs.k8s.io/yaml v1.4.0
 )
 
-require github.com/xinsnake/go-http-digest-auth-client v0.6.0
+require (
+	github.com/lcvvvv/kscan/grdp v0.0.0-00010101000000-000000000000
+	github.com/xinsnake/go-http-digest-auth-client v0.6.0
+)
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
@@ -81,4 +83,4 @@ require (
 
 //github.com/go-sql-driver/mysql => ./external/github.com/go-sql-driver/mysql
 //github.com/hirochachacha/go-smb2 => ./external/github.com/hirochachacha/go-smb2
-replace github.com/tomatome/grdp => ./external/github.com/tomatome/grdp
+replace github.com/lcvvvv/kscan/grdp => ./external/github.com/lcvvvv/grdp

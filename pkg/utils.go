@@ -1,6 +1,9 @@
 package pkg
 
-import "math/rand"
+import (
+	"math/rand"
+	"strings"
+)
 
 var (
 	randomUserAgent = []string{
@@ -54,4 +57,13 @@ func UseDefaultUser(service string, top int) []string {
 
 func RandomUA() string {
 	return randomUserAgent[rand.Intn(uacount)]
+}
+
+func SplitUserDomain(user string) (string, string) {
+	var domain string
+	if strings.Contains(user, "/") {
+		user = strings.Split(user, "/")[1]
+		domain = strings.Split(user, "/")[0]
+	}
+	return user, domain
 }

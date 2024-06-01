@@ -55,6 +55,12 @@ func (r *Runner) Run() {
 		}()
 		ctx, tcancel := context.WithCancel(task.Context) // current task context
 		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					logs.Log.Debugf("%s panic: %v", task.String(), r)
+					tcancel()
+				}
+			}()
 			var res *pkg.Result
 			// dispatch mod
 			if task.Mod == pkg.TaskModUnauth {
