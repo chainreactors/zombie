@@ -53,23 +53,21 @@ jobs:
         env:
           GOOS: windows
           GOARCH: amd64
-        working-directory: v2
 
       - name: Compile for Windows x86
         run: go build -o dist/zombie_windows7_386.exe -tags nobar -ldflags "-s -w"  -tags=forceposix -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
         env:
           GOOS: windows
           GOARCH: '386'
-        working-directory: v2
 
       - name: Zip files
-        run: zip -r v2/dist/zombie_archive.zip v2/dist/zombie* tools/* README.md
+        run: zip -r -j dist/zombie_archive.zip dist/zombie* tools/* README.md
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: v2/dist/zombie*
+          file: dist/zombie*
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
