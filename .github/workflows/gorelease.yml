@@ -17,15 +17,21 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
           submodules: recursive
-      - name: Install UPX
-        uses: crazy-max/ghaction-upx@v3
+
+      - name: Install upx
+        run: sudo apt install upx zip -y
+        continue-on-error: true
+
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
         with:
-          install-only: true
+          version: latest
+          platform: x64
       -
         name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: 1.22
       -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
@@ -37,3 +43,34 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOPATH: "/home/runner/go"
 
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.17'
+
+      - name: Compile for Windows x64
+        run: go build -o dist/zombie_windows7_amd64.exe -tags nobar -ldflags "-s -w" -tags=forceposix -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
+        env:
+          GOOS: windows
+          GOARCH: amd64
+        working-directory: v2
+
+      - name: Compile for Windows x86
+        run: go build -o dist/zombie_windows7_386.exe -tags nobar -ldflags "-s -w"  -tags=forceposix -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
+        env:
+          GOOS: windows
+          GOARCH: '386'
+        working-directory: v2
+
+      - name: Zip files
+        run: zip -r v2/dist/zombie_archive.zip v2/dist/zombie* tools/* README.md
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: v2/dist/zombie*
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+          draft: true
