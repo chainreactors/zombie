@@ -7,12 +7,9 @@ import (
 	"github.com/chainreactors/files"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/zombie/pkg"
-	"github.com/vbauerster/mpb/v8"
 	"io/ioutil"
-	"os"
 	"strings"
 	"sync"
-	"time"
 )
 
 type Option struct {
@@ -114,11 +111,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 	}
 
 	if opt.Bar {
-		runner.progress = mpb.New(
-			mpb.WithRefreshRate(200*time.Millisecond),
-			mpb.WithOutput(os.Stdout),
-		)
-		logs.Log.SetOutput(runner.progress)
+		pkg.InitBar()
 	}
 
 	logs.Log.Importantf("mod: %s, check-unauth: %t, check-honeypot: %t", runner.Mod, !runner.NoUnAuth, !runner.NoCheckHoneyPot)
@@ -290,8 +283,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 	}
 	runner.Auths = auths
 
-	if runner.progress != nil {
-		runner.bar = pkg.NewBar("targets", len(targets), runner.stat, runner.progress)
-	}
+	runner.bar = pkg.NewBar("targets", len(targets), runner.stat)
+
 	return runner, nil
 }
