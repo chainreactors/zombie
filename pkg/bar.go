@@ -1,19 +1,34 @@
+//go:build go1.18
+// +build go1.18
+
 package pkg
 
 import (
 	"fmt"
+	"github.com/chainreactors/logs"
 	"github.com/vbauerster/mpb/v8"
 	"github.com/vbauerster/mpb/v8/decor"
+	"os"
 	"time"
 )
 
-func NewBar(u string, total int, stat *Statistor, p *mpb.Progress) *Bar {
-	if p == nil {
+var Progress *mpb.Progress
+
+func InitBar() {
+	Progress = mpb.New(
+		mpb.WithRefreshRate(200*time.Millisecond),
+		mpb.WithOutput(os.Stdout),
+	)
+	logs.Log.SetOutput(Progress)
+}
+
+func NewBar(u string, total int, stat *Statistor) *Bar {
+	if Progress == nil {
 		return &Bar{
 			url: u,
 		}
 	}
-	bar := p.AddBar(int64(total),
+	bar := Progress.AddBar(int64(total),
 		mpb.BarRemoveOnComplete(),
 		mpb.PrependDecorators(
 			decor.Name(u, decor.WC{W: len(u) + 1, C: decor.DindentRight}), // 这里调整了装饰器的参数

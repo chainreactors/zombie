@@ -9,7 +9,6 @@ import (
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/panjf2000/ants/v2"
-	"github.com/vbauerster/mpb/v8"
 	"runtime/debug"
 	"sync"
 	"time"
@@ -23,12 +22,12 @@ var (
 
 type Runner struct {
 	*Option
-	progress *mpb.Progress
-	bar      *pkg.Bar
-	stat     *pkg.Statistor
-	wg       *sync.WaitGroup
-	outlock  *sync.WaitGroup
-	addlock  *sync.Mutex
+	//progress *mpb.Progress
+	bar     *pkg.Bar
+	stat    *pkg.Statistor
+	wg      *sync.WaitGroup
+	outlock *sync.WaitGroup
+	addlock *sync.Mutex
 
 	Users     *Generator
 	Pwds      *Generator
