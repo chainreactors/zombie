@@ -41,16 +41,12 @@ require (
 )
 
 require (
-	github.com/google/btree v1.0.0 // indirect
 	github.com/lcvvvv/kscan/grdp v0.0.0-00010101000000-000000000000
 	github.com/xinsnake/go-http-digest-auth-client v0.6.0
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 )
 
-//github.com/go-sql-driver/mysql => ./external/github.com/go-sql-driver/mysql
-//github.com/hirochachacha/go-smb2 => ./external/github.com/hirochachacha/go-smb2
 replace github.com/lcvvvv/kscan/grdp => ./external/github.com/lcvvvv/grdp
 
-replace golang.org/x/crypto => github.com/golang/crypto v0.0.0-20201203163018-0c6587e931a9
+replace golang.org/x/crypto => github.com/golang/crypto v0.23.0
 
 replace golang.org/x/text => golang.org/x/text v0.12.0
