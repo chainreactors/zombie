@@ -294,50 +294,76 @@ Admin31
 
 当前支持的协议
 
-* FTP
-* SSH
-* SMB
-* MSSQL
-* MYSQL
-* Mongo
-* POSTGRESQL
-* REDIS
-* ORACLE
-* VNC
-* LDAP
-* SNMP
-* RDP 
-* HTTP/HTTPS 401
-* SOCKS5
-* HTTP 401
-* POP3
-* SOCKS5
+* vnc
+* https
+* telnet
+* mysql
+* mongo
+* oracle
+* ssh
+* get
+* ftp
+* postgresql
+* digest
+* socks5
+* rsync
+* memcached
+* post
+* amqp
+* http_proxy
+* mqtt
+* rdp
+* snmp
+* http
+* zookeeper
+* redis
+* pop3
+* mssql
+* smb
+* ldap
 
 ### 通过neutron template支持的服务
 
-* apollo
-* canal
+* gitlab
 * hikvision_camer
+* wordpress
+* showdoc
+* activemq
+* kafka-manager
+* zte-epon
+* tomcat
+* canal
+* geoserver
+* nps
+* ofbiz
 * rabbitmq
 * ruijie_ap
-* zte-epon
-* h3c_router
-* minio
-* snmp_manage
-* nacos
-* gitlab
-* huawei_ibmc
-* weblogic
-* activemq
-* boda
-* dubbo
-* grafana
-* jenkins
-* tomcat
 * apisix
+* snmp_manage
+* dubbo
+* weblogic
+* apollo
+* jenkins
+* portainer
+* jira
+* minio
+* h3c_router
+* xxl-job
+* grafana
+* boda
+* matomo
+* nagios
+* sonarqube
+* zabbix
+* huawei_ibmc
+* kibana
+* rancher
+* nacos
 * druid
 * nexus
-* xxl-job
+* phpmyadmin
+* svn
+* jboss
 
 
 
@@ -345,16 +371,7 @@ Admin31
 
 - [ ] 支持基本信息收集
 - [ ] 支持基本的后利用(希望能像cme一样)
-- [ ] 支持更多协议
-  * RSTP
-  * HTTP PROXY
-  * rlogin
-  * RSYNC
-  * zookeeper
-  * memcache
-  * amqp
-  * mqtt
-  * http
+- [ ] [支持更多协议](https://github.com/chainreactors/zombie/issues/19) 
 - [x] 支持neutron引擎, 允许通过模板配置插件
 - [ ] 新增密码策略限制的功能, 减少爆破次数
 - [ ] 新增爆破限制的功能, 防止被封禁
