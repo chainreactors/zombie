@@ -16,7 +16,7 @@ func (s *RdpPlugin) Unauth() (bool, error) {
 
 func (s *RdpPlugin) Login() error {
 	user, domain := pkg.SplitUserDomain(s.Username)
-	err := grdp.Login(s.Address(), user, domain, s.Password)
+	err := grdp.Login(s.Address(), domain, user, s.Password)
 	if err != nil {
 		return err
 	}
