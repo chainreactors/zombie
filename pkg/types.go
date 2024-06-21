@@ -250,8 +250,12 @@ func (r *Result) String() string {
 	if len(r.Param) != 0 {
 		s.WriteString(" " + fmt.Sprintf("%v", r.Param))
 	}
+	if r.Mod == TaskModCheck {
+		s.WriteString(", " + r.Service + " maybe honeypot or unauth!!!\n")
+	} else {
+		s.WriteString(", " + r.Service + " login successfully\n")
+	}
 
-	s.WriteString(", " + r.Service + " login successfully\n")
 	return s.String()
 }
 
