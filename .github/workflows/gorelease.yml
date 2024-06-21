@@ -61,7 +61,7 @@ jobs:
           GOARCH: '386'
 
       - name: Zip files
-        run: zip -r -j dist/zombie_archive.zip dist/zombie* tools/* README.md
+        run: zip -r -j dist/zombie_archive.zip dist/zombie* README.md
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
