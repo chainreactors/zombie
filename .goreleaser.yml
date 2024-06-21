@@ -49,6 +49,9 @@ upx:
   -
     enabled: true
     goos: [linux, windows]
+    goarch:
+      - amd64
+      - "386"
 
 archives:
   -
