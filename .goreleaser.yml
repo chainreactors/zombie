@@ -3,7 +3,6 @@ project_name: zombie
 before:
   hooks:
     - go mod tidy
-    - go get sigs.k8s.io/yaml
     - go generate
 
 builds:
