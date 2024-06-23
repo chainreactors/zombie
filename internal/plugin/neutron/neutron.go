@@ -19,21 +19,10 @@ func (s *NeutronPlugin) Name() string {
 }
 
 func (s *NeutronPlugin) Unauth() (bool, error) {
-	payload := map[string]interface{}{}
-	if s.Task.Username != "" {
-		payload["username"] = s.Task.Username
-	}
-	if s.Task.Password != "" {
-		payload["password"] = s.Task.Password
-	}
 	if template, ok := pkg.TemplateMap[s.Service]; ok {
 		var err error
 		var usr, pwd string
-		if len(payload) > 0 {
-			usr, pwd, err = NeutronScan(s.Scheme, s.Address(), payload, template)
-		} else {
-			usr, pwd, err = NeutronScan(s.Scheme, s.Address(), nil, template)
-		}
+		usr, pwd, err = NeutronScan(s.Scheme, s.Address(), nil, template)
 		if err != nil {
 			return false, err
 		}
