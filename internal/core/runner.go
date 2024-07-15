@@ -182,6 +182,17 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 
 		go func() {
 			defer targetWG.Done()
+			if r.Strict {
+				if open := cur.CheckOpen(); !open {
+					cancel()
+					return
+				}
+				if matched := cur.CheckFinger(); !matched {
+					cancel()
+					return
+				}
+			}
+
 			if !r.NoCheckHoneyPot {
 				locker := &sync.Mutex{}
 				locker.Lock()

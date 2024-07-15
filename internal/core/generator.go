@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"github.com/chainreactors/files"
-	"github.com/chainreactors/utils"
 	"github.com/chainreactors/words"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
@@ -71,7 +70,7 @@ type Generator struct {
 	RuleFilename string
 	Rules        string
 	Filter       string
-	Fns          []func(string) string
+	Fns          []func(string) []string
 	C            chan string
 	cache        []string
 	running      bool
@@ -144,11 +143,11 @@ func (g *Generator) SetFilter(filter []string) {
 	g.Filter = strings.Join(filter, "\n")
 }
 
-func (g *Generator) AddFunc(fun func(string) string) {
+func (g *Generator) AddFunc(fun func(string) []string) {
 	g.Fns = append(g.Fns, fun)
 }
 
-func (g *Generator) AddFuncs(funs []func(string) string) {
+func (g *Generator) AddFuncs(funs []func(string) []string) {
 	g.Fns = append(g.Fns, funs...)
 }
 
@@ -158,15 +157,4 @@ func (g *Generator) All() []string {
 		l = append(l, i)
 	}
 	return l
-}
-
-func transformChan(ipch chan *utils.IP) chan string {
-	ch := make(chan string)
-	go func() {
-		for i := range ipch {
-			ch <- i.String()
-		}
-		close(ch)
-	}()
-	return ch
 }

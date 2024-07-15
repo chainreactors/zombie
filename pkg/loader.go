@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"encoding/json"
+	"github.com/chainreactors/fingers/fingers"
 	templates "github.com/chainreactors/neutron/templates"
 	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils"
@@ -11,10 +12,40 @@ import (
 )
 
 var (
-	Rules       map[string]string              = make(map[string]string)
-	Keywords    map[string][]string            = make(map[string][]string)
-	TemplateMap map[string]*templates.Template = make(map[string]*templates.Template)
+	Rules         map[string]string              = make(map[string]string)
+	Keywords      map[string][]string            = make(map[string][]string)
+	TemplateMap   map[string]*templates.Template = make(map[string]*templates.Template)
+	FingersEngine *fingers.FingersEngine
 )
+
+func Load() error {
+	var err error
+	err = LoadPorts()
+	if err != nil {
+		return err
+	}
+
+	err = LoadKeyword()
+	if err != nil {
+		return err
+	}
+
+	err = LoadRules()
+	if err != nil {
+		return err
+	}
+
+	err = LoadTemplates()
+	if err != nil {
+		return err
+	}
+
+	err = LoadFingers()
+	if err != nil {
+		return err
+	}
+	return err
+}
 
 func LoadKeyword() error {
 	// load mask
@@ -114,26 +145,11 @@ func LoadPorts() error {
 	return nil
 }
 
-func Load() error {
-	var err error
-	err = LoadPorts()
+func LoadFingers() error {
+	engine, err := fingers.NewFingersEngine(LoadConfig("http"), LoadConfig("socket"))
 	if err != nil {
 		return err
 	}
-
-	err = LoadKeyword()
-	if err != nil {
-		return err
-	}
-
-	err = LoadRules()
-	if err != nil {
-		return err
-	}
-
-	err = LoadTemplates()
-	if err != nil {
-		return err
-	}
-	return err
+	FingersEngine = engine
+	return nil
 }
