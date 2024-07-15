@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/chainreactors/files"
 	"github.com/chainreactors/logs"
+	"github.com/chainreactors/utils"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"strings"
@@ -22,6 +23,7 @@ type Option struct {
 type InputOptions struct {
 	IP            []string          `short:"i" long:"ip" alias:"ipp" description:"String, input ip"`
 	IPFile        string            `short:"I" long:"IP" description:"File, input ip list filename"`
+	CIDR          []string          `short:"c" long:"cidr" description:"String, input cidr"`
 	Username      []string          `short:"u" long:"user" description:"Strings, input usernames"`
 	UsernameFile  string            `short:"U" long:"USER" description:"File, input username list filename"`
 	Auth          []string          `short:"a" long:"auth" description:"Strings, input auth, username::password"`
@@ -64,7 +66,7 @@ type MiscOptions struct {
 }
 
 func (opt *Option) Validate() error {
-	if len(opt.IP) == 0 && opt.IPFile == "" && opt.JsonFile == "" && opt.GogoFile == "" {
+	if len(opt.IP) == 0 && opt.IPFile == "" && opt.JsonFile == "" && opt.GogoFile == "" && opt.CIDR == nil {
 		return errors.New("please input ip or or file or json file or gogo file")
 	}
 	if opt.WeakPassWord && (opt.Password == nil && opt.PasswordFile == "") {
@@ -138,23 +140,27 @@ func (opt *Option) Prepare() (*Runner, error) {
 		}
 		logs.Log.Importantf("load %d targets from gogo: %s ", len(targets), opt.GogoFile)
 	} else {
-		var ipslice []string
+		var ipg *Generator
+
 		if opt.IP != nil {
-			ipslice = opt.IP
+			ipg = NewGeneratorWithInput(opt.IP)
 		} else if opt.IPFile != "" {
-			ipg, err := NewGeneratorWithFile(opt.IPFile)
+			ipg, err = NewGeneratorWithFile(opt.IPFile)
 			if err != nil {
 				return nil, err
 			}
-			ipslice = ipg.RunAsSlice()
+		} else if opt.CIDR != nil {
+			ipg = NewGeneratorWithChan(transformChan(utils.ParseCIDRs(opt.CIDR).Range()))
 		}
 
-		if len(ipslice) == 0 {
+		if ipg == nil {
 			return nil, fmt.Errorf("not any ip input")
 		}
 
+		ipg.Run()
+
 		// 处理输入参数
-		for _, input := range ipslice {
+		for input := range ipg.C {
 			t, ok := ParseUrl(input)
 			if !ok {
 				t = SimpleParseUrl(input)

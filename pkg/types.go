@@ -8,6 +8,7 @@ import (
 	"github.com/chainreactors/fingers/common"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils"
 	"strconv"
 	"strings"
 	"sync"
@@ -39,33 +40,33 @@ func init() {
 
 var (
 	UnknownService    = &Service{Name: "unknown", DefaultPort: "", Source: "unknown"}
-	FTPService        = &Service{Name: "ftp", DefaultPort: "21", Source: "plugin"}
-	SSHService        = &Service{Name: "ssh", DefaultPort: "22", Source: "plugin"}
-	SMBService        = &Service{Name: "smb", DefaultPort: "445", Source: "plugin"}
-	MSSQLService      = &Service{Name: "mssql", DefaultPort: "1433", Source: "plugin"}
-	MYSQLService      = &Service{Name: "mysql", DefaultPort: "3306", Source: "plugin"}
-	POSTGRESQLService = &Service{Name: "postgresql", DefaultPort: "5432", Source: "plugin"}
-	REDISService      = &Service{Name: "redis", DefaultPort: "6379", Source: "plugin"}
-	MONGOService      = &Service{Name: "mongo", DefaultPort: "27017", Source: "plugin"}
-	VNCService        = &Service{Name: "vnc", DefaultPort: "5900", Source: "plugin"}
-	RDPService        = &Service{Name: "rdp", DefaultPort: "3389", Source: "plugin"}
-	SNMPService       = &Service{Name: "snmp", DefaultPort: "161", Source: "plugin"}
-	ORACLEService     = &Service{Name: "oracle", DefaultPort: "1521", Source: "plugin"}
-	HTTPService       = &Service{Name: "http", DefaultPort: "80", Source: "plugin"}
-	HTTPSService      = &Service{Name: "https", DefaultPort: "443", Source: "plugin"}
-	GETService        = &Service{Name: "get", DefaultPort: "80", Source: "plugin"}
-	PostService       = &Service{Name: "post", DefaultPort: "80", Source: "plugin"}
-	LDAPService       = &Service{Name: "ldap", DefaultPort: "389", Source: "plugin"}
-	SOCKS5Service     = &Service{Name: "socks5", DefaultPort: "1080", Source: "plugin"}
-	TELNETService     = &Service{Name: "telnet", DefaultPort: "23", Source: "plugin"}
-	POP3Service       = &Service{Name: "pop3", DefaultPort: "110", Source: "plugin"}
-	RSYNCService      = &Service{Name: "rsync", DefaultPort: "873", Source: "plugin"}
-	ZookeeperService  = &Service{Name: "zookeeper", DefaultPort: "2181", Source: "plugin"}
-	AmqpService       = &Service{Name: "amqp", DefaultPort: "5672", Source: "plugin"}
-	MqttService       = &Service{Name: "mqtt", DefaultPort: "1883", Source: "plugin"}
-	MemcachedService  = &Service{Name: "memcached", DefaultPort: "11211", Source: "plugin"}
-	HTTPProxyService  = &Service{Name: "http_proxy", DefaultPort: "8080", Source: "plugin"}
-	HTTPDigestService = &Service{Name: "digest", DefaultPort: "80", Source: "plugin"}
+	FTPService        = &Service{Name: "ftp", DefaultPort: "21", Source: PluginSource}
+	SSHService        = &Service{Name: "ssh", DefaultPort: "22", Source: PluginSource}
+	SMBService        = &Service{Name: "smb", DefaultPort: "445", Source: PluginSource}
+	MSSQLService      = &Service{Name: "mssql", DefaultPort: "1433", Source: PluginSource}
+	MYSQLService      = &Service{Name: "mysql", DefaultPort: "3306", Source: PluginSource}
+	POSTGRESQLService = &Service{Name: "postgresql", DefaultPort: "5432", Source: PluginSource}
+	REDISService      = &Service{Name: "redis", DefaultPort: "6379", Source: PluginSource}
+	MONGOService      = &Service{Name: "mongo", DefaultPort: "27017", Source: PluginSource}
+	VNCService        = &Service{Name: "vnc", DefaultPort: "5900", Source: PluginSource}
+	RDPService        = &Service{Name: "rdp", DefaultPort: "3389", Source: PluginSource}
+	SNMPService       = &Service{Name: "snmp", DefaultPort: "161", Source: PluginSource}
+	ORACLEService     = &Service{Name: "oracle", DefaultPort: "1521", Source: PluginSource}
+	HTTPService       = &Service{Name: "http", DefaultPort: "80", Source: PluginSource}
+	HTTPSService      = &Service{Name: "https", DefaultPort: "443", Source: PluginSource}
+	GETService        = &Service{Name: "get", DefaultPort: "80", Source: PluginSource}
+	PostService       = &Service{Name: "post", DefaultPort: "80", Source: PluginSource}
+	LDAPService       = &Service{Name: "ldap", DefaultPort: "389", Source: PluginSource}
+	SOCKS5Service     = &Service{Name: "socks5", DefaultPort: "1080", Source: PluginSource}
+	TELNETService     = &Service{Name: "telnet", DefaultPort: "23", Source: PluginSource}
+	POP3Service       = &Service{Name: "pop3", DefaultPort: "110", Source: PluginSource}
+	RSYNCService      = &Service{Name: "rsync", DefaultPort: "873", Source: PluginSource}
+	ZookeeperService  = &Service{Name: "zookeeper", DefaultPort: "2181", Source: PluginSource}
+	AmqpService       = &Service{Name: "amqp", DefaultPort: "5672", Source: PluginSource}
+	MqttService       = &Service{Name: "mqtt", DefaultPort: "1883", Source: PluginSource}
+	MemcachedService  = &Service{Name: "memcached", DefaultPort: "11211", Source: PluginSource}
+	HTTPProxyService  = &Service{Name: "http_proxy", DefaultPort: "8080", Source: PluginSource}
+	HTTPDigestService = &Service{Name: "digest", DefaultPort: "80", Source: PluginSource}
 )
 
 var Services = services{}
@@ -83,6 +84,8 @@ func (ss services) Register(s *Service) bool {
 func (ss services) DefaultPort(service string) string {
 	if s, ok := ss[service]; ok {
 		return s.DefaultPort
+	} else if s := utils.ParsePortsString(service); len(s) > 0 {
+		return s[0]
 	}
 	return ""
 }
@@ -116,7 +119,7 @@ func RegisterServices() {
 	Services.Register(HTTPProxyService)
 	Services.Register(HTTPDigestService)
 	// alias service
-	Services.Register(&Service{Name: "tomcat", DefaultPort: "8080", Source: "plugin"})
+	Services.Register(&Service{Name: "tomcat", DefaultPort: "8080", Source: PluginSource})
 }
 
 const (
