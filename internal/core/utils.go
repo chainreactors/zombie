@@ -2,8 +2,12 @@ package core
 
 import (
 	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils"
+	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"math/rand"
+	"net"
+	"net/url"
 	"strings"
 )
 
@@ -62,4 +66,83 @@ func randomString(length int) string {
 		sb.WriteByte(charset[rand.Intn(len(charset))])
 	}
 	return sb.String()
+}
+
+func ParseUrl(u string) (*Target, bool) {
+	var t *Target
+	parsed, err := url.Parse(u)
+	if err != nil && parsed != nil {
+		if ip, port, err := net.SplitHostPort(u); err == nil {
+			t = &Target{
+				IP:   ip,
+				Port: port,
+			}
+		} else {
+			return nil, false
+		}
+
+	} else if parsed == nil {
+		return nil, false
+	}
+
+	if parsed.Host == "" {
+		if utils.IsIp(u) {
+			return &Target{
+				IP: u,
+			}, true
+		}
+		return nil, false
+	}
+
+	t = &Target{
+		IP: parsed.Hostname(),
+	}
+	if parsed.Port() != "" {
+		t.Port = parsed.Port()
+	}
+
+	if parsed.Scheme != "" {
+		t.Service = parsed.Scheme
+		if t.Port == "" {
+			t.Port = pkg.Services.DefaultPort(t.Service)
+		}
+		t.Scheme = parsed.Scheme
+	} else if t.Port != "" {
+		t.Service = pkg.GetDefault(t.Port)
+	}
+	if parsed.User != nil {
+		if parsed.User.Username() != "" {
+			t.Username = parsed.User.Username()
+		}
+		if pwd, _ := parsed.User.Password(); pwd != "" {
+			t.Password, _ = parsed.User.Password()
+		}
+	}
+
+	return t, true
+}
+
+func SimpleParseUrl(u string) *Target {
+	result := strings.Split(u, ":")
+	if len(result) == 1 {
+		return &Target{
+			IP: result[0],
+		}
+	} else {
+		return &Target{
+			IP:   result[0],
+			Port: result[1],
+		}
+	}
+}
+
+func transformChan(ipch chan *utils.IP) chan string {
+	ch := make(chan string)
+	go func() {
+		for i := range ipch {
+			ch <- i.String()
+		}
+		close(ch)
+	}()
+	return ch
 }
