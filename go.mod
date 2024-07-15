@@ -24,7 +24,7 @@ require (
 	github.com/chainreactors/logs v0.0.0-20240207121836-c946f072f81f
 	github.com/chainreactors/neutron v0.0.0-20240712080924-c31f760d89d0
 	github.com/chainreactors/parsers v0.0.0-20240708072709-07deeece7ce2
-	github.com/chainreactors/utils v0.0.0-20240711195624-66696b0879b2
+	github.com/chainreactors/utils v0.0.0-20240715080349-d2d0484c95ed
 	github.com/chainreactors/words v0.4.1-0.20240126095632-02379f43c9f7
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/go-ldap/ldap/v3 v3.4.6

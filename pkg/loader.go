@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	templates "github.com/chainreactors/neutron/templates"
 	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/words/mask"
 	"strings"
@@ -101,8 +102,25 @@ func LoadTemplates() error {
 	return nil
 }
 
+func LoadPorts() error {
+	var ports []*utils.PortConfig
+	var err error
+	err = json.Unmarshal(LoadConfig("port"), &ports)
+	if err != nil {
+		return err
+	}
+
+	utils.PrePort = utils.NewPortPreset(ports)
+	return nil
+}
+
 func Load() error {
 	var err error
+	err = LoadPorts()
+	if err != nil {
+		return err
+	}
+
 	err = LoadKeyword()
 	if err != nil {
 		return err

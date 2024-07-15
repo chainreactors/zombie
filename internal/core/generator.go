@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"github.com/chainreactors/files"
+	"github.com/chainreactors/utils"
 	"github.com/chainreactors/words"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
@@ -23,6 +24,15 @@ func NewGeneratorWithInput(in []string) *Generator {
 	}
 
 	g.Word = words.NewWorder(in)
+	return g
+}
+
+func NewGeneratorWithChan(in chan string) *Generator {
+	g := &Generator{
+		C: make(chan string),
+	}
+
+	g.Word = words.NewWorderWithChan(in)
 	return g
 }
 
@@ -148,4 +158,15 @@ func (g *Generator) All() []string {
 		l = append(l, i)
 	}
 	return l
+}
+
+func transformChan(ipch chan *utils.IP) chan string {
+	ch := make(chan string)
+	go func() {
+		for i := range ipch {
+			ch <- i.String()
+		}
+		close(ch)
+	}()
+	return ch
 }
