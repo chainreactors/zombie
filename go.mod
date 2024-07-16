@@ -5,9 +5,9 @@ go 1.11
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
 	github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8
-	github.com/chainreactors/fingers v0.0.0-20240715183710-884bb8fbec81
+	github.com/chainreactors/fingers v0.0.0-20240716060852-2fda69a0d7fa
 	github.com/chainreactors/logs v0.0.0-20240207121836-c946f072f81f
-	github.com/chainreactors/neutron v0.0.0-20240715184426-66d4353a43c6
+	github.com/chainreactors/neutron v0.0.0-20240715194532-a6cc6c007916
 	github.com/chainreactors/parsers v0.0.0-20240708072709-07deeece7ce2
 	github.com/chainreactors/utils v0.0.0-20240715080349-d2d0484c95ed
 	github.com/chainreactors/words v0.4.1-0.20240510105042-5ba5c2edc508
