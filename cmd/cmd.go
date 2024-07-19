@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/zombie/internal/core"
@@ -49,7 +48,7 @@ func Zombie() {
 `
 	_, err := parser.Parse()
 	if err != nil {
-		if !errors.Is(err, flags.ErrHelp) {
+		if err.(*flags.Error).Type != flags.ErrHelp {
 			fmt.Println(err.Error())
 		}
 		return
