@@ -92,25 +92,11 @@ github.com/chainreactors/files v0.0.0-20231102192550-a652458cee26/go.mod h1:/Xa9
 github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8 h1:8Plpi6haQbU8NzH+JtU6bkGDWF/OeC+GFj8DIDuY5yk=
 github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8/go.mod h1:/Xa9YXhjBlaC33JTD6ZTJFig6pcplak2IDcovf42/6A=
 github.com/chainreactors/fingers v0.0.0-20240702104653-a66e34aa41df/go.mod h1:l8AO6ZbIL8WQ8PkihCK/MD6Iww/O+LY/osAhRJjThs4=
-github.com/chainreactors/fingers v0.0.0-20240711193807-8c1518dc63fc h1:vMEF9hlKqQ1U6rHG+ZD4wAR3ieSzDNH2PH5PTFcYyFk=
-github.com/chainreactors/fingers v0.0.0-20240711193807-8c1518dc63fc/go.mod h1:/F4FibGLZHIuhLM1F6ZZnqtGysED0IGFUSp6KQs/SjY=
-github.com/chainreactors/fingers v0.0.0-20240715093530-4be856e81122 h1:m61Xl/tRAI/iEh9vp25PndiImZZdk/Iml+Mkr5ejvdE=
-github.com/chainreactors/fingers v0.0.0-20240715093530-4be856e81122/go.mod h1:OeZVH7QM2l5OAgChBBUTlsU2iUwhqPB0er0p0F4UnwE=
-github.com/chainreactors/fingers v0.0.0-20240715095439-82cbde03a167 h1:1h6sGSxOd+HNHREOn2dsgqUU5aFN9zvqTHgZxjMAGWY=
-github.com/chainreactors/fingers v0.0.0-20240715095439-82cbde03a167/go.mod h1:OeZVH7QM2l5OAgChBBUTlsU2iUwhqPB0er0p0F4UnwE=
-github.com/chainreactors/fingers v0.0.0-20240715095653-2a8d3850cfc1 h1:Pc8xAaEgQJBC0UW49q0dh4dsKQ8r0qkHeg5N/munens=
-github.com/chainreactors/fingers v0.0.0-20240715095653-2a8d3850cfc1/go.mod h1:OeZVH7QM2l5OAgChBBUTlsU2iUwhqPB0er0p0F4UnwE=
-github.com/chainreactors/fingers v0.0.0-20240715183710-884bb8fbec81 h1:uv7WTuLGUfjQvOlnwWPGR7yT1GWvVlHktHNdYpj9AOE=
-github.com/chainreactors/fingers v0.0.0-20240715183710-884bb8fbec81/go.mod h1:R03soobTE/AnZWtFgfQVYNM5QLH52NZ946wZTJVBXh4=
 github.com/chainreactors/fingers v0.0.0-20240716060852-2fda69a0d7fa h1:+V0Rz+to7K+VsdZlM0OggwPS4BM4awQp8+bGHRVknIc=
 github.com/chainreactors/fingers v0.0.0-20240716060852-2fda69a0d7fa/go.mod h1:R03soobTE/AnZWtFgfQVYNM5QLH52NZ946wZTJVBXh4=
 github.com/chainreactors/logs v0.0.0-20231027080134-7a11bb413460/go.mod h1:VZFqkFDGmp7/JOMeraW+YI7kTGcgz9fgc/HArVFnrGQ=
 github.com/chainreactors/logs v0.0.0-20240207121836-c946f072f81f h1:tcfp+CEdgiMvjyUzWab5edJtxUwRMSMEIkLybupIx0k=
 github.com/chainreactors/logs v0.0.0-20240207121836-c946f072f81f/go.mod h1:6Mv6W70JrtL6VClulZhmMRZnoYpcTahcDTKLMNEjK0o=
-github.com/chainreactors/neutron v0.0.0-20240712080924-c31f760d89d0 h1:d+F4Qlb6taC4lhrQm78j/gZo7oZcAYkyGOWatQpN6z4=
-github.com/chainreactors/neutron v0.0.0-20240712080924-c31f760d89d0/go.mod h1:9OrxBZUFa6Ykw1P/LBVstFdjgoG/z7ZoR+XUBsDsTy8=
-github.com/chainreactors/neutron v0.0.0-20240715184426-66d4353a43c6 h1:VhV6KQnbIb2+44ODH9Qj6WW7b1fszW7VU3nrlcmd7M8=
-github.com/chainreactors/neutron v0.0.0-20240715184426-66d4353a43c6/go.mod h1:A6oRL1+WyEBCWwUeVcx0W5xONNS6lc6HJ0Y2R/tuXSc=
 github.com/chainreactors/neutron v0.0.0-20240715194532-a6cc6c007916 h1:rCd0XVTAdRAYKh2h+9QfFJWvRY0Gye+nMwXju4lgQbI=
 github.com/chainreactors/neutron v0.0.0-20240715194532-a6cc6c007916/go.mod h1:A6oRL1+WyEBCWwUeVcx0W5xONNS6lc6HJ0Y2R/tuXSc=
 github.com/chainreactors/parsers v0.0.0-20240702104902-1ce563b7ef76/go.mod h1:G/XLE5RAaUdqADkbhQ59mPrUAbsJLiQ2DN6CwtwNpBQ=
@@ -118,7 +104,6 @@ github.com/chainreactors/parsers v0.0.0-20240708072709-07deeece7ce2 h1:sE3SChgHL
 github.com/chainreactors/parsers v0.0.0-20240708072709-07deeece7ce2/go.mod h1:7rXdYz6jrdjF0WUH1ICcAXKIKKjKmJo2PU8u43V7jkA=
 github.com/chainreactors/utils v0.0.0-20240528085651-ba1b255482c1/go.mod h1:JA4eiQZm+7AsfjXBcIzIdVKBEhDCb16eNtWFCGTxlvs=
 github.com/chainreactors/utils v0.0.0-20240704062557-662d623b74f4/go.mod h1:JA4eiQZm+7AsfjXBcIzIdVKBEhDCb16eNtWFCGTxlvs=
-github.com/chainreactors/utils v0.0.0-20240711193713-3f498c03d1b6/go.mod h1:LajXuvESQwP+qCMAvlcoSXppQCjuLlBrnQpu9XQ1HtU=
 github.com/chainreactors/utils v0.0.0-20240715080349-d2d0484c95ed h1:5zxxMweHgo2e7r4ic7LHGibGBnOiVmCqbzbcbgoPn7U=
 github.com/chainreactors/utils v0.0.0-20240715080349-d2d0484c95ed/go.mod h1:LajXuvESQwP+qCMAvlcoSXppQCjuLlBrnQpu9XQ1HtU=
 github.com/chainreactors/words v0.4.1-0.20240510105042-5ba5c2edc508 h1:iT4HWkoZzUAfQYcQMRH8XyrMau9tCVE0zSuFQnkhrqw=
@@ -169,7 +154,6 @@ github.com/envoyproxy/go-control-plane v0.9.10-0.20210907150352-cf90f659a021/go.
 github.com/envoyproxy/go-control-plane v0.10.1/go.mod h1:AY7fTTXNdv/aJ2O5jwpxAPOWUZ7hQAEvzN5Pf27BkQQ=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/envoyproxy/protoc-gen-validate v0.6.2/go.mod h1:2t7qjJNvHPx8IjnBOzl9E9/baC+qXE/TeeyBRzgJDws=
-github.com/expr-lang/expr v1.16.9 h1:WUAzmR0JNI9JCiF0/ewwHB1gmcGw5wW7nWt8gc6PpCI=
 github.com/expr-lang/expr v1.16.9/go.mod h1:8/vRC7+7HBzESEqt5kKpYXxrxkr31SaO8r40VO/1IT4=
 github.com/facebookincubator/flog v0.0.0-20190930132826-d2511d0ce33c/go.mod h1:QGzNH9ujQ2ZUr/CjDGZGWeDAVStrWNjHeEcjJL96Nuk=
 github.com/facebookincubator/nvdtools v0.1.5 h1:jbmDT1nd6+k+rlvKhnkgMokrCAzHoASWE5LtHbX2qFQ=
@@ -471,7 +455,6 @@ github.com/pierrec/lz4 v2.6.1+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
-github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/sftp v1.10.1/go.mod h1:lYOWFsE0bwd1+KfKJaKeuokY15vzFx25BLbzYYoAxZI=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
@@ -559,6 +542,7 @@ github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyC
 github.com/valyala/fasttemplate v1.0.1/go.mod h1:UQGH1tvbgY+Nz5t2n7tXsz52dQxojPUpymEIMZ47gx8=
 github.com/vbauerster/mpb/v8 v8.7.2 h1:SMJtxhNho1MV3OuFgS1DAzhANN1Ejc5Ct+0iSaIkB14=
 github.com/vbauerster/mpb/v8 v8.7.2/go.mod h1:ZFnrjzspgDHoxYLGvxIruiNk73GNTPG4YHgVNpR10VY=
+github.com/weppos/publicsuffix-go v0.15.1-0.20220329081811-9a40b608a236 h1:vMJBP3PQViZsF6cOINtvyMC8ptpLsyJ4EwyFnzuWNxc=
 github.com/weppos/publicsuffix-go v0.15.1-0.20220329081811-9a40b608a236/go.mod h1:HYux0V0Zi04bHNwOHy4cXJVz/TQjYonnF6aoYhj+3QE=
 github.com/xdg-go/pbkdf2 v1.0.0 h1:Su7DPu48wXMwC3bs7MCNG+z4FhcyEuz5dlvchbq0B0c=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
