@@ -6,6 +6,7 @@ import (
 	"github.com/chainreactors/zombie/internal/core"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/jessevdk/go-flags"
+	"strings"
 )
 
 var ver = "dev"
@@ -66,9 +67,9 @@ func Zombie() {
 	}
 
 	if opt.ListService {
-		fmt.Println("support service list:\n    service\t\tsource\n	---------------\t\t------")
-		for k, s := range pkg.Services {
-			fmt.Printf("    %15s\t\t%s\n", k, s.Source)
+		fmt.Println("support service list:\n    service\t\tsource\taliases\n	---------------\t\t------")
+		for k, s := range pkg.Services.Plugins {
+			fmt.Printf("    %15s\t\t%s\t%v\n", k, s.Source, strings.Join(s.Alias, ","))
 		}
 		return
 	}

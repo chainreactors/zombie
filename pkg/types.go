@@ -45,9 +45,9 @@ var (
 	SMBService        = &Service{Name: "smb", DefaultPort: "445", Source: PluginSource}
 	MSSQLService      = &Service{Name: "mssql", DefaultPort: "1433", Source: PluginSource}
 	MYSQLService      = &Service{Name: "mysql", DefaultPort: "3306", Source: PluginSource}
-	POSTGRESQLService = &Service{Name: "postgresql", DefaultPort: "5432", Source: PluginSource}
+	POSTGRESQLService = &Service{Name: "postgresql", DefaultPort: "5432", Alias: []string{"postgre"}, Source: PluginSource}
 	REDISService      = &Service{Name: "redis", DefaultPort: "6379", Source: PluginSource}
-	MONGOService      = &Service{Name: "mongo", DefaultPort: "27017", Source: PluginSource}
+	MONGOService      = &Service{Name: "mongo", DefaultPort: "27017", Alias: []string{"mongodb"}, Source: PluginSource}
 	VNCService        = &Service{Name: "vnc", DefaultPort: "5900", Source: PluginSource}
 	RDPService        = &Service{Name: "rdp", DefaultPort: "3389", Source: PluginSource}
 	SNMPService       = &Service{Name: "snmp", DefaultPort: "161", Source: PluginSource}
@@ -59,7 +59,7 @@ var (
 	LDAPService       = &Service{Name: "ldap", DefaultPort: "389", Source: PluginSource}
 	SOCKS5Service     = &Service{Name: "socks5", DefaultPort: "1080", Source: PluginSource}
 	TELNETService     = &Service{Name: "telnet", DefaultPort: "23", Source: PluginSource}
-	POP3Service       = &Service{Name: "pop3", DefaultPort: "110", Source: PluginSource}
+	POP3Service       = &Service{Name: "pop3", DefaultPort: "110", Alias: []string{"pop"}, Source: PluginSource}
 	RSYNCService      = &Service{Name: "rsync", DefaultPort: "873", Source: PluginSource}
 	ZookeeperService  = &Service{Name: "zookeeper", DefaultPort: "2181", Source: PluginSource}
 	AmqpService       = &Service{Name: "amqp", DefaultPort: "5672", Source: PluginSource}
@@ -69,20 +69,40 @@ var (
 	HTTPDigestService = &Service{Name: "digest", DefaultPort: "80", Source: PluginSource}
 )
 
-var Services = services{}
+var Services = services{
+	Plugins: map[string]*Service{},
+	Aliases: map[string]*Service{},
+}
 
-type services map[string]*Service
+type services struct {
+	Plugins map[string]*Service
+	Aliases map[string]*Service
+}
 
-func (ss services) Register(s *Service) bool {
-	if _, ok := ss[s.Name]; ok {
-		return false
+func (ss *services) Get(name string) (*Service, bool) {
+	if s, ok := ss.Plugins[name]; ok {
+		return s, true
 	}
-	ss[s.Name] = s
+	if s, ok := ss.Aliases[name]; ok {
+		return s, true
+	}
+	return UnknownService, false
+}
+
+func (ss *services) Register(s *Service) bool {
+	if _, ok := ss.Plugins[s.Name]; !ok {
+		ss.Plugins[s.Name] = s
+	}
+	for _, a := range s.Alias {
+		if _, ok := ss.Aliases[a]; !ok {
+			ss.Aliases[a] = s
+		}
+	}
 	return true
 }
 
-func (ss services) DefaultPort(service string) string {
-	if s, ok := ss[service]; ok {
+func (ss *services) DefaultPort(service string) string {
+	if s, ok := ss.Get(service); ok {
 		return s.DefaultPort
 	} else if s := utils.ParsePortsString(service); len(s) > 0 {
 		return s[0]
@@ -119,7 +139,7 @@ func RegisterServices() {
 	Services.Register(HTTPProxyService)
 	Services.Register(HTTPDigestService)
 	// alias service
-	Services.Register(&Service{Name: "tomcat", DefaultPort: "8080", Source: PluginSource})
+	//Services.Register(&Service{Name: "tomcat", DefaultPort: "8080", Source: PluginSource})
 }
 
 const (
@@ -129,6 +149,7 @@ const (
 
 type Service struct {
 	Name        string
+	Alias       []string
 	DefaultPort string
 	Source      string
 }
@@ -138,7 +159,7 @@ func (s Service) String() string {
 }
 
 func GetDefault(port string) string {
-	for _, s := range Services {
+	for _, s := range Services.Plugins {
 		if s.DefaultPort == port {
 			return s.Name
 		}

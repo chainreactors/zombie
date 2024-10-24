@@ -112,7 +112,7 @@ func LoadTemplates() error {
 		if template.Info.Zombie == "" {
 			continue
 		}
-		Services[template.Info.Zombie] = &Service{Name: template.Info.Name, Source: "template"}
+		Services.Register(&Service{Name: template.Info.Zombie, Source: NeutronSource})
 		err := template.Compile(nil)
 		if err != nil {
 			return err
