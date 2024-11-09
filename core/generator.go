@@ -22,7 +22,7 @@ func NewGeneratorWithInput(in []string) *Generator {
 		C: make(chan string),
 	}
 
-	g.Word = words.NewWorder(in)
+	g.Word = words.NewWorderWithList(in)
 	return g
 }
 
@@ -70,7 +70,7 @@ type Generator struct {
 	RuleFilename string
 	Rules        string
 	Filter       string
-	Fns          []func(string) []string
+	Fns          []words.WordFunc
 	C            chan string
 	cache        []string
 	running      bool
@@ -90,7 +90,7 @@ func (g *Generator) Run() {
 	g.running = true
 	g.initWord()
 	g.Word.Run()
-	g.C = g.Word.C
+	g.C = g.Word.Output
 }
 
 func (g *Generator) RunAsSlice() []string {
@@ -147,7 +147,7 @@ func (g *Generator) AddFunc(fun func(string) []string) {
 	g.Fns = append(g.Fns, fun)
 }
 
-func (g *Generator) AddFuncs(funs []func(string) []string) {
+func (g *Generator) AddFuncs(funs []words.WordFunc) {
 	g.Fns = append(g.Fns, funs...)
 }
 

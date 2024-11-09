@@ -61,7 +61,7 @@ func (s *SmbPlugin) Login() error {
 		dialer.Initiator = &smb2.NTLMInitiator{
 			User:   user,
 			Domain: domain,
-			Hash:   encode.UnHexlify(pwd),
+			Hash:   encode.HexDecode(pwd),
 		}
 	} else {
 		dialer.Initiator = &smb2.NTLMInitiator{
