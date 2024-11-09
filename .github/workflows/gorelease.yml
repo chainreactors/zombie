@@ -49,13 +49,13 @@ jobs:
           go-version: '1.17'
 
       - name: Compile for Windows x64
-        run: go build -o dist/zombie_windows7_amd64.exe -ldflags "-s -w" -tags="forceposix nobar" -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
+        run: go build -o dist/zombie_windows7_amd64.exe -ldflags "-s -w" -tags="forceposix nobar noembed" -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
         env:
           GOOS: windows
           GOARCH: amd64
 
       - name: Compile for Windows x86
-        run: go build -o dist/zombie_windows7_386.exe -ldflags "-s -w"  -tags="forceposix nobar" -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
+        run: go build -o dist/zombie_windows7_386.exe -ldflags "-s -w"  -tags="forceposix nobar noembed" -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
         env:
           GOOS: windows
           GOARCH: '386'
