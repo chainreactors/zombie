@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/chainreactors/logs"
-	"github.com/chainreactors/zombie/internal/core"
+	"github.com/chainreactors/zombie/core"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/jessevdk/go-flags"
 	"strings"

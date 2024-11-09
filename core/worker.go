@@ -2,8 +2,8 @@ package core
 
 import (
 	"errors"
-	"github.com/chainreactors/zombie/internal/plugin"
 	"github.com/chainreactors/zombie/pkg"
+	"github.com/chainreactors/zombie/plugin"
 )
 
 var ErrNoUnauth = errors.New("cannot unauth login")
