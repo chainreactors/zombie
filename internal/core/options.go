@@ -220,7 +220,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		logs.Log.Importantf("load dictionaries: %s", s.String())
 	}
 
-	var users, pwds, auths *Generator
+	var users, pwds *Generator
 	// load username
 	if opt.Username != nil {
 		if len(opt.Username) == 1 && dicts != nil {
@@ -279,6 +279,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 	runner.Pwds = pwds
 
 	// load auth pair
+	var auths *Generator
 	if opt.Auth != nil {
 		auths = NewGeneratorWithInput(opt.Auth)
 	} else if opt.AuthFile != "" {
@@ -288,7 +289,10 @@ func (opt *Option) Prepare() (*Runner, error) {
 		}
 		logs.Log.Importantf("load auth from %s", opt.AuthFile)
 	}
-	runner.Auths = auths
+	if auths != nil {
+		runner.Auths = auths
+		runner.Mod = ModPitchFork
+	}
 
 	runner.bar = pkg.NewBar("targets", len(targets), runner.stat)
 
