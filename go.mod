@@ -4,13 +4,13 @@ go 1.11
 
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
-	github.com/chainreactors/files v0.0.0-20231123083421-cea5b4ad18a8
-	github.com/chainreactors/fingers v0.0.0-20240716060852-2fda69a0d7fa
-	github.com/chainreactors/logs v0.0.0-20240207121836-c946f072f81f
-	github.com/chainreactors/neutron v0.0.0-20240715194532-a6cc6c007916
+	github.com/chainreactors/files v0.0.0-20240716182835-7884ee1e77f0
+	github.com/chainreactors/fingers v1.0.1-0.20241002161949-0bef2dc9b489
+	github.com/chainreactors/logs v0.0.0-20241030063019-8ca66a3ee307
+	github.com/chainreactors/neutron v0.0.0-20241106063152-5f9e96552c59
 	github.com/chainreactors/parsers v0.0.0-20240708072709-07deeece7ce2
-	github.com/chainreactors/utils v0.0.0-20240715080349-d2d0484c95ed
-	github.com/chainreactors/words v0.4.1-0.20240510105042-5ba5c2edc508
+	github.com/chainreactors/utils v0.0.0-20241002093511-ef3a209f5bf1
+	github.com/chainreactors/words v0.0.0-20241002061906-25d8893158d9
 	github.com/denisenkom/go-mssqldb v0.9.0
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/go-ldap/ldap/v3 v3.4.6
@@ -36,10 +36,13 @@ require (
 )
 
 require (
+	github.com/golang/snappy v0.0.4 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
 	github.com/lcvvvv/kscan/grdp v0.0.0-00010101000000-000000000000
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
 	github.com/xinsnake/go-http-digest-auth-client v0.6.0
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 replace github.com/lcvvvv/kscan/grdp => ./external/github.com/lcvvvv/grdp

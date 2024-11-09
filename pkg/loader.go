@@ -1,13 +1,14 @@
 package pkg
 
 import (
-	"encoding/json"
 	"github.com/chainreactors/fingers/fingers"
+	"github.com/chainreactors/fingers/resources"
 	templates "github.com/chainreactors/neutron/templates"
 	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/words/mask"
+	"gopkg.in/yaml.v3"
 	"strings"
 )
 
@@ -51,7 +52,7 @@ func LoadKeyword() error {
 	// load mask
 	var err error
 	var commonKeyword map[string]interface{}
-	err = json.Unmarshal(LoadConfig("zombie_common"), &commonKeyword)
+	err = yaml.Unmarshal(LoadConfig("zombie_common"), &commonKeyword)
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,7 @@ func LoadKeyword() error {
 	}
 
 	var defaultKeyword map[string]interface{}
-	err = json.Unmarshal(LoadConfig("zombie_default"), &defaultKeyword)
+	err = yaml.Unmarshal(LoadConfig("zombie_default"), &defaultKeyword)
 	if err != nil {
 		return err
 	}
@@ -89,7 +90,7 @@ func LoadKeyword() error {
 func LoadRules() error {
 	var err error
 	var data map[string]interface{}
-	err = json.Unmarshal(LoadConfig("zombie_rule"), &data)
+	err = yaml.Unmarshal(LoadConfig("zombie_rule"), &data)
 	if err != nil {
 		return err
 	}
@@ -104,7 +105,7 @@ func LoadTemplates() error {
 	var content []byte
 	content = LoadConfig("zombie_template")
 	var t []*templates.Template
-	err = json.Unmarshal(content, &t)
+	err = yaml.Unmarshal(content, &t)
 	if err != nil {
 		return err
 	}
@@ -136,7 +137,7 @@ func LoadTemplates() error {
 func LoadPorts() error {
 	var ports []*utils.PortConfig
 	var err error
-	err = json.Unmarshal(LoadConfig("port"), &ports)
+	err = yaml.Unmarshal(LoadConfig("port"), &ports)
 	if err != nil {
 		return err
 	}
@@ -146,7 +147,9 @@ func LoadPorts() error {
 }
 
 func LoadFingers() error {
-	engine, err := fingers.NewFingersEngine(LoadConfig("http"), LoadConfig("socket"))
+	resources.FingersHTTPData = LoadConfig("http")
+	resources.FingersSocketData = LoadConfig("socket")
+	engine, err := fingers.NewFingersEngine()
 	if err != nil {
 		return err
 	}
