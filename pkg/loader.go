@@ -142,7 +142,7 @@ func LoadPorts() error {
 		return err
 	}
 
-	utils.PrePort = utils.NewPortPreset(ports)
+	resources.PrePort = utils.NewPortPreset(ports)
 	return nil
 }
 
