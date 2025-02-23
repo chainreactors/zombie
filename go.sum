@@ -97,12 +97,6 @@ github.com/chainreactors/fingers v1.0.1/go.mod h1:UuWF2a0aWe2zJf1pi7qn9fdjBl4gQu
 github.com/chainreactors/logs v0.0.0-20240207121836-c946f072f81f/go.mod h1:6Mv6W70JrtL6VClulZhmMRZnoYpcTahcDTKLMNEjK0o=
 github.com/chainreactors/logs v0.0.0-20241030063019-8ca66a3ee307 h1:gZuBqpqwbn9WR8f/vfn8lf6tjeWcM+ajLXAL3SkOtQs=
 github.com/chainreactors/logs v0.0.0-20241030063019-8ca66a3ee307/go.mod h1:6Mv6W70JrtL6VClulZhmMRZnoYpcTahcDTKLMNEjK0o=
-github.com/chainreactors/neutron v0.0.0-20241106063152-5f9e96552c59 h1:TaAPn5ZZcc2Vn00CaL25doQXQeeG7CdKSmlEMmf2aFw=
-github.com/chainreactors/neutron v0.0.0-20241106063152-5f9e96552c59/go.mod h1:TiHntatD4fa8s/78a5/reV9tsDx2UFuPtSr7LIXH/+4=
-github.com/chainreactors/neutron v0.0.0-20250113060633-9d10b05f2dad h1:fauvqWoFedI8CLoZI9z+4t6VfKbQ+yvDqZua5d7yQN4=
-github.com/chainreactors/neutron v0.0.0-20250113060633-9d10b05f2dad/go.mod h1:PomxHcP/BecBL0R+u9h/F+zjnkDQhT/eeH9eFyhPkUE=
-github.com/chainreactors/neutron v0.0.0-20250113061151-32771f256b1f h1:z8saw5saC8UVvKidCTBivKCF1NYch89Ol2CCJHk1sUA=
-github.com/chainreactors/neutron v0.0.0-20250113061151-32771f256b1f/go.mod h1:PomxHcP/BecBL0R+u9h/F+zjnkDQhT/eeH9eFyhPkUE=
 github.com/chainreactors/neutron v0.0.0-20250219105559-912bdcebda9a h1:4RKjmxTNfONJ3dRPCRRNnFMwUVoeqky50wKuovHSCPw=
 github.com/chainreactors/neutron v0.0.0-20250219105559-912bdcebda9a/go.mod h1:PomxHcP/BecBL0R+u9h/F+zjnkDQhT/eeH9eFyhPkUE=
 github.com/chainreactors/parsers v0.0.0-20240708072709-07deeece7ce2 h1:sE3SChgHLtPsEaqHo5tDSy8niDys1SO174C4eHlShSw=
@@ -457,7 +451,6 @@ github.com/pelletier/go-toml v1.9.4/go.mod h1:u1nR/EPcESfeI/szUZKdtJ0xRNbUoANCko
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
-github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/sftp v1.10.1/go.mod h1:lYOWFsE0bwd1+KfKJaKeuokY15vzFx25BLbzYYoAxZI=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
