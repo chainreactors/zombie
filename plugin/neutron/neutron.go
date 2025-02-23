@@ -3,10 +3,16 @@ package neutron
 import (
 	"errors"
 	"fmt"
+	"github.com/chainreactors/logs"
+	"github.com/chainreactors/neutron/common"
 	templates "github.com/chainreactors/neutron/templates"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/zombie/pkg"
 )
+
+func init() {
+	common.NeutronLog = logs.NewLogger(logs.Debug - 1)
+}
 
 type NeutronPlugin struct {
 	*pkg.Task
