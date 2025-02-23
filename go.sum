@@ -104,8 +104,9 @@ github.com/chainreactors/parsers v0.0.0-20240708072709-07deeece7ce2/go.mod h1:7r
 github.com/chainreactors/utils v0.0.0-20240528085651-ba1b255482c1/go.mod h1:JA4eiQZm+7AsfjXBcIzIdVKBEhDCb16eNtWFCGTxlvs=
 github.com/chainreactors/utils v0.0.0-20240704062557-662d623b74f4/go.mod h1:JA4eiQZm+7AsfjXBcIzIdVKBEhDCb16eNtWFCGTxlvs=
 github.com/chainreactors/utils v0.0.0-20240716182459-e85f2b01ee16/go.mod h1:LajXuvESQwP+qCMAvlcoSXppQCjuLlBrnQpu9XQ1HtU=
-github.com/chainreactors/utils v0.0.0-20241209140746-65867d2f78b2 h1:YRQRjgb3MUOOqT0CdUDC51dsXbWpI3l6w3H4xexqKr8=
 github.com/chainreactors/utils v0.0.0-20241209140746-65867d2f78b2/go.mod h1:LajXuvESQwP+qCMAvlcoSXppQCjuLlBrnQpu9XQ1HtU=
+github.com/chainreactors/utils v0.0.0-20250109082818-178eed97b7ab h1:jH3E9A4iiKCeC04J2r/HkqlwribtRfQMtvMDUih0CJQ=
+github.com/chainreactors/utils v0.0.0-20250109082818-178eed97b7ab/go.mod h1:LajXuvESQwP+qCMAvlcoSXppQCjuLlBrnQpu9XQ1HtU=
 github.com/chainreactors/words v0.0.0-20241002061906-25d8893158d9 h1:BXaPgD1pfBPvFSy9DHZDxW0bHX96ONZT6HW+WbXlZCk=
 github.com/chainreactors/words v0.0.0-20241002061906-25d8893158d9/go.mod h1:zfz367PUmyaX6oAqV9SktVqyRXKlEh0sel9Wsq9dd2c=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
