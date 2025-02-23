@@ -31,7 +31,7 @@ jobs:
         name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.22
+          go-version: 1.17
       -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
@@ -43,22 +43,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOPATH: "/home/runner/go"
 
-      - name: Set up Go 1.17
-        uses: actions/setup-go@v3
-        with:
-          go-version: '1.17'
-
-      - name: Compile for Windows x64
-        run: go build -o dist/zombie_windows7_amd64.exe -ldflags "-s -w" -tags="forceposix nobar noembed" -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
-        env:
-          GOOS: windows
-          GOARCH: amd64
-
-      - name: Compile for Windows x86
-        run: go build -o dist/zombie_windows7_386.exe -ldflags "-s -w"  -tags="forceposix nobar noembed" -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
-        env:
-          GOOS: windows
-          GOARCH: '386'
+#      - name: Set up Go 1.17
+#        uses: actions/setup-go@v3
+#        with:
+#          go-version: '1.17'
+#
+#      - name: Compile for Windows x64
+#        run: go build -o dist/zombie_windows7_amd64.exe -ldflags "-s -w" -tags="forceposix nobar noembed" -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
+#        env:
+#          GOOS: windows
+#          GOARCH: amd64
+#
+#      - name: Compile for Windows x86
+#        run: go build -o dist/zombie_windows7_386.exe -ldflags "-s -w"  -tags="forceposix nobar noembed" -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
+#        env:
+#          GOOS: windows
+#          GOARCH: '386'
 
       - name: Zip files
         run: zip -r -j dist/zombie_archive.zip dist/zombie* README.md
