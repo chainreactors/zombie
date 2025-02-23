@@ -6,8 +6,14 @@ import (
 	"github.com/chainreactors/zombie/core"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/jessevdk/go-flags"
+	"io/ioutil"
+	"log"
 	"strings"
 )
+
+func init() {
+	log.SetOutput(ioutil.Discard)
+}
 
 var ver = "dev"
 
