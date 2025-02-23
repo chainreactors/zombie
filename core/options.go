@@ -44,6 +44,8 @@ type OutputOptions struct {
 	OutputFile   string `short:"f" long:"file" description:"File, output result filename"`
 	FileFormat   string `short:"O" long:"file-format" default:"json" description:"String, output result file format"`
 	OutputFormat string `short:"o" long:"format" default:"string" description:"String, output result format"`
+	Debug        bool   `long:"debug" description:"Bool, enable debug"`
+	Quiet        bool   `short:"q" long:"quiet" description:"Bool, quiet mode"`
 }
 
 type WordOptions struct {
@@ -60,7 +62,6 @@ type MiscOptions struct {
 	Threads     int    `short:"t" default:"100" description:"Int, threads"`
 	Timeout     int    `long:"timeout" default:"5" description:"Int, timeout"`
 	Mod         string `short:"m" default:"clusterbomb" description:"String, clusterbomb/sniper"`
-	Debug       bool   `long:"debug" description:"Bool, enable debug"`
 	ListService bool   `short:"l" long:"list" description:"Bool, list all service"`
 	Bar         bool   `long:"bar" description:"Bool, enable bar"`
 	Version     bool   `long:"version" description:"Bool, show version"`

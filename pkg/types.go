@@ -294,7 +294,7 @@ func (r *Result) Json() string {
 
 func (r *Result) Format(form string) string {
 	switch form {
-	case "json":
+	case "json", "jl":
 		return r.Json()
 	case "csv":
 		return ""
