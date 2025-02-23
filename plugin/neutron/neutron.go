@@ -72,6 +72,8 @@ func NeutronScan(scheme, target string, payload map[string]interface{}, template
 		} else if template.RequestsNetwork != nil {
 			scheme = "tcp"
 		}
+	} else if scheme != "http" && scheme != "https" && scheme != "tcp" {
+		scheme = "http"
 	}
 
 	res, err := template.Execute(fmt.Sprintf("%s://%s", scheme, target), payload)
