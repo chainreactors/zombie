@@ -8,7 +8,7 @@ require (
 	github.com/chainreactors/fingers v1.0.1
 	github.com/chainreactors/logs v0.0.0-20241030063019-8ca66a3ee307
 	github.com/chainreactors/neutron v0.0.0-20250219105559-912bdcebda9a
-	github.com/chainreactors/parsers v0.0.0-20240708072709-07deeece7ce2
+	github.com/chainreactors/parsers v0.0.0-20250225073555-ab576124d61f
 	github.com/chainreactors/utils v0.0.0-20250109082818-178eed97b7ab
 	github.com/chainreactors/words v0.0.0-20241002061906-25d8893158d9
 	github.com/denisenkom/go-mssqldb v0.9.0
