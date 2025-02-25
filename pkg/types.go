@@ -2,14 +2,11 @@ package pkg
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/chainreactors/fingers/common"
-	"github.com/chainreactors/logs"
 	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -167,71 +164,12 @@ func GetDefault(port string) string {
 	return UnknownService.Name
 }
 
-type TaskMod int
-
-const (
-	TaskModBrute TaskMod = 0 + iota
-	TaskModUnauth
-	TaskModCheck
-	TaskModSniper
-	TaskModPitchfork
-)
-
-func (m TaskMod) String() string {
-	switch m {
-	case TaskModBrute:
-		return "brute"
-	case TaskModUnauth:
-		return "unauth"
-	case TaskModCheck:
-		return "check"
-	case TaskModSniper:
-		return "sniper"
-	case TaskModPitchfork:
-		return "pitchfork"
-	default:
-		return "unknown"
-	}
-}
-
 type Task struct {
-	IP       string             `json:"ip"`
-	Port     string             `json:"port"`
-	Service  string             `json:"service"`
-	Username string             `json:"username"`
-	Password string             `json:"password"`
-	Scheme   string             `json:"scheme"`
-	Param    map[string]string  `json:"-"`
-	Mod      TaskMod            `json:"-"`
+	*parsers.ZombieResult
 	Timeout  int                `json:"-"`
 	Context  context.Context    `json:"-"`
 	Canceler context.CancelFunc `json:"-"`
 	Locker   *sync.Mutex        `json:"-"`
-}
-
-func (t *Task) String() string {
-	return fmt.Sprintf("%s://%s:%s", t.Service, t.IP, t.Port)
-}
-
-func (t *Task) Address() string {
-	return t.IP + ":" + t.Port
-}
-
-func (t *Task) URI() string {
-	if t.Scheme != "" {
-		return t.Scheme + "://" + t.Address()
-	} else {
-		return t.Service + "://" + t.Address()
-	}
-}
-
-func (t *Task) URL() string {
-	return fmt.Sprintf("%s://%s:%s@%s:%s", t.Scheme, t.Username, t.Password, t.IP, t.Port)
-}
-
-func (t *Task) UintPort() uint16 {
-	p, _ := strconv.Atoi(t.Port)
-	return uint16(p)
 }
 
 func (t *Task) Duration() time.Duration {
@@ -254,53 +192,11 @@ func NewResult(task *Task, err error) *Result {
 }
 
 type Result struct {
-	*Task
-	Vulns      common.Vulns
-	Extracteds parsers.Extracteds
-	OK         bool
-	Err        error
-}
-
-func (r *Result) String() string {
-	var s strings.Builder
-	s.WriteString(fmt.Sprintf("[%s] ", r.Mod.String()))
-	s.WriteString(r.URI())
-	if r.Username != "" {
-		s.WriteString(" " + r.Username)
-	}
-	if r.Password != "" {
-		s.WriteString(" " + r.Password)
-	}
-	if len(r.Param) != 0 {
-		s.WriteString(" " + fmt.Sprintf("%v", r.Param))
-	}
-	if r.Mod == TaskModCheck {
-		s.WriteString(", " + r.Service + " maybe honeypot or unauth!!!\n")
-	} else {
-		s.WriteString(", " + r.Service + " login successfully\n")
-	}
-
-	return s.String()
-}
-
-func (r *Result) Json() string {
-	bs, err := json.Marshal(r)
-	if err != nil {
-		logs.Log.Error(err.Error())
-		return ""
-	}
-	return string(bs) + "\n"
-}
-
-func (r *Result) Format(form string) string {
-	switch form {
-	case "json", "jl":
-		return r.Json()
-	case "csv":
-		return ""
-	default:
-		return r.String()
-	}
+	*Task      `json:",inline"`
+	Vulns      common.Vulns       `json:"vulns,omitempty"`
+	Extracteds parsers.Extracteds `json:"extracteds,omitempty"`
+	OK         bool               `json:"ok,omitempty"`
+	Err        error              `json:"err,omitempty"`
 }
 
 type runOpt struct {
