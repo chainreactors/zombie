@@ -2,6 +2,11 @@
 
 一个轻量级的服务口令爆破工具, 继承了hydra的命令行设计, hashcat的字典生成, 以及红队向的功能设计. 
 
+blog posts:
+
+- https://chainreactors.github.io/wiki/blog/2024/06/07/zombie-introduce/
+
+
 ## QuickStart
 
 完整文档位于: https://chainreactors.github.io/wiki/zombie/
