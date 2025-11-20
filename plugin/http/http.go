@@ -9,6 +9,7 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"net/http"
+	"crypto/tls"
 	"net/url"
 	"strings"
 )
@@ -108,7 +109,11 @@ func (s *HTTPPlugin) Login() error {
 			return err
 		}
 		s.setupRequestHeaders(req)
-		resp, err := http.DefaultClient.Do(req)
+		transport := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: transport}
+		resp, err := client.Do(req)
 		if err != nil {
 			return err
 		}
@@ -158,7 +163,11 @@ func (s *HTTPPlugin) Login() error {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
 
-		resp, err := http.DefaultClient.Do(req)
+		transport := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: transport}
+		resp, err := client.Do(req)
 		if err != nil {
 			return err
 		}
