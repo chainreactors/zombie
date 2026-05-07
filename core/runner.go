@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/chainreactors/files"
 	"github.com/chainreactors/logs"
+	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/zombie/pkg"
@@ -43,6 +44,13 @@ type Runner struct {
 }
 
 func (r *Runner) Run() {
+	_ = r.RunWithContext(context.Background())
+}
+
+func (r *Runner) RunWithContext(ctx context.Context) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	go r.OutputHandler()
 	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
@@ -62,9 +70,9 @@ func (r *Runner) Run() {
 			}()
 			var res *pkg.Result
 			// dispatch mod
-			if task.Mod == pkg.TaskModUnauth {
+			if task.Mod == parsers.ZombieModUnauth {
 				res = Unauth(task)
-			} else if task.Mod == pkg.TaskModCheck {
+			} else if task.Mod == parsers.ZombieModCheck {
 				res = Brute(task)
 			} else {
 				res = Brute(task)
@@ -80,7 +88,7 @@ func (r *Runner) Run() {
 				r.Output(res)
 			}
 
-			if res.OK && r.FirstOnly && task.Mod != pkg.TaskModSniper {
+			if res.OK && r.FirstOnly && task.Mod != parsers.ZombieModSniper {
 				tcancel()       // 退出当前任务
 				task.Canceler() // 取消正在执行的所有任务
 			}
@@ -108,42 +116,56 @@ func (r *Runner) Run() {
 	ch := r.targetGenerate()
 	switch r.Mod {
 	case ModSniper:
-		r.RunWithSniper(ch)
+		r.RunWithSniper(ctx, ch)
 	case ModBomb:
-		r.RunWithClusterBomb(ch)
+		r.RunWithClusterBomb(ctx, ch)
 	case ModPitchFork:
-		r.RunWithPitchfork(ch)
+		r.RunWithPitchfork(ctx, ch)
 	default:
-		return
+		return nil
 	}
 	r.outlock.Wait()
 	time.Sleep(1 * time.Second)
 	close(r.OutputCh)
 	logs.Log.Importantf("%s", r.stat.TaskString())
 	logs.Log.Importantf("total: %d, success: %d", r.stat.Total, r.stat.Success)
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return nil
+	}
 }
 
-func (r *Runner) RunWithSniper(targets chan *Target) {
+func (r *Runner) RunWithSniper(ctx context.Context, targets chan *Target) {
 	for target := range targets {
-		targetCtx, cancel := context.WithCancel(context.Background())
+		select {
+		case <-ctx.Done():
+			r.wg.Wait()
+			return
+		default:
+		}
+		targetCtx, cancel := context.WithCancel(ctx)
 		r.add(&pkg.Task{
-			IP:       target.IP,
-			Port:     target.Port,
-			Service:  target.Service,
-			Scheme:   target.Scheme,
-			Username: target.Username,
-			Password: target.Password,
-			Param:    target.Param,
+			ZombieResult: &parsers.ZombieResult{
+				IP:       target.IP,
+				Port:     target.Port,
+				Service:  target.Service,
+				Scheme:   target.Scheme,
+				Username: target.Username,
+				Password: target.Password,
+				Param:    target.Param,
+				Mod:      parsers.ZombieModSniper,
+			},
 			Context:  targetCtx,
 			Canceler: cancel,
 			Timeout:  r.Timeout,
-			Mod:      pkg.TaskModSniper,
 		})
 	}
 	r.wg.Wait()
 }
 
-func (r *Runner) RunWithPitchfork(target chan *Target) {
+func (r *Runner) RunWithPitchfork(ctx context.Context, target chan *Target) {
 	var pairs [][]string
 	for _, auth := range r.Auths.RunAsSlice() {
 		username, password := parseAuthPair(auth)
@@ -151,33 +173,53 @@ func (r *Runner) RunWithPitchfork(target chan *Target) {
 	}
 
 	for target := range target {
-		targetCtx, cancel := context.WithCancel(context.Background())
+		select {
+		case <-ctx.Done():
+			r.wg.Wait()
+			return
+		default:
+		}
+		targetCtx, cancel := context.WithCancel(ctx)
 		for _, pair := range pairs {
+			select {
+			case <-targetCtx.Done():
+				break
+			default:
+			}
 			r.add(&pkg.Task{
-				IP:       target.IP,
-				Port:     target.Port,
-				Service:  target.Service,
-				Scheme:   target.Scheme,
-				Username: pair[0],
-				Password: pair[1],
-				Param:    target.Param,
+				ZombieResult: &parsers.ZombieResult{
+					IP:       target.IP,
+					Port:     target.Port,
+					Service:  target.Service,
+					Scheme:   target.Scheme,
+					Username: pair[0],
+					Password: pair[1],
+					Param:    target.Param,
+					Mod:      parsers.ZombieModPitchfork,
+				},
 				Context:  targetCtx,
 				Canceler: cancel,
 				Timeout:  r.Timeout,
-				Mod:      pkg.TaskModPitchfork,
 			})
 		}
 	}
 	r.wg.Wait()
 }
 
-func (r *Runner) RunWithClusterBomb(targets chan *Target) {
+func (r *Runner) RunWithClusterBomb(ctx context.Context, targets chan *Target) {
 	targetWG := &sync.WaitGroup{}
 	// unauth
 	for target := range targets {
+		select {
+		case <-ctx.Done():
+			targetWG.Wait()
+			r.wg.Wait()
+			return
+		default:
+		}
 		// check honey pot
 		targetWG.Add(1)
-		targetCtx, cancel := context.WithCancel(context.Background())
+		targetCtx, cancel := context.WithCancel(ctx)
 		cur := target
 
 		go func() {
@@ -197,17 +239,19 @@ func (r *Runner) RunWithClusterBomb(targets chan *Target) {
 				locker := &sync.Mutex{}
 				locker.Lock()
 				r.add(&pkg.Task{
-					IP:       cur.IP,
-					Port:     cur.Port,
-					Service:  cur.Service,
-					Scheme:   cur.Scheme,
-					Param:    cur.Param,
+					ZombieResult: &parsers.ZombieResult{
+						IP:       cur.IP,
+						Port:     cur.Port,
+						Service:  cur.Service,
+						Scheme:   cur.Scheme,
+						Param:    cur.Param,
+						Username: randomString(10),
+						Password: randomString(10),
+						Mod:      parsers.ZombieModCheck,
+					},
 					Context:  targetCtx,
 					Canceler: cancel,
 					Timeout:  r.Timeout,
-					Username: randomString(10),
-					Password: randomString(10),
-					Mod:      pkg.TaskModCheck,
 					Locker:   locker,
 				})
 				locker.Lock()
@@ -275,14 +319,16 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 					userLocker := &sync.Mutex{}
 					userLocker.Lock()
 					ch <- &pkg.Task{
-						IP:       target.IP,
-						Port:     target.Port,
-						Service:  target.Service,
-						Scheme:   target.Scheme,
-						Username: usr,
-						Param:    target.Param,
+						ZombieResult: &parsers.ZombieResult{
+							IP:       target.IP,
+							Port:     target.Port,
+							Service:  target.Service,
+							Scheme:   target.Scheme,
+							Username: usr,
+							Param:    target.Param,
+							Mod:      parsers.ZombieModUnauth,
+						},
 						Timeout:  r.Timeout,
-						Mod:      pkg.TaskModUnauth,
 						Context:  ctx,
 						Canceler: canceler,
 						Locker:   userLocker,
@@ -298,15 +344,17 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 					}
 					select {
 					case ch <- &pkg.Task{
-						IP:       target.IP,
-						Port:     target.Port,
-						Service:  target.Service,
-						Scheme:   target.Scheme,
-						Username: usr,
-						Password: pwd,
-						Param:    target.Param,
+						ZombieResult: &parsers.ZombieResult{
+							IP:       target.IP,
+							Port:     target.Port,
+							Service:  target.Service,
+							Scheme:   target.Scheme,
+							Username: usr,
+							Password: pwd,
+							Param:    target.Param,
+							Mod:      parsers.ZombieModBrute,
+						},
 						Timeout:  r.Timeout,
-						Mod:      pkg.TaskModBrute,
 						Context:  ctx,
 						Canceler: canceler,
 					}:
