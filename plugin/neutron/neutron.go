@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	common.NeutronLog = logs.NewLogger(logs.Debug - 1)
+	common.NeutronLog = logs.NewLogger(logs.Level(9))
 }
 
 type NeutronPlugin struct {
