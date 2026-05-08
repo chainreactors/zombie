@@ -1,3 +1,6 @@
+//go:build !emptytemplates
+// +build !emptytemplates
+
 package pkg
 
 import (
@@ -6,7 +9,7 @@ import (
 
 var RandomDir = "/g8kZMwp4oeKsL2in"
 
-func LoadConfig(typ string) []byte {
+func loadEmbeddedConfig(typ string) []byte {
 	if typ == "zombie_default" {
 		return encode.MustDeflateDeCompress(encode.Base64Decode("jJNBjoMwDEX3lXqH7rqaOcCs5iZVCi6gEpuJTRGqevcRSSBJCai78PP/c+yEm3SXnsH8HA+n09fpJp1bqFI36JbDMHgNCUdNPR8PU6wbyvfUYj0/n9dW4f31Oi9CQVoTTjGr6pH/2ri2IRK3slvJOZw5VIwcIfZJUX4rymoWA3zS8nHW1zhsD9ewGCVkVnOremBxmcBeM03ZfcacjHugjlgqA28NzmqCiqwJMR2fd6WceeyZ4XCdv05fdNoP1az4W/dqgOa7IL15Y4QV7XKdI3ob0/fmtKFsOMYlXbvdnZFYwyabRyzyR7VbsyPwvZzHPVLYY3b6th8JKXMdVNx59bJmfS8p0CJIJhp68pY9ChlVtBBTGhQwqPwD4pGXhYBeAoHpBH+pClUF/ocoaoUVXAgvDbKodvNJ1iJdpg8r7539ePgHAAD//w=="))
 	} else if typ == "zombie_common" {
