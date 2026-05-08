@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -16,6 +17,15 @@ import (
 type RunOptions struct {
 	Output  io.Writer
 	Version string
+}
+
+func Help() string {
+	var opt Option
+	parser := flags.NewParser(&opt, flags.Default&^flags.PrintErrors)
+	parser.Usage = Usage()
+	var buf bytes.Buffer
+	parser.WriteHelp(&buf)
+	return buf.String()
 }
 
 func RunWithArgs(ctx context.Context, args []string, opts RunOptions) error {
