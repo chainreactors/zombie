@@ -136,8 +136,9 @@ func LoadTemplates() error {
 
 func LoadPorts() error {
 	var ports []*utils.PortConfig
-	var err error
-	err = yaml.Unmarshal(LoadConfig("port"), &ports)
+	content := LoadConfig("port")
+	resources.PortData = content
+	err := yaml.Unmarshal(content, &ports)
 	if err != nil {
 		return err
 	}
@@ -149,7 +150,7 @@ func LoadPorts() error {
 func LoadFingers() error {
 	resources.FingersHTTPData = LoadConfig("http")
 	resources.FingersSocketData = LoadConfig("socket")
-	engine, err := fingers.NewFingersEngine()
+	engine, err := fingers.NewFingersEngine(resources.FingersHTTPData, resources.FingersSocketData, resources.PortData)
 	if err != nil {
 		return err
 	}
