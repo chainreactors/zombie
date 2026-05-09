@@ -36,17 +36,18 @@ require (
 
 require (
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/itchyny/gojq v0.12.16 // indirect
+	github.com/huin/asn1ber v0.0.0-20120622192748-af09f62e6358
+	github.com/icodeface/tls v0.0.0-20190904083142-17aec93c60e5
 	github.com/kr/pretty v0.3.1 // indirect
-	github.com/lcvvvv/kscan/grdp v0.0.0-00010101000000-000000000000
+	github.com/lunixbochs/struc v0.0.0-20200707160740-784aaebc1d40
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/xinsnake/go-http-digest-auth-client v0.6.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 replace (
-	github.com/lcvvvv/kscan/grdp => ./external/github.com/lcvvvv/grdp
 	golang.org/x/crypto => github.com/golang/crypto v0.23.0
 	golang.org/x/text => golang.org/x/text v0.12.0
 )
