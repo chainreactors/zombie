@@ -1,8 +1,8 @@
 package rdp
 
 import (
+	"github.com/chainreactors/zombie/external/grdp"
 	"github.com/chainreactors/zombie/pkg"
-	"github.com/lcvvvv/kscan/grdp"
 )
 
 type RdpPlugin struct {
