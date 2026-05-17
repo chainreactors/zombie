@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/chainreactors/files"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/utils"
+	"github.com/chainreactors/utils/fileutils"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"strings"
@@ -98,16 +98,17 @@ func (opt *Option) Prepare() (*Runner, error) {
 	var err error
 	var targets []*Target
 
-	var file *files.File
+	var file *fileutils.File
 	var outfunc func(string)
 	if opt.OutputFile != "" {
-		file, err = files.NewFile(opt.OutputFile, false, false, true)
+		file, err = fileutils.NewFile(opt.OutputFile, fileutils.ModeAppend, false, false)
 		if err != nil {
 			return nil, err
 		}
 		outfunc = func(s string) {
-			file.SafeWrite(s)
-			file.SafeSync()
+			if err := file.SyncWrite(s); err != nil {
+				logs.Log.Warn(fmt.Sprintf("write output file failed: %v", err))
+			}
 		}
 	}
 

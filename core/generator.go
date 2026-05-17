@@ -2,7 +2,7 @@ package core
 
 import (
 	"errors"
-	"github.com/chainreactors/files"
+	"github.com/chainreactors/utils/fileutils"
 	"github.com/chainreactors/words"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
@@ -113,7 +113,7 @@ func (g *Generator) SetFile(filename string) error {
 }
 
 func (g *Generator) SetRuleFile(filename string) error {
-	if files.IsExist(filename) {
+	if fileutils.IsExist(filename) {
 		g.RuleFilename = filename
 		content, err := ioutil.ReadFile(filename)
 		if err != nil {

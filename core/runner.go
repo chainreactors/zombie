@@ -3,10 +3,10 @@ package core
 import (
 	"context"
 	"fmt"
-	"github.com/chainreactors/files"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils"
+	"github.com/chainreactors/utils/fileutils"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/panjf2000/ants/v2"
@@ -37,7 +37,7 @@ type Runner struct {
 	Targets   []*Target
 	Services  []string
 	OutputCh  chan *pkg.Result
-	File      *files.File
+	File      *fileutils.File
 	OutFunc   func(string)
 	FirstOnly bool
 	Pool      *ants.PoolWithFunc
