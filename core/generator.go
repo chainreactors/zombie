@@ -44,6 +44,7 @@ func NewGeneratorWithFile(filename string) (*Generator, error) {
 	g := &Generator{
 		C:        make(chan string),
 		Filename: filename,
+		File:     f,
 	}
 
 	g.Word = words.NewWorderWithFile(f)

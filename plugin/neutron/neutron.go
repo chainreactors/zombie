@@ -3,15 +3,14 @@ package neutron
 import (
 	"errors"
 	"fmt"
-	"github.com/chainreactors/logs"
-	"github.com/chainreactors/neutron/common"
+	neutronlogs "github.com/chainreactors/neutron/logs"
 	templates "github.com/chainreactors/neutron/templates"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/zombie/pkg"
 )
 
 func init() {
-	common.NeutronLog = logs.NewLogger(logs.Level(9))
+	neutronlogs.SetLevel(neutronlogs.LevelError)
 }
 
 type NeutronPlugin struct {

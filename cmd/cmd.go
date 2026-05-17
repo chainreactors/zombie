@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/chainreactors/zombie/core"
-	"github.com/jessevdk/go-flags"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -17,12 +17,17 @@ func init() {
 var ver = "dev"
 
 func Zombie() {
-	defer os.Exit(0)
-	err := core.RunWithArgs(context.Background(), os.Args[1:], core.RunOptions{Version: ver})
-	if err != nil {
-		if flagsErr, ok := err.(*flags.Error); !ok || flagsErr.Type != flags.ErrHelp {
-			fmt.Println(err.Error())
-		}
-		return
+	os.Exit(Run(os.Args[1:], os.Stdout))
+}
+
+func Run(args []string, output io.Writer) int {
+	if output == nil {
+		output = os.Stdout
 	}
+	err := core.RunWithArgs(context.Background(), args, core.RunOptions{Output: output, Version: ver})
+	if err != nil {
+		fmt.Fprintln(output, err.Error())
+		return 1
+	}
+	return 0
 }
