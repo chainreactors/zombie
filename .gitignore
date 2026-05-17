@@ -10,7 +10,6 @@
 # Test binary, built with `go test -c`
 *.test
 *.dic
-*_test.go
 *.txt
 *.tar.gz
 

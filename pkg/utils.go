@@ -62,8 +62,9 @@ func RandomUA() string {
 func SplitUserDomain(user string) (string, string) {
 	var domain string
 	if strings.Contains(user, "/") {
-		user = strings.Split(user, "/")[1]
-		domain = strings.Split(user, "/")[0]
+		parts := strings.SplitN(user, "/", 2)
+		domain = parts[0]
+		user = parts[1]
 	}
 	return user, domain
 }

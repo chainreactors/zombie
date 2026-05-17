@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/chainreactors/files"
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/utils"
+	"github.com/chainreactors/utils/fileutils"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"strings"
@@ -61,15 +61,26 @@ type MiscOptions struct {
 	Strict      bool   `long:"strict" description:"Bool, strict mode, when finger check pass will brute"`
 	Threads     int    `short:"t" default:"100" description:"Int, threads"`
 	Timeout     int    `long:"timeout" default:"5" description:"Int, timeout"`
-	Mod         string `short:"m" default:"clusterbomb" description:"String, clusterbomb/sniper"`
+	Mod         string `short:"m" default:"clusterbomb" description:"String, clusterbomb/pitchfork/sniper"`
 	ListService bool   `short:"l" long:"list" description:"Bool, list all service"`
 	Bar         bool   `long:"bar" description:"Bool, enable bar"`
 	Version     bool   `long:"version" description:"Bool, show version"`
 }
 
 func (opt *Option) Validate() error {
+	if opt.Mod == "" {
+		opt.Mod = ModBomb
+	}
+	switch opt.Mod {
+	case ModBomb, ModPitchFork, ModSniper:
+	default:
+		return fmt.Errorf("unsupported mod %q, want clusterbomb, pitchfork, or sniper", opt.Mod)
+	}
 	if len(opt.IP) == 0 && opt.IPFile == "" && opt.JsonFile == "" && opt.GogoFile == "" && opt.CIDR == nil {
 		return errors.New("please input ip or or file or json file or gogo file")
+	}
+	if opt.Mod == ModPitchFork && opt.Auth == nil && opt.AuthFile == "" {
+		return errors.New("pitchfork mode requires auth, please set -a/-A")
 	}
 	if opt.WeakPassWord && (opt.Password == nil && opt.PasswordFile == "") {
 		return errors.New("use weak-password rule must set password, please set -p/-P")
@@ -87,16 +98,17 @@ func (opt *Option) Prepare() (*Runner, error) {
 	var err error
 	var targets []*Target
 
-	var file *files.File
+	var file *fileutils.File
 	var outfunc func(string)
 	if opt.OutputFile != "" {
-		file, err = files.NewFile(opt.OutputFile, false, false, true)
+		file, err = fileutils.NewFile(opt.OutputFile, fileutils.ModeAppend, false, false)
 		if err != nil {
 			return nil, err
 		}
 		outfunc = func(s string) {
-			file.SafeWrite(s)
-			file.SafeSync()
+			if err := file.SyncWrite(s); err != nil {
+				logs.Log.Warn(fmt.Sprintf("write output file failed: %v", err))
+			}
 		}
 	}
 
