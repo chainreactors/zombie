@@ -54,3 +54,36 @@ func TestOptionValidateRequiresPitchforkAuth(t *testing.T) {
 		t.Fatalf("expected pitchfork with auth to pass validation: %v", err)
 	}
 }
+
+func TestOptionPrepareOutputFileWriter(t *testing.T) {
+	output := filepath.Join(t.TempDir(), "results.txt")
+	opt := &Option{}
+	opt.IP = []string{"127.0.0.1"}
+	opt.ServiceName = "redis"
+	opt.OutputFile = output
+	opt.Mod = ModSniper
+
+	runner, err := opt.Prepare()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if runner.File == nil {
+		t.Fatal("expected output file writer")
+	}
+	if runner.OutFunc == nil {
+		t.Fatal("expected output function")
+	}
+
+	runner.OutFunc("ok\n")
+	if err := runner.File.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := os.ReadFile(output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != "ok\n" {
+		t.Fatalf("unexpected output file content: %q", string(got))
+	}
+}
