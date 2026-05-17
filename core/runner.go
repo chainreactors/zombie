@@ -51,6 +51,17 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
+	if r.Mod == "" {
+		r.Mod = ModBomb
+	}
+	switch r.Mod {
+	case ModSniper, ModBomb, ModPitchFork:
+	default:
+		return fmt.Errorf("unsupported mod %q, want clusterbomb, pitchfork, or sniper", r.Mod)
+	}
+	if r.Mod == ModPitchFork && r.Auths == nil {
+		return fmt.Errorf("pitchfork mode requires auth, please set -a/-A")
+	}
 	go r.OutputHandler()
 	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
@@ -166,6 +177,9 @@ func (r *Runner) RunWithSniper(ctx context.Context, targets chan *Target) {
 }
 
 func (r *Runner) RunWithPitchfork(ctx context.Context, target chan *Target) {
+	if r.Auths == nil {
+		return
+	}
 	var pairs [][]string
 	for _, auth := range r.Auths.RunAsSlice() {
 		username, password := parseAuthPair(auth)
@@ -180,10 +194,12 @@ func (r *Runner) RunWithPitchfork(ctx context.Context, target chan *Target) {
 		default:
 		}
 		targetCtx, cancel := context.WithCancel(ctx)
+		defer cancel()
+	pairLoop:
 		for _, pair := range pairs {
 			select {
 			case <-targetCtx.Done():
-				break
+				break pairLoop
 			default:
 			}
 			r.add(&pkg.Task{

@@ -61,15 +61,26 @@ type MiscOptions struct {
 	Strict      bool   `long:"strict" description:"Bool, strict mode, when finger check pass will brute"`
 	Threads     int    `short:"t" default:"100" description:"Int, threads"`
 	Timeout     int    `long:"timeout" default:"5" description:"Int, timeout"`
-	Mod         string `short:"m" default:"clusterbomb" description:"String, clusterbomb/sniper"`
+	Mod         string `short:"m" default:"clusterbomb" description:"String, clusterbomb/pitchfork/sniper"`
 	ListService bool   `short:"l" long:"list" description:"Bool, list all service"`
 	Bar         bool   `long:"bar" description:"Bool, enable bar"`
 	Version     bool   `long:"version" description:"Bool, show version"`
 }
 
 func (opt *Option) Validate() error {
+	if opt.Mod == "" {
+		opt.Mod = ModBomb
+	}
+	switch opt.Mod {
+	case ModBomb, ModPitchFork, ModSniper:
+	default:
+		return fmt.Errorf("unsupported mod %q, want clusterbomb, pitchfork, or sniper", opt.Mod)
+	}
 	if len(opt.IP) == 0 && opt.IPFile == "" && opt.JsonFile == "" && opt.GogoFile == "" && opt.CIDR == nil {
 		return errors.New("please input ip or or file or json file or gogo file")
+	}
+	if opt.Mod == ModPitchFork && opt.Auth == nil && opt.AuthFile == "" {
+		return errors.New("pitchfork mode requires auth, please set -a/-A")
 	}
 	if opt.WeakPassWord && (opt.Password == nil && opt.PasswordFile == "") {
 		return errors.New("use weak-password rule must set password, please set -p/-P")
