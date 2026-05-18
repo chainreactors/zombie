@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/chainreactors/logs"
-	neutronlogs "github.com/chainreactors/neutron/logs"
+	neutroncommon "github.com/chainreactors/neutron/common"
 	"github.com/chainreactors/neutron/templates"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/jessevdk/go-flags"
@@ -17,7 +17,7 @@ type Option struct {
 }
 
 func init() {
-	neutronlogs.SetLevel(neutronlogs.LevelDebug)
+	neutroncommon.NeutronLog.SetLevel(logs.DebugLevel)
 	logs.Log.SetLevel(logs.DebugLevel)
 }
 
