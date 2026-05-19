@@ -1,4 +1,4 @@
-//go:generate go run templates/templates_gen.go -t templates -o pkg/templates.go -need zombie
+//go:generate go run templates/templates_gen.go -t templates -o pkg/templates.go -need zombie -embed
 package main
 
 import (
