@@ -1,6 +1,6 @@
 module github.com/chainreactors/zombie
 
-go 1.11
+go 1.16
 
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
