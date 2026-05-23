@@ -11,7 +11,12 @@ import (
 )
 
 func init() {
-	neutroncommon.NeutronLog.SetLevel(logs.ErrorLevel)
+	if neutroncommon.NeutronLog == nil {
+		neutroncommon.NeutronLog = logs.Log
+	}
+	if neutroncommon.NeutronLog != nil {
+		neutroncommon.NeutronLog.SetLevel(logs.ErrorLevel)
+	}
 }
 
 type NeutronPlugin struct {
