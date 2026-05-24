@@ -10,7 +10,6 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
 	"strings"
-	"sync"
 )
 
 type Option struct {
@@ -112,19 +111,23 @@ func (opt *Option) Prepare() (*Runner, error) {
 		}
 	}
 
-	runner := &Runner{
-		File:      file,
-		OutFunc:   outfunc,
-		FirstOnly: !opt.ForceContinue,
-		Option:    opt,
-		wg:        &sync.WaitGroup{},
-		outlock:   &sync.WaitGroup{},
-		addlock:   &sync.Mutex{},
-		OutputCh:  make(chan *pkg.Result),
-		stat: &pkg.Statistor{
-			Tasks: make(map[string]int),
-		},
+	runnerOpt := &RunnerOption{
+		Threads:         opt.Threads,
+		Timeout:         opt.Timeout,
+		Top:             opt.Top,
+		Mod:             opt.Mod,
+		FirstOnly:       !opt.ForceContinue,
+		NoUnAuth:        opt.NoUnAuth,
+		NoCheckHoneyPot: opt.NoCheckHoneyPot,
+		Strict:          opt.Strict,
+		Raw:             opt.Raw,
 	}
+
+	runner := NewRunner(runnerOpt)
+	runner.File = file
+	runner.OutFunc = outfunc
+	runner.FileFormat = opt.FileFormat
+	runner.OutputFormat = opt.OutputFormat
 
 	if opt.Bar {
 		pkg.InitBar()

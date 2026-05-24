@@ -1,26 +1,29 @@
 package ssh
 
 import (
+	"encoding/base64"
+	"fmt"
+	"net"
+	"os"
+	"time"
+
 	"github.com/chainreactors/zombie/pkg"
 	"golang.org/x/crypto/ssh"
-	"io/ioutil"
-	"log"
-	"net"
-	"time"
 )
 
 type SshPlugin struct {
 	*pkg.Task
-	//Cmd            string
 	conn *ssh.Client
 }
 
 func (s *SshPlugin) Login() error {
 	var auth []ssh.AuthMethod
-	if method, pkfile := pkg.ParseMethod(s.Password); method == "pk" && pkfile != "" {
-		auth = []ssh.AuthMethod{
-			publicKeyAuthFunc(pkfile),
+	if method, pkdata := pkg.ParseMethod(s.Password); method == "pk" && pkdata != "" {
+		am, err := publicKeyAuth(pkdata)
+		if err != nil {
+			return err
 		}
+		auth = []ssh.AuthMethod{am}
 	} else {
 		auth = []ssh.AuthMethod{
 			ssh.Password(s.Password),
@@ -52,7 +55,6 @@ func (s *SshPlugin) Close() error {
 }
 
 func (s *SshPlugin) GetResult() *pkg.Result {
-	// todo list dbs
 	return &pkg.Result{Task: s.Task, OK: true}
 }
 
@@ -78,15 +80,20 @@ func SSHConnect(task *pkg.Task, auth []ssh.AuthMethod) (conn *ssh.Client, err er
 	return conn, nil
 }
 
-func publicKeyAuthFunc(kPath string) ssh.AuthMethod {
-	key, err := ioutil.ReadFile(kPath)
+// publicKeyAuth resolves a private key from either base64-encoded PEM
+// data or a file path, and returns an SSH auth method.
+func publicKeyAuth(data string) (ssh.AuthMethod, error) {
+	keyBytes, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
-		log.Fatal("ssh key file read failed", err)
+		keyBytes, err = os.ReadFile(data)
+		if err != nil {
+			return nil, fmt.Errorf("ssh key read failed: %w", err)
+		}
 	}
-	// Create the Signer for this private key.
-	signer, err := ssh.ParsePrivateKey(key)
+
+	signer, err := ssh.ParsePrivateKey(keyBytes)
 	if err != nil {
-		log.Fatal("ssh key signer failed", err)
+		return nil, fmt.Errorf("ssh key parse failed: %w", err)
 	}
-	return ssh.PublicKeys(signer)
+	return ssh.PublicKeys(signer), nil
 }
