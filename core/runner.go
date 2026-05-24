@@ -3,6 +3,10 @@ package core
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
+	"sync"
+	"time"
+
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils"
@@ -10,9 +14,6 @@ import (
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/panjf2000/ants/v2"
-	"runtime/debug"
-	"sync"
-	"time"
 )
 
 var (
@@ -22,25 +23,65 @@ var (
 )
 
 type Runner struct {
-	*Option
-	//progress *mpb.Progress
+	*RunnerOption
+
 	bar     *pkg.Bar
 	stat    *pkg.Statistor
 	wg      *sync.WaitGroup
 	outlock *sync.WaitGroup
 	addlock *sync.Mutex
 
-	Users     *Generator
-	Pwds      *Generator
-	Auths     *Generator
-	Addrs     utils.Addrs
-	Targets   []*Target
-	Services  []string
-	OutputCh  chan *pkg.Result
-	File      *fileutils.File
-	OutFunc   func(string)
-	FirstOnly bool
-	Pool      *ants.PoolWithFunc
+	Users        *Generator
+	Pwds         *Generator
+	Auths        *Generator
+	Addrs        utils.Addrs
+	Targets      []*Target
+	Services     []string
+	OutputCh     chan *pkg.Result
+	File         *fileutils.File
+	OutFunc      func(string)
+	FileFormat   string
+	OutputFormat string
+	Pool         *ants.PoolWithFunc
+}
+
+func NewRunner(opt *RunnerOption) *Runner {
+	if opt == nil {
+		opt = NewDefaultRunnerOption()
+	}
+	return &Runner{
+		RunnerOption: opt,
+		OutputCh:     make(chan *pkg.Result),
+		wg:           &sync.WaitGroup{},
+		outlock:      &sync.WaitGroup{},
+		addlock:      &sync.Mutex{},
+		stat: &pkg.Statistor{
+			Tasks: make(map[string]int),
+		},
+	}
+}
+
+func (r *Runner) SetTargets(targets []*Target) {
+	r.Targets = targets
+}
+
+func (r *Runner) SetUsers(users []string) {
+	if len(users) > 0 {
+		r.Users = NewGeneratorWithInput(users)
+	}
+}
+
+func (r *Runner) SetPasswords(passwords []string) {
+	if len(passwords) > 0 {
+		r.Pwds = NewGeneratorWithInput(passwords)
+	}
+}
+
+func (r *Runner) SetAuths(pairs []string) {
+	if len(pairs) > 0 {
+		r.Auths = NewGeneratorWithInput(pairs)
+		r.Mod = ModPitchFork
+	}
 }
 
 func (r *Runner) Run() {
@@ -51,6 +92,9 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
+
+	pkg.RunOpt.Raw = r.Raw
+
 	if r.Mod == "" {
 		r.Mod = ModBomb
 	}
@@ -62,7 +106,11 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	if r.Mod == ModPitchFork && r.Auths == nil {
 		return fmt.Errorf("pitchfork mode requires auth, please set -a/-A")
 	}
-	go r.OutputHandler()
+
+	if r.OutFunc != nil {
+		go r.OutputHandler()
+	}
+
 	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
 		defer func() {
@@ -71,7 +119,7 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 				task.Locker.Unlock()
 			}
 		}()
-		ctx, tcancel := context.WithCancel(task.Context) // current task context
+		ctx, tcancel := context.WithCancel(task.Context)
 		go func() {
 			defer func() {
 				if r := recover(); r != nil {
@@ -80,7 +128,6 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 				}
 			}()
 			var res *pkg.Result
-			// dispatch mod
 			if task.Mod == parsers.ZombieModUnauth {
 				res = Unauth(task)
 			} else if task.Mod == parsers.ZombieModCheck {
@@ -89,7 +136,6 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 				res = Brute(task)
 			}
 
-			// 如果已经该目标的相关任务已经完成, 忽略后续输出
 			select {
 			case <-ctx.Done():
 				return
@@ -100,16 +146,14 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 			}
 
 			if res.OK && r.FirstOnly && task.Mod != parsers.ZombieModSniper {
-				tcancel()       // 退出当前任务
-				task.Canceler() // 取消正在执行的所有任务
+				tcancel()
+				task.Canceler()
 			}
 			tcancel()
 		}()
 
-		// 设置超时时间, 防止任务挂死
 		select {
 		case <-ctx.Done():
-			//logs.Log.Debugf("current task %s %s %s cancel", task.URI(), task.Username, task.Password)
 		case <-task.Context.Done():
 			logs.Log.Debugf("all task %s cancel", task.URI())
 		case <-time.After(time.Duration(task.Timeout*2) * time.Second):
@@ -135,17 +179,26 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	default:
 		return nil
 	}
-	r.outlock.Wait()
-	time.Sleep(1 * time.Second)
+	if r.OutFunc != nil {
+		r.outlock.Wait()
+	}
 	close(r.OutputCh)
-	logs.Log.Importantf("%s", r.stat.TaskString())
-	logs.Log.Importantf("total: %d, success: %d", r.stat.Total, r.stat.Success)
+
+	if !r.Quiet {
+		logs.Log.Importantf("%s", r.stat.TaskString())
+		logs.Log.Importantf("total: %d, success: %d", r.stat.Total, r.stat.Success)
+	}
+
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
 		return nil
 	}
+}
+
+func (r *Runner) Stat() *pkg.Statistor {
+	return r.stat
 }
 
 func (r *Runner) RunWithSniper(ctx context.Context, targets chan *Target) {
@@ -224,7 +277,6 @@ func (r *Runner) RunWithPitchfork(ctx context.Context, target chan *Target) {
 
 func (r *Runner) RunWithClusterBomb(ctx context.Context, targets chan *Target) {
 	targetWG := &sync.WaitGroup{}
-	// unauth
 	for target := range targets {
 		select {
 		case <-ctx.Done():
@@ -233,7 +285,6 @@ func (r *Runner) RunWithClusterBomb(ctx context.Context, targets chan *Target) {
 			return
 		default:
 		}
-		// check honey pot
 		targetWG.Add(1)
 		targetCtx, cancel := context.WithCancel(ctx)
 		cur := target
@@ -279,14 +330,12 @@ func (r *Runner) RunWithClusterBomb(ctx context.Context, targets chan *Target) {
 			for {
 				select {
 				case task, ok := <-ch:
-					// 从生成器中取任务.
 					if ok {
 						r.add(task)
 					} else {
 						break loop
 					}
 				case <-targetCtx.Done():
-					// todo 为断点续传做准备
 					break loop
 				}
 			}
@@ -297,10 +346,8 @@ func (r *Runner) RunWithClusterBomb(ctx context.Context, targets chan *Target) {
 }
 
 func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.CancelFunc, target *Target) chan *pkg.Task {
-	// 通过用户名与密码的笛卡尔积生成数据
 	ch := make(chan *pkg.Task)
 	var users, pwds []string
-	// 自动选择默认的用户名与密码字典
 	if target.Username != "" {
 		users = []string{target.Username}
 	} else if r.Users == nil {
@@ -318,7 +365,6 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 	}
 	wg := &sync.WaitGroup{}
 
-	// task生成器
 	go func() {
 		defer close(ch)
 		for _, user := range users {
@@ -378,7 +424,6 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 						return
 					}
 				}
-
 			}()
 		}
 		wg.Wait()
@@ -392,10 +437,8 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 func (r *Runner) targetGenerate() chan *Target {
 	ch := make(chan *Target)
 	go func() {
-		// 通过targets生成目标
 		for _, target := range r.Targets {
 			if r.Services == nil || (r.Services != nil && iutils.StringsContains(r.Services, target.Service)) {
-				// 如果从gogo中输入的目标, 可以通过-s过滤特定的服务进行扫描
 				ch <- target
 			}
 		}
@@ -416,7 +459,9 @@ func (r *Runner) add(task *pkg.Task) {
 }
 
 func (r *Runner) Output(res *pkg.Result) {
-	r.outlock.Add(1)
+	if r.OutFunc != nil {
+		r.outlock.Add(1)
+	}
 	if res.OK {
 		r.stat.Success++
 	}
@@ -433,9 +478,9 @@ loop:
 			}
 			if result.OK {
 				if r.File != nil {
-					r.OutFunc(result.Format(r.Option.FileFormat))
+					r.OutFunc(result.Format(r.FileFormat))
 				}
-				logs.Log.Console(result.Format(r.Option.OutputFormat))
+				logs.Log.Console(result.Format(r.OutputFormat))
 			} else {
 				logs.Log.Debugf("[%s] %s %s %s ,%s login failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Service, result.Err.Error())
 			}
