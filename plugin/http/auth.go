@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/chainreactors/zombie/pkg"
 	"net/http"
+	"crypto/tls"
 )
 
 type HttpAuthPlugin struct {
@@ -35,7 +36,11 @@ func (s *HttpAuthPlugin) Login() error {
 	}
 	req.Header.Set("User-Agent", pkg.RandomUA())
 	req.SetBasicAuth(s.Username, s.Password)
-	resp, err := http.DefaultClient.Do(req)
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: transport}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
