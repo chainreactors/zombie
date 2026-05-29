@@ -22,6 +22,40 @@ var (
 	ModPitchFork = "pitchfork"
 )
 
+// hostLimiter 给每个 host 一个并发闸,把单 host 在飞连接数限制在服务端
+// 限速安全区内(如 sshd 默认 MaxStartups 10:30:100),从源头避免连接被拒。
+type hostLimiter struct {
+	mu    sync.Mutex
+	sems  map[string]chan struct{}
+	limit int
+}
+
+func newHostLimiter(limit int) *hostLimiter {
+	return &hostLimiter{sems: make(map[string]chan struct{}), limit: limit}
+}
+
+// acquire 阻塞直到该 host 有空闲额度,返回 (释放函数, 是否取得)。limit<=0 时不限。
+// 等额度期间若 ctx 被取消(如该目标已命中口令),立即返回 ok=false 且不建连,
+// 否则被取消的目标会被排空队列高速循环建连,瞬间冲破服务端限速。
+func (h *hostLimiter) acquire(ctx context.Context, key string) (func(), bool) {
+	if h == nil || h.limit <= 0 {
+		return func() {}, true
+	}
+	h.mu.Lock()
+	sem, ok := h.sems[key]
+	if !ok {
+		sem = make(chan struct{}, h.limit)
+		h.sems[key] = sem
+	}
+	h.mu.Unlock()
+	select {
+	case sem <- struct{}{}:
+		return func() { <-sem }, true
+	case <-ctx.Done():
+		return func() {}, false
+	}
+}
+
 type Runner struct {
 	*RunnerOption
 
@@ -43,6 +77,7 @@ type Runner struct {
 	FileFormat   string
 	OutputFormat string
 	Pool         *ants.PoolWithFunc
+	hostSem      *hostLimiter
 }
 
 func NewRunner(opt *RunnerOption) *Runner {
@@ -111,6 +146,7 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 		go r.OutputHandler()
 	}
 
+	r.hostSem = newHostLimiter(r.HostThreads)
 	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
 		defer func() {
@@ -119,6 +155,22 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 				task.Locker.Unlock()
 			}
 		}()
+		// 该目标已命中/被取消,无需再发起连接,直接跳过。避免 first-success 之后
+		// 队列里剩余任务被排空时,每个都瞬间建连又立刻取消,冲破服务端限速。
+		select {
+		case <-task.Context.Done():
+			return
+		default:
+		}
+		// per-host 闸放在外层、且在超时计时之前:既能严格把单 host 在飞连接限制
+		// 在服务端安全区(如 sshd MaxStartups 10),排队等额度的时间又不计入
+		// 任务超时(否则重竞争下会误判 goroutine timeout)。外层 select 会等
+		// ctx.Done(inner 跑完后 tcancel),所以 sem 一直持有到连接结束。
+		releaseHost, ok := r.hostSem.acquire(task.Context, task.Address())
+		if !ok {
+			return // 等额度期间目标已命中/取消,不再建连
+		}
+		defer releaseHost()
 		ctx, tcancel := context.WithCancel(task.Context)
 		go func() {
 			defer func() {
