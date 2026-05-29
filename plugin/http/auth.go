@@ -35,7 +35,7 @@ func (s *HttpAuthPlugin) Login() error {
 	}
 	req.Header.Set("User-Agent", pkg.RandomUA())
 	req.SetBasicAuth(s.Username, s.Password)
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := s.HTTPClient(true).Do(req)
 	if err != nil {
 		return err
 	}

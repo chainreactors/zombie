@@ -12,8 +12,8 @@ import (
 	"strings"
 )
 
-func RsyncDetect(target string, timeout int) (float64, []string, error) {
-	conn, err := pkg.NewSocket("tcp", target, timeout)
+func RsyncDetect(target string, timeout int, dial pkg.DialTimeoutFunc) (float64, []string, error) {
+	conn, err := pkg.NewSocketWithDialer("tcp", target, timeout, dial)
 	if err != nil {
 		return 0, nil, nil
 	}
@@ -39,8 +39,8 @@ func RsyncDetect(target string, timeout int) (float64, []string, error) {
 	return 0, nil, errors.New("not rsync")
 }
 
-func RsyncLogin(target, user, passwd string, ver float64, modules []string, timeout int) error {
-	conn, err := pkg.NewSocket("tcp", target, timeout)
+func RsyncLogin(target, user, passwd string, ver float64, modules []string, timeout int, dial pkg.DialTimeoutFunc) error {
+	conn, err := pkg.NewSocketWithDialer("tcp", target, timeout, dial)
 	if err != nil {
 		return err
 	}
@@ -94,8 +94,8 @@ func RsyncLogin(target, user, passwd string, ver float64, modules []string, time
 	return errors.New("rsync auth failed")
 }
 
-func RsyncUnauth(target string, ver float64, modules []string, timeout int) error {
-	conn, err := pkg.NewSocket("tcp", target, timeout)
+func RsyncUnauth(target string, ver float64, modules []string, timeout int, dial pkg.DialTimeoutFunc) error {
+	conn, err := pkg.NewSocketWithDialer("tcp", target, timeout, dial)
 	if err != nil {
 		return err
 	}

@@ -101,6 +101,8 @@ github.com/chainreactors/parsers v0.0.0-20260517174207-da1ebd0e7f68 h1:WbG2RrE/a
 github.com/chainreactors/parsers v0.0.0-20260517174207-da1ebd0e7f68/go.mod h1:Y5HpZLDOUm+hPvWfsxvVemPbe5iX0zDpimgdWRI1S/g=
 github.com/chainreactors/utils v0.0.0-20260507101628-fd69d955ae21 h1:8Vf3BIolSLmZFeK8xYqKBDZi88g2iU9dtVIKohEFPW4=
 github.com/chainreactors/utils v0.0.0-20260507101628-fd69d955ae21/go.mod h1:LajXuvESQwP+qCMAvlcoSXppQCjuLlBrnQpu9XQ1HtU=
+github.com/chainreactors/utils v0.0.0-20260529070435-f03100630384 h1:meDqfYQeaqSCHZXujGJqOIChuZSx4NJiIsV5OGCdEIQ=
+github.com/chainreactors/utils v0.0.0-20260529070435-f03100630384/go.mod h1:LajXuvESQwP+qCMAvlcoSXppQCjuLlBrnQpu9XQ1HtU=
 github.com/chainreactors/words v0.0.0-20241002061906-25d8893158d9 h1:BXaPgD1pfBPvFSy9DHZDxW0bHX96ONZT6HW+WbXlZCk=
 github.com/chainreactors/words v0.0.0-20241002061906-25d8893158d9/go.mod h1:zfz367PUmyaX6oAqV9SktVqyRXKlEh0sel9Wsq9dd2c=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=

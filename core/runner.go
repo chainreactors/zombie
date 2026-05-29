@@ -449,6 +449,7 @@ func (r *Runner) targetGenerate() chan *Target {
 }
 
 func (r *Runner) add(task *pkg.Task) {
+	task.ProxyDial = r.ProxyDial
 	r.stat.Cur = task.String()
 	r.addlock.Lock()
 	r.stat.Tasks[task.Service]++

@@ -1,5 +1,7 @@
 package core
 
+import "github.com/chainreactors/zombie/pkg"
+
 type RunnerOption struct {
 	Threads         int
 	Timeout         int
@@ -11,6 +13,9 @@ type RunnerOption struct {
 	Strict          bool
 	Raw             bool
 	Quiet           bool
+
+	// ProxyDial 非 nil 时透传到每个 Task，使插件通过代理建立连接。
+	ProxyDial pkg.DialFunc
 }
 
 var DefaultRunnerOption = &RunnerOption{

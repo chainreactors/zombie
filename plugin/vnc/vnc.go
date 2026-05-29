@@ -3,7 +3,6 @@ package vnc
 import (
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/mitchellh/go-vnc"
-	"net"
 	"time"
 )
 
@@ -16,7 +15,7 @@ type VNCPlugin struct {
 func (s *VNCPlugin) Unauth() (bool, error) {
 	target := s.Address()
 
-	tcpconn, err := net.DialTimeout("tcp", target, time.Duration(s.Timeout)*time.Second)
+	tcpconn, err := s.DialTimeout("tcp", target, time.Duration(s.Timeout)*time.Second)
 	if err != nil {
 		return false, err
 	}
@@ -37,7 +36,7 @@ func (s *VNCPlugin) Unauth() (bool, error) {
 func (s *VNCPlugin) Login() error {
 	target := s.Address()
 
-	tcpconn, err := net.DialTimeout("tcp", target, time.Duration(s.Timeout)*time.Second)
+	tcpconn, err := s.DialTimeout("tcp", target, time.Duration(s.Timeout)*time.Second)
 	if err != nil {
 		return err
 	}
