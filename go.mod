@@ -22,7 +22,7 @@ require (
 	github.com/knadh/go-pop3 v0.3.0
 	github.com/lib/pq v1.9.0
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
-	github.com/panjf2000/ants/v2 v2.4.3
+	github.com/panjf2000/ants/v2 v2.12.1
 	github.com/samuel/go-zookeeper v0.0.0-20201211165307-7117e9ea2414
 	github.com/sijms/go-ora/v2 v2.2.15
 	github.com/streadway/amqp v1.1.0
@@ -38,7 +38,6 @@ require (
 	github.com/huin/asn1ber v0.0.0-20120622192748-af09f62e6358
 	github.com/icodeface/tls v0.0.0-20190904083142-17aec93c60e5
 	github.com/kr/pretty v0.3.1 // indirect
-	github.com/lcvvvv/logs v0.0.3 // indirect
 	github.com/lunixbochs/struc v0.0.0-20200707160740-784aaebc1d40
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
