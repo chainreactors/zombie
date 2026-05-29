@@ -59,6 +59,7 @@ type MiscOptions struct {
 	Raw         bool   `long:"raw" description:"Bool, parser raw username/password"`
 	Strict      bool   `long:"strict" description:"Bool, strict mode, when finger check pass will brute"`
 	Threads     int    `short:"t" default:"100" description:"Int, threads"`
+	HostThreads int    `long:"host-threads" default:"8" description:"Int, max concurrent connections per host, keep below service rate-limits e.g. sshd MaxStartups(default 10) to avoid random connection drops being misread as wrong password; 0=unlimited"`
 	Timeout     int    `long:"timeout" default:"5" description:"Int, timeout"`
 	Mod         string `short:"m" default:"clusterbomb" description:"String, clusterbomb/pitchfork/sniper"`
 	ListService bool   `short:"l" long:"list" description:"Bool, list all service"`
@@ -113,6 +114,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 
 	runnerOpt := &RunnerOption{
 		Threads:         opt.Threads,
+		HostThreads:     opt.HostThreads,
 		Timeout:         opt.Timeout,
 		Top:             opt.Top,
 		Mod:             opt.Mod,
