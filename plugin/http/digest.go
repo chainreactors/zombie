@@ -26,6 +26,8 @@ func (s *HTTPDigestPlugin) Login() error {
 		return err
 	}
 	digestClient := digest_auth_client.NewRequest(s.Username, s.Password, "GET", u, "")
+	// 路由 digest 请求经 per-task 代理客户端（零全局）。
+	digestClient.HTTPClient = s.HTTPClient(true)
 	resp, err := digestClient.HTTPClient.Do(req)
 	if err != nil {
 		return err

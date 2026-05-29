@@ -108,7 +108,7 @@ func (s *HTTPPlugin) Login() error {
 			return err
 		}
 		s.setupRequestHeaders(req)
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := s.HTTPClient(true).Do(req)
 		if err != nil {
 			return err
 		}
@@ -158,7 +158,7 @@ func (s *HTTPPlugin) Login() error {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
 
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := s.HTTPClient(true).Do(req)
 		if err != nil {
 			return err
 		}

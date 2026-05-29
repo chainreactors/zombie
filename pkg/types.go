@@ -7,6 +7,9 @@ import (
 	"github.com/chainreactors/fingers/common"
 	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils"
+	"github.com/chainreactors/utils/httpx"
+	"net"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -164,16 +167,58 @@ func GetDefault(port string) string {
 	return UnknownService.Name
 }
 
+// DialFunc 是与 proxyclient.Dial 兼容的拨号函数签名。使用普通函数类型而非
+// 直接依赖 proxyclient，避免给 zombie 引入更高的 Go 版本要求（proxyclient
+// 需要 go1.24，而 zombie 仍为 go1.16）。SDK 层可直接把 proxyclient.Dial /
+// dialer.DialContext 赋值给该字段。
+type DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+
+// DialTimeoutFunc 与 NewSocketWithDialer / Task.DialTimeout 的签名一致，
+// 供 socket 风格的插件（如 rsync）传递代理拨号器。
+type DialTimeoutFunc func(network, address string, timeout time.Duration) (net.Conn, error)
+
 type Task struct {
 	*parsers.ZombieResult
 	Timeout  int                `json:"-"`
 	Context  context.Context    `json:"-"`
 	Canceler context.CancelFunc `json:"-"`
 	Locker   *sync.Mutex        `json:"-"`
+	// ProxyDial 非 nil 时，插件应使用它建立连接而非直接 net.Dial。
+	ProxyDial DialFunc `json:"-"`
 }
 
 func (t *Task) Duration() time.Duration {
 	return time.Duration(t.Timeout) * time.Second
+}
+
+// DialTimeout 按 task 配置建立连接：设置了 ProxyDial 则走代理，否则直连。
+// network 通常为 "tcp"。
+func (t *Task) DialTimeout(network, address string, timeout time.Duration) (net.Conn, error) {
+	if t.ProxyDial != nil {
+		ctx := t.Context
+		if ctx == nil {
+			ctx = context.Background()
+		}
+		ctx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
+		return t.ProxyDial(ctx, network, address)
+	}
+	return net.DialTimeout(network, address, timeout)
+}
+
+// HTTPClient 返回一个 per-task 的 *http.Client（统一经 utils/httpx 构造，零全局）。
+// 设置了 ProxyDial 时连接走代理；否则直连。所有 http 系插件应使用它，
+// 替代 http.DefaultClient，以保证代理生效且并发隔离。
+func (t *Task) HTTPClient(followRedirects bool) *http.Client {
+	cfg := httpx.ClientConfig{
+		Timeout:            t.Duration(),
+		FollowRedirects:    followRedirects,
+		InsecureSkipVerify: true,
+	}
+	if t.ProxyDial != nil {
+		cfg.DialContext = httpx.DialContextFunc(t.ProxyDial)
+	}
+	return httpx.NewHTTPClient(cfg)
 }
 
 func NewResult(task *Task, err error) *Result {

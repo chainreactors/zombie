@@ -4,7 +4,6 @@ import (
 	"github.com/chainreactors/utils/encode"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/hirochachacha/go-smb2"
-	"net"
 	"strings"
 	"time"
 )
@@ -26,7 +25,7 @@ func (s *SmbPlugin) Unauth() (bool, error) {
 		Password: "",
 	}
 
-	c, err := net.DialTimeout("tcp", s.Address(), time.Duration(s.Timeout)*time.Second)
+	c, err := s.DialTimeout("tcp", s.Address(), time.Duration(s.Timeout)*time.Second)
 	if err != nil {
 		return false, err
 	}
@@ -71,7 +70,7 @@ func (s *SmbPlugin) Login() error {
 		}
 	}
 
-	c, err := net.DialTimeout("tcp", s.Address(), time.Duration(s.Timeout)*time.Second)
+	c, err := s.DialTimeout("tcp", s.Address(), time.Duration(s.Timeout)*time.Second)
 	if err != nil {
 		return err
 	}

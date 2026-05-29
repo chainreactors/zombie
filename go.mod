@@ -8,7 +8,7 @@ require (
 	github.com/chainreactors/logs v0.0.0-20260508055944-c678762ed15c
 	github.com/chainreactors/neutron v0.0.0-20260517173800-28516c3539a3
 	github.com/chainreactors/parsers v0.0.0-20260517174207-da1ebd0e7f68
-	github.com/chainreactors/utils v0.0.0-20260507101628-fd69d955ae21
+	github.com/chainreactors/utils v0.0.0-20260529070435-f03100630384
 	github.com/chainreactors/words v0.0.0-20241002061906-25d8893158d9
 	github.com/denisenkom/go-mssqldb v0.9.0
 	github.com/eclipse/paho.mqtt.golang v1.4.3

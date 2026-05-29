@@ -9,11 +9,11 @@ type RsyncPlugin struct {
 }
 
 func (s *RsyncPlugin) Unauth() (bool, error) {
-	ver, modules, err := RsyncDetect(s.Address(), s.Timeout)
+	ver, modules, err := RsyncDetect(s.Address(), s.Timeout, s.DialTimeout)
 	if err != nil {
 		return false, err
 	}
-	err = RsyncUnauth(s.Address(), ver, modules, s.Timeout)
+	err = RsyncUnauth(s.Address(), ver, modules, s.Timeout, s.DialTimeout)
 	if err != nil {
 		return false, err
 	}
@@ -29,12 +29,12 @@ func (s *RsyncPlugin) Unauth() (bool, error) {
 //}
 
 func (s *RsyncPlugin) Login() error {
-	ver, modules, err := RsyncDetect(s.Address(), s.Timeout)
+	ver, modules, err := RsyncDetect(s.Address(), s.Timeout, s.DialTimeout)
 	if err != nil {
 		return err
 	}
 
-	err = RsyncLogin(s.Address(), s.Username, s.Password, ver, modules, s.Timeout)
+	err = RsyncLogin(s.Address(), s.Username, s.Password, ver, modules, s.Timeout, s.DialTimeout)
 	if err != nil {
 		return err
 	}

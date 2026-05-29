@@ -72,10 +72,16 @@ func SSHConnect(task *pkg.Task, auth []ssh.AuthMethod) (conn *ssh.Client, err er
 		Auth: auth,
 	}
 
-	conn, err = ssh.Dial("tcp", task.Address(), config)
+	netConn, err := task.DialTimeout("tcp", task.Address(), config.Timeout)
 	if err != nil {
 		return nil, err
 	}
+	c, chans, reqs, err := ssh.NewClientConn(netConn, task.Address(), config)
+	if err != nil {
+		netConn.Close()
+		return nil, err
+	}
+	conn = ssh.NewClient(c, chans, reqs)
 
 	return conn, nil
 }
