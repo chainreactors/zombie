@@ -10,7 +10,7 @@ require (
 	github.com/chainreactors/parsers v0.0.0-20260517174207-da1ebd0e7f68
 	github.com/chainreactors/utils v0.0.0-20260529070435-f03100630384
 	github.com/chainreactors/words v0.0.0-20241002061906-25d8893158d9
-	github.com/denisenkom/go-mssqldb v0.9.0
+	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/go-ldap/ldap/v3 v3.4.6
 	github.com/go-redis/redis v6.15.9+incompatible
@@ -38,7 +38,6 @@ require (
 	github.com/huin/asn1ber v0.0.0-20120622192748-af09f62e6358
 	github.com/icodeface/tls v0.0.0-20190904083142-17aec93c60e5
 	github.com/kr/pretty v0.3.1 // indirect
-	github.com/lcvvvv/logs v0.0.3 // indirect
 	github.com/lunixbochs/struc v0.0.0-20200707160740-784aaebc1d40
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
