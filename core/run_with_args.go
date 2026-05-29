@@ -15,8 +15,9 @@ import (
 
 // RunOptions configures the reusable, no-exit zombie entrypoint.
 type RunOptions struct {
-	Output  io.Writer
-	Version string
+	Output    io.Writer
+	Version   string
+	ProxyDial pkg.DialFunc
 }
 
 func Help() string {
@@ -96,6 +97,9 @@ func RunWithArgs(ctx context.Context, args []string, opts RunOptions) error {
 	runner, err := opt.Prepare()
 	if err != nil {
 		return err
+	}
+	if opts.ProxyDial != nil {
+		runner.ProxyDial = opts.ProxyDial
 	}
 	return runner.RunWithContext(ctx)
 }
