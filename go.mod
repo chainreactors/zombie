@@ -16,7 +16,7 @@ require (
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gosnmp/gosnmp v1.32.0
-	github.com/hirochachacha/go-smb2 v1.0.10
+	github.com/hirochachacha/go-smb2 v1.1.0
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/jlaffaye/ftp v0.0.0-20201112195030-9aae4d151126
 	github.com/knadh/go-pop3 v0.3.0
@@ -38,7 +38,6 @@ require (
 	github.com/huin/asn1ber v0.0.0-20120622192748-af09f62e6358
 	github.com/icodeface/tls v0.0.0-20190904083142-17aec93c60e5
 	github.com/kr/pretty v0.3.1 // indirect
-	github.com/lcvvvv/logs v0.0.3 // indirect
 	github.com/lunixbochs/struc v0.0.0-20200707160740-784aaebc1d40
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
