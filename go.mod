@@ -22,7 +22,7 @@ require (
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/jlaffaye/ftp v0.0.0-20201112195030-9aae4d151126
 	github.com/knadh/go-pop3 v0.3.0
-	github.com/lib/pq v1.9.0
+	github.com/lib/pq v1.12.3
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/panjf2000/ants/v2 v2.4.3
 	github.com/samuel/go-zookeeper v0.0.0-20201211165307-7117e9ea2414
