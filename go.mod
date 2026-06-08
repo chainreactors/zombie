@@ -1,6 +1,6 @@
 module github.com/chainreactors/zombie
 
-go 1.22.0
+go 1.24.0
 
 toolchain go1.24.3
 
@@ -16,7 +16,7 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.4.3
 	github.com/go-ldap/ldap/v3 v3.4.6
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/go-sql-driver/mysql v1.6.0
+	github.com/go-sql-driver/mysql v1.10.0
 	github.com/gosnmp/gosnmp v1.32.0
 	github.com/hirochachacha/go-smb2 v1.0.10
 	github.com/jessevdk/go-flags v1.6.1
@@ -36,6 +36,7 @@ require (
 )
 
 require (
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
