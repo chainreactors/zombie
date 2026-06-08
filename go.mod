@@ -18,7 +18,7 @@ require (
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gosnmp/gosnmp v1.32.0
-	github.com/hirochachacha/go-smb2 v1.0.10
+	github.com/hirochachacha/go-smb2 v1.1.0
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/jlaffaye/ftp v0.0.0-20201112195030-9aae4d151126
 	github.com/knadh/go-pop3 v0.3.0
