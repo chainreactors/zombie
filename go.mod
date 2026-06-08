@@ -1,6 +1,6 @@
 module github.com/chainreactors/zombie
 
-go 1.22.0
+go 1.24.0
 
 toolchain go1.24.3
 
@@ -13,7 +13,7 @@ require (
 	github.com/chainreactors/utils v0.0.0-20260529172343-6465cb8568b2
 	github.com/chainreactors/words v0.0.0-20260520145736-270600e60fb4
 	github.com/denisenkom/go-mssqldb v0.9.0
-	github.com/eclipse/paho.mqtt.golang v1.4.3
+	github.com/eclipse/paho.mqtt.golang v1.5.1
 	github.com/go-ldap/ldap/v3 v3.4.6
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-sql-driver/mysql v1.6.0
@@ -30,8 +30,8 @@ require (
 	github.com/streadway/amqp v1.1.0
 	github.com/vbauerster/mpb/v8 v8.7.2
 	go.mongodb.org/mongo-driver v1.12.0
-	golang.org/x/crypto v0.19.0
-	golang.org/x/net v0.21.0
+	golang.org/x/crypto v0.42.0
+	golang.org/x/net v0.44.0
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -50,7 +50,7 @@ require (
 	github.com/go-dedup/text v0.0.0-20170907015346-8bb1b95e3cb7 // indirect
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/google/uuid v1.3.1 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
@@ -65,9 +65,9 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
 )
 
 require (
