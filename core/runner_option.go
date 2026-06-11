@@ -4,7 +4,7 @@ import "github.com/chainreactors/zombie/pkg"
 
 type RunnerOption struct {
 	Threads         int
-	HostThreads     int // 单 host 并发上限(0=不限),见 hostLimiter
+	Concurrency     int // 单 host 并发上限(0=不限),见 hostLimiter
 	Timeout         int
 	Top             int
 	Mod             string // clusterbomb / pitchfork / sniper
@@ -21,7 +21,7 @@ type RunnerOption struct {
 
 var DefaultRunnerOption = &RunnerOption{
 	Threads:     100,
-	HostThreads: 8,
+	Concurrency: 8,
 	Timeout:     5,
 	Mod:         ModBomb,
 	FirstOnly:   true,

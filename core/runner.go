@@ -146,7 +146,7 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 		go r.OutputHandler()
 	}
 
-	r.hostSem = newHostLimiter(r.HostThreads)
+	r.hostSem = newHostLimiter(r.Concurrency)
 	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
 		defer func() {
