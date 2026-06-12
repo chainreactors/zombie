@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 
+	"github.com/chainreactors/logs"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/chainreactors/zombie/plugin"
 )
@@ -29,6 +30,7 @@ func Execute(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []pkg.Ac
 	for _, action := range pipeline {
 		ar, err := action.Run(session, task)
 		if err != nil {
+			logs.Log.Debugf("[%s] action %s failed on %s: %v", task.Service, action.Name(), task.URI(), err)
 			continue
 		}
 		result.Merge(ar)
@@ -53,7 +55,10 @@ func ExecuteUnauth(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []
 
 	result := &pkg.Result{Task: task, OK: true}
 	for _, action := range pipeline {
-		ar, _ := action.Run(session, task)
+		ar, err := action.Run(session, task)
+		if err != nil {
+			logs.Log.Debugf("[%s] action %s failed on %s: %v", task.Service, action.Name(), task.URI(), err)
+		}
 		result.Merge(ar)
 	}
 	return result

@@ -238,6 +238,7 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 		debug.PrintStack()
 		r.wg.Done()
 	}))
+	defer r.Pool.Release()
 
 	ch := r.targetGenerate()
 	switch r.Mod {
@@ -255,9 +256,21 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	}
 	close(r.OutputCh)
 
+	select {
+	case <-ctx.Done():
+		if !r.Quiet {
+			logs.Log.Warnf("interrupted, printing partial results")
+		}
+	default:
+	}
+
 	if !r.Quiet {
 		logs.Log.Importantf("%s", r.stat.TaskString())
-		logs.Log.Importantf("total: %d, success: %d", r.stat.Total, r.stat.Success)
+		logs.Log.Importantf("%s", r.stat.SummaryString())
+	}
+
+	if r.File != nil {
+		r.File.Close()
 	}
 
 	select {
@@ -534,9 +547,7 @@ func (r *Runner) Output(res *pkg.Result) {
 	if r.OutFunc != nil {
 		r.outlock.Add(1)
 	}
-	if res.OK {
-		r.stat.Success++
-	}
+	r.stat.RecordResult(res)
 	r.OutputCh <- res
 }
 

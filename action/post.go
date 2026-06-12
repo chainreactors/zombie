@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/chainreactors/logs"
 	"github.com/chainreactors/neutron/protocols"
 	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/proton/proton/file"
@@ -102,6 +103,9 @@ func (a *PostAction) postShell(sh pkg.ShellSession, task *pkg.Task) (*pkg.Action
 	for _, c := range shellGatherCmds {
 		out, err := sh.Exec(c.Cmd)
 		if err != nil || len(out) == 0 {
+			if err != nil {
+				logs.Log.Debugf("[post] %s:%s cmd %q failed: %v", task.IP, task.Port, c.Cmd, err)
+			}
 			continue
 		}
 		label := fmt.Sprintf("ssh:%s:%s:%s", task.IP, task.Port, c.Name)
@@ -114,6 +118,9 @@ func (a *PostAction) postShell(sh pkg.ShellSession, task *pkg.Task) (*pkg.Action
 	for _, path := range shellScanPaths {
 		data, err := sh.Exec(fmt.Sprintf("cat '%s' 2>/dev/null | head -c 1048576", path))
 		if err != nil || len(data) == 0 {
+			if err != nil {
+				logs.Log.Debugf("[post] %s:%s read %s failed: %v", task.IP, task.Port, path, err)
+			}
 			continue
 		}
 		label := fmt.Sprintf("ssh:%s:%s:%s", task.IP, task.Port, path)
@@ -130,6 +137,9 @@ func (a *PostAction) postShell(sh pkg.ShellSession, task *pkg.Task) (*pkg.Action
 			}
 			data, err := sh.Exec(fmt.Sprintf("cat '%s' 2>/dev/null | head -c 1048576", p))
 			if err != nil || len(data) == 0 {
+				if err != nil {
+					logs.Log.Debugf("[post] %s:%s read %s failed: %v", task.IP, task.Port, p, err)
+				}
 				continue
 			}
 			label := fmt.Sprintf("ssh:%s:%s:%s", task.IP, task.Port, p)
@@ -181,6 +191,7 @@ func (a *PostAction) postSQL(sq pkg.SQLSession, task *pkg.Task) (*pkg.ActionResu
 			}
 			rows, err := sq.Query(q)
 			if err != nil {
+				logs.Log.Debugf("[post] %s:%s query %s.%s.%s failed: %v", task.IP, task.Port, col.schema, col.table, col.column, err)
 				continue
 			}
 			for i, row := range rows {
@@ -246,6 +257,7 @@ func (a *PostAction) postKV(kv pkg.KVSession, task *pkg.Task) (*pkg.ActionResult
 	for _, pat := range patterns {
 		keys, err := kv.Keys(pat)
 		if err != nil {
+			logs.Log.Debugf("[post] %s:%s keys %q failed: %v", task.IP, task.Port, pat, err)
 			continue
 		}
 		for _, key := range keys {
@@ -255,6 +267,9 @@ func (a *PostAction) postKV(kv pkg.KVSession, task *pkg.Task) (*pkg.ActionResult
 			seen[key] = true
 			val, err := kv.Get(key)
 			if err != nil || len(val) == 0 {
+				if err != nil {
+					logs.Log.Debugf("[post] %s:%s get %q failed: %v", task.IP, task.Port, key, err)
+				}
 				continue
 			}
 			label := fmt.Sprintf("kv:%s:%s:%s", task.IP, task.Port, key)
@@ -270,6 +285,7 @@ func (a *PostAction) postFile(fs pkg.FileSession, task *pkg.Task) (*pkg.ActionRe
 
 	entries, err := fs.List("/")
 	if err != nil {
+		logs.Log.Debugf("[post] %s:%s list / failed: %v", task.IP, task.Port, err)
 		return result, nil
 	}
 	if len(entries) > 0 {
@@ -285,6 +301,9 @@ func (a *PostAction) postFile(fs pkg.FileSession, task *pkg.Task) (*pkg.ActionRe
 			if strings.Contains(name, s) {
 				data, err := fs.Read("/" + entry)
 				if err != nil || len(data) == 0 {
+					if err != nil {
+						logs.Log.Debugf("[post] %s:%s read /%s failed: %v", task.IP, task.Port, entry, err)
+					}
 					continue
 				}
 				label := fmt.Sprintf("file:%s:%s:/%s", task.IP, task.Port, entry)

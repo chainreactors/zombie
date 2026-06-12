@@ -3,11 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/chainreactors/zombie/core"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/chainreactors/zombie/core"
 )
 
 func init() {
@@ -24,7 +27,9 @@ func Run(args []string, output io.Writer) int {
 	if output == nil {
 		output = os.Stdout
 	}
-	err := core.RunWithArgs(context.Background(), args, core.RunOptions{Output: output, Version: ver})
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	err := core.RunWithArgs(ctx, args, core.RunOptions{Output: output, Version: ver})
 	if err != nil {
 		fmt.Fprintln(output, err.Error())
 		return 1
