@@ -20,6 +20,9 @@ func Execute(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []pkg.Ac
 	if err != nil {
 		return pkg.NewResult(task, err)
 	}
+	if session == nil {
+		return pkg.NewResult(task, errors.New("plugin returned nil session"))
+	}
 	defer session.Close()
 
 	result := &pkg.Result{Task: task, OK: true}

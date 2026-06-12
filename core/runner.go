@@ -554,7 +554,11 @@ loop:
 				}
 				logs.Log.Console(result.Format(r.OutputFormat))
 			} else {
-				logs.Log.Debugf("[%s] %s %s %s ,%s login failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Service, result.Err.Error())
+				errMsg := "unknown error"
+				if result.Err != nil {
+					errMsg = result.Err.Error()
+				}
+				logs.Log.Debugf("[%s] %s %s %s ,%s login failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Service, errMsg)
 			}
 			r.outlock.Done()
 		}
