@@ -3,159 +3,58 @@ package postgre
 import (
 	"database/sql"
 	"fmt"
-	"github.com/chainreactors/zombie/pkg"
-	_ "github.com/lib/pq"
 	"strings"
+
+	"github.com/chainreactors/zombie/pkg"
+	"github.com/chainreactors/zombie/plugin/internal/sqlsess"
+	_ "github.com/lib/pq"
 )
 
-type PostgresPlugin struct {
-	*pkg.Task
-	Dbname string
-	//PostgreInf
-	//Input string
-	conn *sql.DB
+// PostgresPlugin is stateless; all connection state lives in sqlsess.Session.
+type PostgresPlugin struct{}
+
+func (PostgresPlugin) Name() string { return "postgresql" }
+
+// Open authenticates with the credentials from task and returns a SQLSession.
+func (PostgresPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	return dial(task, task.Username, task.Password)
 }
 
-func (s *PostgresPlugin) Login() error {
-	if s.Dbname == "" {
-		s.Dbname = "postgres"
+// Unauth attempts an unauthenticated connection (empty user and password).
+func (PostgresPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	return dial(task, "", "")
+}
+
+// dial builds a lib/pq DSN, opens and pings the database, then wraps it in a
+// sqlsess.Session with SvcName "postgresql".
+func dial(task *pkg.Task, user, password string) (pkg.Session, error) {
+	dbname := task.Param["dbname"]
+	if dbname == "" {
+		dbname = "postgres"
 	}
-	dataSourceName := strings.Join([]string{
-		fmt.Sprintf("connect_timeout=%d", s.Timeout),
-		fmt.Sprintf("dbname=%s", s.Dbname),
-		fmt.Sprintf("host=%v", s.IP),
-		fmt.Sprintf("password=%v", s.Password),
-		fmt.Sprintf("port=%v", s.Port),
+
+	dsn := strings.Join([]string{
+		fmt.Sprintf("host=%v", task.IP),
+		fmt.Sprintf("port=%v", task.Port),
+		fmt.Sprintf("user=%v", user),
+		fmt.Sprintf("password=%v", password),
+		fmt.Sprintf("dbname=%s", dbname),
 		"sslmode=disable",
-		fmt.Sprintf("user=%v", s.Username),
+		fmt.Sprintf("connect_timeout=%d", task.Timeout),
 	}, " ")
 
-	conn, err := sql.Open("postgres", dataSourceName)
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = conn.Ping()
-	if err != nil {
-		return err
-	}
-	s.conn = conn
-	return nil
-}
-
-func (s *PostgresPlugin) Unauth() (bool, error) {
-	dataSourceName := strings.Join([]string{
-		fmt.Sprintf("connect_timeout=%d", s.Timeout),
-		fmt.Sprintf("dbname=%s", s.Dbname),
-		fmt.Sprintf("host=%v", s.IP),
-		fmt.Sprintf("password=%v", ""),
-		fmt.Sprintf("port=%v", s.Port),
-		"sslmode=disable",
-		fmt.Sprintf("user=%v", ""),
-	}, " ")
-
-	conn, err := sql.Open("postgres", dataSourceName)
-	if err != nil {
-		return false, err
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, err
 	}
 
-	err = conn.Ping()
-	if err != nil {
-		return false, err
-	}
-	s.conn = conn
-	return true, nil
+	return &sqlsess.Session{
+		DB:      db,
+		SvcName: "postgresql",
+	}, nil
 }
-
-func (s *PostgresPlugin) Name() string {
-	return s.Service
-}
-
-func (s *PostgresPlugin) GetResult() *pkg.Result {
-	// todo list dbs
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *PostgresPlugin) Close() error {
-	if s.conn != nil {
-		return s.conn.Close()
-	}
-	return nil
-}
-
-//func GetPostBaseInfo(SqlCon *sql.DB) *PostgreInf {
-//
-//	res := PostgreInf{}
-//
-//	err, Qresult, Columns := PostgresQuery(SqlCon, "SHOW server_version;")
-//
-//	if err != nil {
-//		fmt.Println("something wrong")
-//		return nil
-//	}
-//
-//	VerOs := GetSummary(Qresult, Columns)
-//
-//	VerOs = strings.Replace(VerOs, "(", "", 1)
-//	VerOs = strings.Replace(VerOs, ")", "", 1)
-//
-//	VerOsList := strings.Split(VerOs, " ")
-//
-//	if len(VerOsList) < 2 {
-//		fmt.Println("something wrong in split")
-//
-//		return nil
-//	}
-//
-//	res.Version = VerOsList[0]
-//	res.OS = VerOsList[1]
-//
-//	return &res
-//}
-//
-//func GetPostgresSummary(s *PostgresService) int {
-//	var db []string
-//	var sum int
-//
-//	err, Qresult, Columns := PostgresQuery(s.conn, "SELECT datname FROM pg_database")
-//
-//	for _, items := range Qresult {
-//		for _, cname := range Columns {
-//			db = append(db, items[cname])
-//		}
-//	}
-//
-//	if err != nil {
-//		fmt.Println("something wrong")
-//		return 0
-//	}
-//
-//	_, Qresult, Columns = PostgresQuery(s.conn, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
-//	CurIntSum := GetSummary(Qresult, Columns)
-//	CurSum, err := strconv.Atoi(CurIntSum)
-//	if err == nil {
-//		sum += CurSum
-//	}
-//
-//	s.conn.Close()
-//
-//	for _, dbname := range db {
-//		if dbname == "postgres" {
-//			continue
-//		}
-//
-//		s.SetDbname(dbname)
-//		err := s.Connect()
-//		if err == nil {
-//			_, Qresult, Columns = PostgresQuery(s.conn, "SELECT sum(n_live_tup) FROM pg_stat_user_tables")
-//			CurIntSum = GetSummary(Qresult, Columns)
-//			CurSum, err = strconv.Atoi(CurIntSum)
-//			if err == nil {
-//				sum += CurSum
-//			}
-//			s.conn.Close()
-//		}
-//	}
-//
-//	return sum
-//}

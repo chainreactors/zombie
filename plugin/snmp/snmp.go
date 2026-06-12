@@ -6,140 +6,49 @@ import (
 	"time"
 )
 
-type SnmpPlugin struct {
-	*pkg.Task
-	Input string
-	conn  *gosnmp.GoSNMP
+// snmpSession implements pkg.Session over an SNMP connection.
+type snmpSession struct {
+	service string
+	conn    *gosnmp.GoSNMP
 }
 
-func (s *SnmpPlugin) Unauth() (bool, error) {
-	conn := &gosnmp.GoSNMP{
-		Target:             s.IP,
-		Port:               s.UintPort(),
-		Community:          "",
-		Version:            gosnmp.Version2c,
-		Timeout:            time.Duration(s.Timeout) * time.Second,
-		MaxOids:            gosnmp.MaxOids,
-		Retries:            3,
-		ExponentialTimeout: true,
-	}
-	err := conn.Connect()
-	if err != nil {
-		return false, err
-	}
-	s.conn = conn
-	return true, nil
-}
+func (s *snmpSession) Service() string  { return s.service }
+func (s *snmpSession) Raw() interface{} { return s.conn }
 
-//type CiderRoute struct {
-//	Cidr    []string
-//	GateWay []string
-//}
-//
-//type IPSubRoute struct {
-//	Cidr []string
-//	IP   []string
-//}
-//
-//type SwitchInfo struct {
-//	SystemInfo     string   `json:"SystemInfo"`
-//	Time           int64    `json:"Time"`
-//	Concat         string   `json:"Concat"`
-//	MachineName    string   `json:"MachineName"`
-//	Location       string   `json:"Location"`
-//	MemorySize     int64    `json:"MemorySize"`
-//	SsCpuUser      int64    `json:"SsCpuUser"`
-//	SsCpuSystem    int64    `json:"SsCpuSystem"`
-//	SsCpuIdle      int64    `json:"SsCpuIdle"`
-//	InterfaceSlice []string `json:"InterfaceSlice"`
-//}
-
-//func (s *SnmpPlugin) Query() bool {
-//	defer s.conn.Conn.Close()
-//
-//	if strings.HasPrefix(s.Input, "Walk") {
-//		input := strings.Replace(s.Input, "Walk", "", 1)
-//		GetRes, err := s.conn.BulkWalkAll(input)
-//		if err != nil {
-//			return false
-//		}
-//		for _, alive := range GetRes {
-//			fmt.Println(alive.Name)
-//			if alive.Value != nil {
-//				switch alive.Type {
-//				case gosnmp.OctetString:
-//					bytes := alive.Value.([]byte)
-//					svalue := string(bytes)
-//					fmt.Println(svalue)
-//
-//				default:
-//					svalue := gosnmp.ToBigInt(alive.Value)
-//					s2int := svalue.Int64()
-//					fmt.Println(s2int)
-//
-//				}
-//			}
-//		}
-//
-//	} else {
-//		GetRes, err := s.conn.Get([]string{s.Input})
-//		if err != nil {
-//			return false
-//		}
-//		variable := GetRes.Variables[0]
-//		if variable.Value != nil {
-//			switch variable.Type {
-//			case gosnmp.OctetString:
-//				bytes := variable.Value.([]byte)
-//				svalue := string(bytes)
-//				fmt.Println(svalue)
-//
-//			default:
-//				svalue := gosnmp.ToBigInt(variable.Value)
-//				s2int := svalue.Int64()
-//				fmt.Println(s2int)
-//
-//			}
-//		}
-//	}
-//
-//	return true
-//}
-
-func (s *SnmpPlugin) SetQuery(query string) {
-	s.Input = query
-}
-
-func (s *SnmpPlugin) Login() error {
-	conn := &gosnmp.GoSNMP{
-		Target:             s.IP,
-		Port:               s.UintPort(),
-		Community:          s.Password,
-		Version:            gosnmp.Version2c,
-		Timeout:            time.Duration(s.Timeout) * time.Second,
-		MaxOids:            gosnmp.MaxOids,
-		Retries:            3,
-		ExponentialTimeout: true,
-	}
-	err := conn.Connect()
-	if err != nil {
-		return err
-	}
-	s.conn = conn
-	return nil
-}
-
-func (s *SnmpPlugin) Name() string {
-	return s.Service
-}
-
-func (s *SnmpPlugin) GetResult() *pkg.Result {
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *SnmpPlugin) Close() error {
+func (s *snmpSession) Close() error {
 	if s.conn != nil {
 		return s.conn.Conn.Close()
 	}
 	return nil
+}
+
+// SnmpPlugin is stateless; all connection state lives in snmpSession.
+type SnmpPlugin struct{}
+
+func (p *SnmpPlugin) Name() string { return "snmp" }
+
+func (p *SnmpPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	return dial(task, task.Password)
+}
+
+func (p *SnmpPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	return dial(task, "")
+}
+
+func dial(task *pkg.Task, community string) (pkg.Session, error) {
+	conn := &gosnmp.GoSNMP{
+		Target:             task.IP,
+		Port:               task.UintPort(),
+		Community:          community,
+		Version:            gosnmp.Version2c,
+		Timeout:            time.Duration(task.Timeout) * time.Second,
+		MaxOids:            gosnmp.MaxOids,
+		Retries:            3,
+		ExponentialTimeout: true,
+	}
+	err := conn.Connect()
+	if err != nil {
+		return nil, err
+	}
+	return &snmpSession{service: task.Service, conn: conn}, nil
 }

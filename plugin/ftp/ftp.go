@@ -1,27 +1,61 @@
 package ftp
 
 import (
+	"io"
+
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/jlaffaye/ftp"
 )
 
-type FtpPlugin struct {
-	*pkg.Task
-	Input string
-	conn  *ftp.ServerConn
+// ftpSession implements pkg.FileSession over an authenticated FTP connection.
+type ftpSession struct {
+	service string
+	conn    *ftp.ServerConn
 }
 
-func (s *FtpPlugin) Name() string {
-	return s.Service
+func (s *ftpSession) Service() string  { return s.service }
+func (s *ftpSession) Raw() interface{} { return s.conn }
+
+func (s *ftpSession) Close() error {
+	if s.conn != nil {
+		return s.conn.Quit()
+	}
+	return nil
 }
 
-// dial 通过 task 配置（含代理）建立 FTP 控制连接。
-func (s *FtpPlugin) dial() (*ftp.ServerConn, error) {
-	netConn, err := s.DialTimeout("tcp", s.Address(), s.Duration())
+func (s *ftpSession) List(path string) ([]string, error) {
+	entries, err := s.conn.List(path)
 	if err != nil {
 		return nil, err
 	}
-	conn, err := ftp.Dial(s.Address(), ftp.DialWithNetConn(netConn))
+	names := make([]string, len(entries))
+	for i, e := range entries {
+		names[i] = e.Name
+	}
+	return names, nil
+}
+
+func (s *ftpSession) Read(path string) ([]byte, error) {
+	resp, err := s.conn.Retr(path)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Close()
+	return io.ReadAll(resp)
+}
+
+// FtpPlugin is stateless; all connection state lives in ftpSession.
+type FtpPlugin struct{}
+
+func (p *FtpPlugin) Name() string { return "ftp" }
+
+// dial establishes an FTP control connection using the task's proxy-aware dialer.
+func (p *FtpPlugin) dial(task *pkg.Task) (*ftp.ServerConn, error) {
+	netConn, err := task.DialTimeout("tcp", task.Address(), task.Duration())
+	if err != nil {
+		return nil, err
+	}
+	conn, err := ftp.Dial(task.Address(), ftp.DialWithNetConn(netConn))
 	if err != nil {
 		netConn.Close()
 		return nil, err
@@ -29,41 +63,26 @@ func (s *FtpPlugin) dial() (*ftp.ServerConn, error) {
 	return conn, nil
 }
 
-func (s *FtpPlugin) Unauth() (bool, error) {
-	conn, err := s.dial()
+func (p *FtpPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	conn, err := p.dial(task)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	err = conn.Login("anonymous", "")
-	if err != nil {
-		return false, err
+	if err := conn.Login(task.Username, task.Password); err != nil {
+		conn.Quit()
+		return nil, err
 	}
-	s.conn = conn
-	return true, nil
+	return &ftpSession{service: task.Service, conn: conn}, nil
 }
 
-func (s *FtpPlugin) Login() error {
-	conn, err := s.dial()
+func (p *FtpPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	conn, err := p.dial(task)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	err = conn.Login(s.Username, s.Password)
-	if err != nil {
-		return err
+	if err := conn.Login("anonymous", ""); err != nil {
+		conn.Quit()
+		return nil, err
 	}
-
-	s.conn = conn
-	return nil
-}
-
-func (s *FtpPlugin) GetResult() *pkg.Result {
-	// todo list root dir
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *FtpPlugin) Close() error {
-	if s.conn != nil {
-		return s.conn.Quit()
-	}
-	return nil
+	return &ftpSession{service: task.Service, conn: conn}, nil
 }

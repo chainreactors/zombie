@@ -237,11 +237,33 @@ func NewResult(task *Task, err error) *Result {
 }
 
 type Result struct {
-	*Task      `json:",inline"`
-	Vulns      common.Vulns       `json:"vulns,omitempty"`
-	Extracteds parsers.Extracteds `json:"extracteds,omitempty"`
-	OK         bool               `json:"ok,omitempty"`
-	Err        error              `json:"err,omitempty"`
+	*Task         `json:",inline"`
+	Vulns         common.Vulns       `json:"vulns,omitempty"`
+	Extracteds    parsers.Extracteds `json:"extracteds,omitempty"`
+	OK            bool               `json:"ok,omitempty"`
+	Err           error              `json:"err,omitempty"`
+	ActionResults []*ActionResult    `json:"action_results,omitempty"`
+	Loot          map[string][]byte  `json:"loot,omitempty"`
+}
+
+func (r *Result) Merge(ar *ActionResult) {
+	if ar == nil {
+		return
+	}
+	r.Extracteds = append(r.Extracteds, ar.Extracteds...)
+	for k, v := range ar.Vulns {
+		if r.Vulns == nil {
+			r.Vulns = make(common.Vulns)
+		}
+		r.Vulns[k] = v
+	}
+	for k, v := range ar.Loot {
+		if r.Loot == nil {
+			r.Loot = map[string][]byte{}
+		}
+		r.Loot[k] = v
+	}
+	r.ActionResults = append(r.ActionResults, ar)
 }
 
 type runOpt struct {

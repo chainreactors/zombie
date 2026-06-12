@@ -4,53 +4,43 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 )
 
-type RsyncPlugin struct {
-	*pkg.Task
+// rsyncSession implements pkg.Session. Rsync uses short-lived socket
+// connections per operation, so there is no persistent conn to wrap.
+type rsyncSession struct {
+	service string
 }
 
-func (s *RsyncPlugin) Unauth() (bool, error) {
-	ver, modules, err := RsyncDetect(s.Address(), s.Timeout, s.DialTimeout)
-	if err != nil {
-		return false, err
-	}
-	err = RsyncUnauth(s.Address(), ver, modules, s.Timeout, s.DialTimeout)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
+func (s *rsyncSession) Service() string  { return s.service }
+func (s *rsyncSession) Close() error     { return nil }
+func (s *rsyncSession) Raw() interface{} { return nil }
 
-//func (s *RsyncPlugin) Query() bool {
-//	return false
-//}
-//
-//func (s *RsyncPlugin) GetInfo() bool {
-//	return false
-//}
+// RsyncPlugin is stateless; all connection state lives in rsyncSession.
+type RsyncPlugin struct{}
 
-func (s *RsyncPlugin) Login() error {
-	ver, modules, err := RsyncDetect(s.Address(), s.Timeout, s.DialTimeout)
+func (p *RsyncPlugin) Name() string { return "rsync" }
+
+func (p *RsyncPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	ver, modules, err := RsyncDetect(task.Address(), task.Timeout, task.DialTimeout)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = RsyncLogin(s.Address(), s.Username, s.Password, ver, modules, s.Timeout, s.DialTimeout)
+	err = RsyncLogin(task.Address(), task.Username, task.Password, ver, modules, task.Timeout, task.DialTimeout)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &rsyncSession{service: task.Service}, nil
 }
 
-func (s *RsyncPlugin) Name() string {
-	return s.Service
-}
-
-func (s *RsyncPlugin) GetResult() *pkg.Result {
-	// todo list dbs
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *RsyncPlugin) Close() error {
-	return nil
+func (p *RsyncPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	ver, modules, err := RsyncDetect(task.Address(), task.Timeout, task.DialTimeout)
+	if err != nil {
+		return nil, err
+	}
+	err = RsyncUnauth(task.Address(), ver, modules, task.Timeout, task.DialTimeout)
+	if err != nil {
+		return nil, err
+	}
+	return &rsyncSession{service: task.Service}, nil
 }

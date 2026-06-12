@@ -3,74 +3,52 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+
 	"github.com/chainreactors/zombie/pkg"
+	"github.com/chainreactors/zombie/plugin/internal/sqlsess"
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type nilLog struct {
+type nilLog struct{}
+
+func (nilLog) Print(v ...interface{}) {}
+
+// MysqlPlugin is a stateless factory that satisfies the Plugin interface.
+type MysqlPlugin struct{}
+
+func (MysqlPlugin) Name() string { return "mysql" }
+
+// Open authenticates with the credentials from task and returns a SQLSession.
+func (MysqlPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	return dial(task, task.Username, task.Password)
 }
 
-func (l nilLog) Print(v ...interface{}) {
-
+// Unauth attempts an unauthenticated connection (root with empty password).
+func (MysqlPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	return dial(task, "root", "")
 }
 
-type MysqlPlugin struct {
-	*pkg.Task
-	input string
-	conn  *sql.DB
-}
-
-func (s *MysqlPlugin) Name() string {
-	return s.Service
-}
-
-func (s *MysqlPlugin) Unauth() (bool, error) {
-	// mysql none pass
+// dial builds a MySQL DSN, connects, pings, and wraps the *sql.DB in a
+// sqlsess.Session so it satisfies pkg.SQLSession.
+func dial(task *pkg.Task, user, pass string) (pkg.Session, error) {
 	mysql.SetLogger(nilLog{})
-	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&charset=utf8", "root",
-		"", s.IP, s.Port, s.Timeout, s.Timeout, s.Timeout)
-	conn, err := sql.Open("mysql", dataSourceName)
+
+	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&charset=utf8",
+		user, pass, task.IP, task.Port, task.Timeout, task.Timeout, task.Timeout)
+
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	//conn.SetMaxOpenConns(60)
-	//conn.SetMaxIdleConns(60)
-
-	err = conn.Ping()
-	if err != nil {
-		return false, err
-	}
-	s.conn = conn
-	return true, nil
-}
-
-func (s *MysqlPlugin) Login() error {
-	mysql.SetLogger(nilLog{})
-	dataSourceName := fmt.Sprintf("%v:%v@tcp(%v:%v)/?timeout=%ds&readTimeout=%ds&writeTimeout=%ds&charset=utf8", s.Username,
-		s.Password, s.IP, s.Port, s.Timeout, s.Timeout, s.Timeout)
-	conn, err := sql.Open("mysql", dataSourceName)
-	if err != nil {
-		return err
+	if err := db.Ping(); err != nil {
+		_ = db.Close()
+		return nil, err
 	}
 
-	err = conn.Ping()
-	if err != nil {
-		return err
-	}
-	s.conn = conn
-	return nil
-}
-
-func (s *MysqlPlugin) GetResult() *pkg.Result {
-	// todo list dbs
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *MysqlPlugin) Close() error {
-	if s.conn != nil {
-		return s.conn.Close()
-	}
-	return nil
+	return &sqlsess.Session{
+		DB:      db,
+		SvcName: "mysql",
+	}, nil
 }

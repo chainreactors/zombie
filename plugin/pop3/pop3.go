@@ -6,56 +6,49 @@ import (
 	"strconv"
 )
 
-type Pop3Plugin struct {
-	*pkg.Task
+// pop3Session implements pkg.Session over an authenticated POP3 connection.
+type pop3Session struct {
+	service string
+	conn    *pop3.Conn
 }
 
-func (s *Pop3Plugin) Unauth() (bool, error) {
-	return false, pkg.NotImplUnauthorized
+func (s *pop3Session) Service() string  { return s.service }
+func (s *pop3Session) Raw() interface{} { return s.conn }
+
+func (s *pop3Session) Close() error {
+	if s.conn != nil {
+		return s.conn.Quit()
+	}
+	return nil
 }
 
-func (s *Pop3Plugin) Login() error {
-	port, _ := strconv.Atoi(s.Port)
+// Pop3Plugin is stateless; all connection state lives in pop3Session.
+type Pop3Plugin struct{}
 
-	p := pop3.New(pop3.Opt{
-		Host:       s.IP,
+func (p *Pop3Plugin) Name() string { return "pop3" }
+
+func (p *Pop3Plugin) Open(task *pkg.Task) (pkg.Session, error) {
+	port, _ := strconv.Atoi(task.Port)
+
+	pp := pop3.New(pop3.Opt{
+		Host:       task.IP,
 		Port:       port,
 		TLSEnabled: false,
 	})
 
-	c, err := p.NewConn()
+	c, err := pp.NewConn()
 	if err != nil {
-		return err
-	}
-	defer c.Quit()
-
-	// Authenticate.
-	if err := c.Auth(s.Username, s.Password); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	if err := c.Auth(task.Username, task.Password); err != nil {
+		c.Quit()
+		return nil, err
+	}
 
+	return &pop3Session{service: task.Service, conn: c}, nil
 }
 
-func (s *Pop3Plugin) Name() string {
-	return s.Service
+func (p *Pop3Plugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	return nil, pkg.NotImplUnauthorized
 }
-
-func (s *Pop3Plugin) GetResult() *pkg.Result {
-	// todo list dbs
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *Pop3Plugin) Close() error {
-	return nil
-}
-
-//
-//func (s *Pop3Plugin) SetQuery(query string) {
-//	//s.Input = query
-//}
-//
-//func (s *Pop3Plugin) Output(res interface{}) {
-//
-//}

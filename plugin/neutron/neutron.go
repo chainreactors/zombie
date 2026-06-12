@@ -3,6 +3,7 @@ package neutron
 import (
 	"errors"
 	"fmt"
+
 	"github.com/chainreactors/logs"
 	neutroncommon "github.com/chainreactors/neutron/common"
 	templates "github.com/chainreactors/neutron/templates"
@@ -19,55 +20,48 @@ func init() {
 	}
 }
 
-type NeutronPlugin struct {
-	*pkg.Task
-	Service string
-	Host    string
+type neutronSession struct {
+	service string
 }
 
-func (s *NeutronPlugin) Name() string {
-	return s.Service
-}
+func (s *neutronSession) Service() string  { return s.service }
+func (s *neutronSession) Close() error     { return nil }
+func (s *neutronSession) Raw() interface{} { return nil }
 
-func (s *NeutronPlugin) Unauth() (bool, error) {
-	if template, ok := pkg.TemplateMap[s.Service]; ok {
-		var err error
-		var usr, pwd string
-		usr, pwd, err = NeutronScan(s.Scheme, s.Address(), nil, template)
-		if err != nil {
-			return false, err
-		}
+type NeutronPlugin struct{}
 
-		s.Task.Username = usr
-		s.Task.Password = pwd
-		return true, nil
+func (p *NeutronPlugin) Name() string { return "neutron" }
+
+func (p *NeutronPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	template, ok := pkg.TemplateMap[task.Service]
+	if !ok {
+		return nil, errors.New("no template found")
 	}
-	return false, errors.New("no template found")
-}
-
-func (s *NeutronPlugin) Login() error {
-	if template, ok := pkg.TemplateMap[s.Service]; ok {
-		_, _, err := NeutronScan(s.Scheme,
-			s.Address(),
-			map[string]interface{}{
-				"username": s.Username,
-				"password": s.Password,
-			},
-			template)
-		if err != nil {
-			return err
-		}
-		return nil
+	_, _, err := NeutronScan(task.Scheme,
+		task.Address(),
+		map[string]interface{}{
+			"username": task.Username,
+			"password": task.Password,
+		},
+		template)
+	if err != nil {
+		return nil, err
 	}
-	return errors.New("no template found")
+	return &neutronSession{service: task.Service}, nil
 }
 
-func (s *NeutronPlugin) GetResult() *pkg.Result {
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *NeutronPlugin) Close() error {
-	return nil
+func (p *NeutronPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	template, ok := pkg.TemplateMap[task.Service]
+	if !ok {
+		return nil, errors.New("no template found")
+	}
+	usr, pwd, err := NeutronScan(task.Scheme, task.Address(), nil, template)
+	if err != nil {
+		return nil, err
+	}
+	task.Username = usr
+	task.Password = pwd
+	return &neutronSession{service: task.Service}, nil
 }
 
 func NeutronScan(scheme, target string, payload map[string]interface{}, template *templates.Template) (string, string, error) {
@@ -86,10 +80,10 @@ func NeutronScan(scheme, target string, payload map[string]interface{}, template
 		return "", "", err
 	}
 	if res == nil {
-		return "", "", errors.New(fmt.Sprintf("nil result, %s", template.Id))
+		return "", "", fmt.Errorf("nil result, %s", template.Id)
 	}
 	if !res.Matched {
-		return "", "", errors.New(fmt.Sprintf("not matched, %s", template.Id))
+		return "", "", fmt.Errorf("not matched, %s", template.Id)
 	}
 	return iutils.ToString(res.PayloadValues["username"]), iutils.ToString(res.PayloadValues["password"]), nil
 }

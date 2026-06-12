@@ -6,49 +6,52 @@ import (
 	"net/http"
 )
 
-type HttpAuthPlugin struct {
-	*pkg.Task
-	Path   string `json:"path"`
-	Host   string `json:"host"`
-	Method string `json:"method"`
+// httpAuthSession implements pkg.Session for HTTP basic auth.
+// HTTP is stateless, so Close is a no-op and Raw returns the http.Client.
+type httpAuthSession struct {
+	service string
+	client  *http.Client
 }
 
-func (s *HttpAuthPlugin) Name() string {
-	return s.Service
-}
+func (s *httpAuthSession) Service() string  { return s.service }
+func (s *httpAuthSession) Raw() interface{} { return s.client }
+func (s *httpAuthSession) Close() error     { return nil }
 
-func (s *HttpAuthPlugin) Unauth() (bool, error) {
-	return false, nil
-}
+// HttpAuthPlugin is stateless; all connection state lives in httpAuthSession.
+type HttpAuthPlugin struct{}
 
-func (s *HttpAuthPlugin) Login() error {
-	url := fmt.Sprintf("%s://%s:%s/%s", s.Service, s.IP, s.Port, s.Path)
-	if s.Method == "" {
-		s.Method = "GET"
+func (p *HttpAuthPlugin) Name() string { return "http" }
+
+func (p *HttpAuthPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	path := task.Param["path"]
+	host := task.Param["host"]
+	method := task.Param["method"]
+
+	url := fmt.Sprintf("%s://%s:%s/%s", task.Service, task.IP, task.Port, path)
+	if method == "" {
+		method = "GET"
 	}
-	req, err := http.NewRequest(s.Method, url, nil)
+	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if s.Host != "" {
-		req.Host = s.Host
+	if host != "" {
+		req.Host = host
 	}
 	req.Header.Set("User-Agent", pkg.RandomUA())
-	req.SetBasicAuth(s.Username, s.Password)
-	resp, err := s.HTTPClient(true).Do(req)
+	req.SetBasicAuth(task.Username, task.Password)
+
+	client := task.HTTPClient(true)
+	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return pkg.ErrorWrongUserOrPwd
+		return nil, pkg.ErrorWrongUserOrPwd
 	}
-	return nil
+	return &httpAuthSession{service: task.Service, client: client}, nil
 }
 
-func (s *HttpAuthPlugin) GetResult() *pkg.Result {
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *HttpAuthPlugin) Close() error {
-	return nil
+func (p *HttpAuthPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	return nil, pkg.NotImplUnauthorized
 }

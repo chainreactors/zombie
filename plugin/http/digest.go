@@ -3,48 +3,48 @@ package http
 import (
 	"fmt"
 	"github.com/chainreactors/zombie/pkg"
-	"github.com/xinsnake/go-http-digest-auth-client"
+	digest_auth_client "github.com/xinsnake/go-http-digest-auth-client"
 	"net/http"
 )
 
-type HTTPDigestPlugin struct {
-	*pkg.Task
+// httpDigestSession implements pkg.Session for HTTP digest auth.
+// HTTP is stateless, so Close is a no-op and Raw returns the http.Client.
+type httpDigestSession struct {
+	service string
+	client  *http.Client
 }
 
-func (s *HTTPDigestPlugin) Name() string {
-	return s.Service
-}
+func (s *httpDigestSession) Service() string  { return s.service }
+func (s *httpDigestSession) Raw() interface{} { return s.client }
+func (s *httpDigestSession) Close() error     { return nil }
 
-func (s *HTTPDigestPlugin) Unauth() (bool, error) {
-	return false, nil
-}
+// HTTPDigestPlugin is stateless; all connection state lives in httpDigestSession.
+type HTTPDigestPlugin struct{}
 
-func (s *HTTPDigestPlugin) Login() error {
-	u := fmt.Sprintf("%s://%s:%s/", s.Service, s.IP, s.Port)
+func (p *HTTPDigestPlugin) Name() string { return "digest" }
+
+func (p *HTTPDigestPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	u := fmt.Sprintf("%s://%s:%s/", task.Service, task.IP, task.Port)
 	req, err := http.NewRequest("GET", u, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	digestClient := digest_auth_client.NewRequest(s.Username, s.Password, "GET", u, "")
-	// 路由 digest 请求经 per-task 代理客户端（零全局）。
-	digestClient.HTTPClient = s.HTTPClient(true)
+	digestClient := digest_auth_client.NewRequest(task.Username, task.Password, "GET", u, "")
+	client := task.HTTPClient(true)
+	digestClient.HTTPClient = client
 	resp, err := digestClient.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("failed to connect with digest auth, status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("failed to connect with digest auth, status code: %d", resp.StatusCode)
 	}
 
-	return nil
+	return &httpDigestSession{service: task.Service, client: client}, nil
 }
 
-func (s *HTTPDigestPlugin) GetResult() *pkg.Result {
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *HTTPDigestPlugin) Close() error {
-	return nil
+func (p *HTTPDigestPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	return nil, pkg.NotImplUnauthorized
 }

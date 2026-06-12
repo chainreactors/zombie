@@ -3,75 +3,66 @@ package oracle
 import (
 	"database/sql"
 	"fmt"
+
 	"github.com/chainreactors/zombie/pkg"
+	"github.com/chainreactors/zombie/plugin/internal/sqlsess"
 	_ "github.com/sijms/go-ora/v2"
 )
 
-type OraclePlugin struct {
-	*pkg.Task
-	//Input string
-	SID         string
-	ServiceName string
-	conn        *sql.DB
-}
+// OraclePlugin is a stateless factory that satisfies the Plugin interface.
+type OraclePlugin struct{}
 
-func (s *OraclePlugin) Unauth() (bool, error) {
-	return false, pkg.NotImplUnauthorized
-}
+func (OraclePlugin) Name() string { return "oracle" }
 
-func (s *OraclePlugin) Login() error {
-	var err error
-	if s.ServiceName != "" {
-		s.conn, err = serviceNameLogin(s.Task, s.ServiceName)
-	} else {
-		s.conn, err = sidLogin(s.Task, s.SID)
+// Open authenticates with the credentials from task and returns a SQLSession.
+// It supports two modes: service_name (if task.Param["service_name"] is set)
+// or SID (task.Param["sid"], defaulting to "orcl").
+func (OraclePlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	if sn := task.Param["service_name"]; sn != "" {
+		return dialServiceName(task, sn)
 	}
-
-	err = s.conn.Ping()
-	if err != nil {
-		return err
-	}
-
-	return err
-}
-
-func (s *OraclePlugin) Close() error {
-	if s.conn != nil {
-		return s.conn.Close()
-	}
-	return nil
-}
-
-func (s *OraclePlugin) Name() string {
-	return s.Service
-}
-
-func (s *OraclePlugin) GetResult() *pkg.Result {
-	// todo list dbs
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func sidLogin(task *pkg.Task, sid string) (*sql.DB, error) {
+	sid := task.Param["sid"]
 	if sid == "" {
 		sid = "orcl"
 	}
-	connStr := fmt.Sprintf("oracle://%s:%s@%s:%s/%s?connection_timeout=%d&connection_pool_timeout=%d", task.Username,
-		task.Password, task.IP, task.Port, sid, task.Timeout, task.Timeout)
-
-	conn, err := sql.Open("oracle", connStr)
-	if err != nil {
-		return nil, err
-	}
-	return conn, nil
+	return dialSID(task, sid)
 }
 
-func serviceNameLogin(task *pkg.Task, serviceName string) (*sql.DB, error) {
-	connStr := fmt.Sprintf("oracle://%s:%s@%s:%s/?service_name=%s&connection_timeout=%d&connection_pool_timeout=%d", task.Username,
-		task.Password, task.IP, task.Port, serviceName, task.Timeout, task.Timeout)
+// Unauth is not implemented for Oracle.
+func (OraclePlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	return nil, pkg.NotImplUnauthorized
+}
 
-	conn, err := sql.Open("oracle", connStr)
+func dialSID(task *pkg.Task, sid string) (pkg.Session, error) {
+	connStr := fmt.Sprintf("oracle://%s:%s@%s:%s/%s?connection_timeout=%d&connection_pool_timeout=%d",
+		task.Username, task.Password, task.IP, task.Port, sid, task.Timeout, task.Timeout)
+
+	db, err := sql.Open("oracle", connStr)
 	if err != nil {
 		return nil, err
 	}
-	return conn, nil
+
+	if err := db.Ping(); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+
+	return &sqlsess.Session{DB: db, SvcName: "oracle"}, nil
+}
+
+func dialServiceName(task *pkg.Task, serviceName string) (pkg.Session, error) {
+	connStr := fmt.Sprintf("oracle://%s:%s@%s:%s/?service_name=%s&connection_timeout=%d&connection_pool_timeout=%d",
+		task.Username, task.Password, task.IP, task.Port, serviceName, task.Timeout, task.Timeout)
+
+	db, err := sql.Open("oracle", connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Ping(); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+
+	return &sqlsess.Session{DB: db, SvcName: "oracle"}, nil
 }

@@ -11,55 +11,63 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-type SshPlugin struct {
-	*pkg.Task
-	conn *ssh.Client
+// sshSession implements pkg.ShellSession over an authenticated SSH connection.
+type sshSession struct {
+	service string
+	conn    *ssh.Client
 }
 
-func (s *SshPlugin) Login() error {
-	var auth []ssh.AuthMethod
-	if method, pkdata := pkg.ParseMethod(s.Password); method == "pk" && pkdata != "" {
-		am, err := publicKeyAuth(pkdata)
-		if err != nil {
-			return err
-		}
-		auth = []ssh.AuthMethod{am}
-	} else {
-		auth = []ssh.AuthMethod{
-			ssh.Password(s.Password),
-		}
-	}
+func (s *sshSession) Service() string  { return s.service }
+func (s *sshSession) Raw() interface{} { return s.conn }
 
-	conn, err := SSHConnect(s.Task, auth)
-	if err != nil {
-		return err
-	}
-	s.conn = conn
-	return nil
-}
-
-func (s *SshPlugin) Unauth() (bool, error) {
-	conn, err := SSHConnect(s.Task, []ssh.AuthMethod{ssh.Password("")})
-	if err != nil {
-		return false, err
-	}
-	s.conn = conn
-	return true, nil
-}
-
-func (s *SshPlugin) Close() error {
+func (s *sshSession) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
 	return nil
 }
 
-func (s *SshPlugin) GetResult() *pkg.Result {
-	return &pkg.Result{Task: s.Task, OK: true}
+func (s *sshSession) Exec(cmd string) ([]byte, error) {
+	sess, err := s.conn.NewSession()
+	if err != nil {
+		return nil, fmt.Errorf("ssh session: %w", err)
+	}
+	defer sess.Close()
+	return sess.CombinedOutput(cmd)
 }
 
-func (s *SshPlugin) Name() string {
-	return s.Service
+// SshPlugin is stateless; all connection state lives in sshSession.
+type SshPlugin struct{}
+
+func (p *SshPlugin) Name() string { return "ssh" }
+
+func (p *SshPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	var auth []ssh.AuthMethod
+	if method, pkdata := pkg.ParseMethod(task.Password); method == "pk" && pkdata != "" {
+		am, err := publicKeyAuth(pkdata)
+		if err != nil {
+			return nil, err
+		}
+		auth = []ssh.AuthMethod{am}
+	} else {
+		auth = []ssh.AuthMethod{
+			ssh.Password(task.Password),
+		}
+	}
+
+	conn, err := SSHConnect(task, auth)
+	if err != nil {
+		return nil, err
+	}
+	return &sshSession{service: task.Service, conn: conn}, nil
+}
+
+func (p *SshPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	conn, err := SSHConnect(task, []ssh.AuthMethod{ssh.Password("")})
+	if err != nil {
+		return nil, err
+	}
+	return &sshSession{service: task.Service, conn: conn}, nil
 }
 
 func SSHConnect(task *pkg.Task, auth []ssh.AuthMethod) (conn *ssh.Client, err error) {

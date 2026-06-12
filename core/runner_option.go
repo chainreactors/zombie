@@ -15,6 +15,11 @@ type RunnerOption struct {
 	Raw             bool
 	Quiet           bool
 
+	// Post-auth actions
+	Proton        bool
+	ScanTemplates []string
+	DBLimit       int
+
 	// ProxyDial 非 nil 时透传到每个 Task，使插件通过代理建立连接。
 	ProxyDial pkg.DialFunc
 }

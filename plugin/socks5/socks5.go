@@ -8,16 +8,38 @@ import (
 	"net/url"
 )
 
-type Socks5Plugin struct {
-	*pkg.Task
-	Url string `json:"url"`
+// socks5Session implements pkg.Session over a SOCKS5 proxy dialer.
+type socks5Session struct {
+	service string
+	dialer  proxy.Dialer
 }
 
-func (s *Socks5Plugin) Unauth() (bool, error) {
-	proxyURL, _ := url.Parse(fmt.Sprintf("socks5://%s:%s", s.IP, s.Port))
+func (s *socks5Session) Service() string  { return s.service }
+func (s *socks5Session) Raw() interface{} { return s.dialer }
+func (s *socks5Session) Close() error     { return nil }
+
+// Socks5Plugin is stateless; all connection state lives in socks5Session.
+type Socks5Plugin struct{}
+
+func (p *Socks5Plugin) Name() string { return "socks5" }
+
+func (p *Socks5Plugin) Open(task *pkg.Task) (pkg.Session, error) {
+	proxyURL, err := url.Parse(fmt.Sprintf("socks5://%s:%s@%s:%s", task.Username, task.Password, task.IP, task.Port))
+	if err != nil {
+		return nil, err
+	}
+	return dialAndTest(task, proxyURL)
+}
+
+func (p *Socks5Plugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	proxyURL, _ := url.Parse(fmt.Sprintf("socks5://%s:%s", task.IP, task.Port))
+	return dialAndTest(task, proxyURL)
+}
+
+func dialAndTest(task *pkg.Task, proxyURL *url.URL) (pkg.Session, error) {
 	dialer, err := proxy.FromURL(proxyURL, proxy.Direct)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -25,55 +47,18 @@ func (s *Socks5Plugin) Unauth() (bool, error) {
 		},
 	}
 
-	if s.Url == "" {
-		s.Url = "http://baidu.com"
+	testURL := task.Param["url"]
+	if testURL == "" {
+		testURL = "http://baidu.com"
 	}
-	req, err := http.NewRequest("GET", s.Url, nil)
+	req, err := http.NewRequest("GET", testURL, nil)
+	if err != nil {
+		return nil, err
+	}
 	_, err = client.Do(req)
 	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-func (s *Socks5Plugin) Login() error {
-	proxyURL, err := url.Parse(fmt.Sprintf("socks5://%s:%s@%s:%s", s.Username, s.Password, s.IP, s.Port))
-	if err != nil {
-		return err
-	}
-	dialer, err := proxy.FromURL(proxyURL, proxy.Direct)
-	if err != nil {
-		return err
+		return nil, err
 	}
 
-	client := &http.Client{
-		Transport: &http.Transport{
-			Dial: dialer.Dial,
-		},
-	}
-
-	if s.Url == "" {
-		s.Url = "http://baidu.com"
-	}
-	req, err := http.NewRequest("GET", s.Url, nil)
-	_, err = client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	return nil
-
-}
-
-func (s *Socks5Plugin) Close() error {
-	return nil
-}
-
-func (s *Socks5Plugin) Name() string {
-	return s.Service
-}
-
-func (s *Socks5Plugin) GetResult() *pkg.Result {
-	// todo list dbs
-	return &pkg.Result{Task: s.Task, OK: true}
+	return &socks5Session{service: task.Service, dialer: dialer}, nil
 }

@@ -13,192 +13,197 @@ import (
 	"strings"
 )
 
-func NewHTTPPlugin(method string, task *pkg.Task) *HTTPPlugin {
-	plugin := &HTTPPlugin{
-		Task:   task,
-		Method: method,
-		Path:   task.Param["path"],
-		Host:   task.Param["host"],
-		Type:   task.Param["type"],
-		Header: make(map[string]string),
-		Forms:  make(map[string]string),
-		Params: make(map[string]string),
-		//Keymap: make(map[string]string),
+// httpSession implements pkg.Session for HTTP GET/POST login.
+// HTTP is stateless, so Close is a no-op and Raw returns the http.Client.
+type httpSession struct {
+	service string
+	client  *http.Client
+}
+
+func (s *httpSession) Service() string  { return s.service }
+func (s *httpSession) Raw() interface{} { return s.client }
+func (s *httpSession) Close() error     { return nil }
+
+// HTTPPlugin is stateless; all per-request state is derived from the task.
+type HTTPPlugin struct {
+	Method string
+}
+
+func NewHTTPPlugin(method string) *HTTPPlugin {
+	return &HTTPPlugin{Method: method}
+}
+
+func (p *HTTPPlugin) Name() string { return strings.ToLower(p.Method) }
+
+func (p *HTTPPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	path := task.Param["path"]
+	host := task.Param["host"]
+	contentType := task.Param["type"]
+	matchStatus := task.Param["match_status"]
+	matchBody := task.Param["match_body"]
+	matchHeader := task.Param["match_header"]
+
+	scheme := task.Scheme
+	if scheme == "" {
+		scheme = "http"
 	}
-	if task.Scheme == "" {
-		plugin.Scheme = "http"
+	if matchStatus == "" {
+		matchStatus = "200"
 	}
 
-	if task.Param["match_status"] == "" {
-		plugin.MatchStatus = "200"
+	u := fmt.Sprintf("%s://%s:%s/%s", scheme, task.IP, task.Port, path)
+	method := p.Method
+	if method == "" {
+		method = "GET"
 	}
+
+	// Build params / forms from task.Param
+	params := make(map[string]string)
+	forms := make(map[string]string)
+	headers := make(map[string]string)
+
 	if method == "GET" {
 		if userParam, ok := task.Param["username"]; ok {
-			plugin.Params["username"] = userParam
+			params["username"] = userParam
 		} else {
-			plugin.Params["username"] = "username"
+			params["username"] = "username"
 		}
 		if passParam, ok := task.Param["password"]; ok {
-			plugin.Params["password"] = passParam
+			params["password"] = passParam
 		} else {
-			plugin.Params["password"] = "password"
+			params["password"] = "password"
 		}
 	} else if method == "POST" {
 		if userParam, ok := task.Param["username"]; ok {
-			plugin.Forms["username"] = userParam
+			forms["username"] = userParam
 		} else {
-			plugin.Forms["username"] = "username"
+			forms["username"] = "username"
 		}
 		if passParam, ok := task.Param["password"]; ok {
-			plugin.Forms["password"] = passParam
+			forms["password"] = passParam
 		} else {
-			plugin.Forms["password"] = "password"
+			forms["password"] = "password"
 		}
 	}
-	return plugin
-}
 
-type HTTPPlugin struct {
-	*pkg.Task
-	Path        string            `json:"path"`
-	Host        string            `json:"host"`
-	Method      string            `json:"method"`
-	Header      map[string]string `json:"header"`
-	Forms       map[string]string `json:"forms"`
-	Params      map[string]string `json:"params"` // map username/password param name to target param name
-	Keymap      map[string]string `json:"keymap"`
-	Type        string            `json:"type"`
-	MatchStatus string            `json:"match_status"`
-	MatchBody   string            `json:"match_body"`
-	MatchHeader string            `json:"match_header"`
-}
+	client := task.HTTPClient(true)
 
-func (s *HTTPPlugin) Name() string {
-	return s.Service
-}
-
-func (s *HTTPPlugin) Unauth() (bool, error) {
-	return false, pkg.NotImplUnauthorized
-}
-
-func (s *HTTPPlugin) Login() error {
-	u := fmt.Sprintf("%s://%s:%s/%s", s.Scheme, s.IP, s.Port, s.Path)
-	if s.Method == "" {
-		s.Method = "GET"
-	}
-
-	var reqBody []byte
-	var err error
-
-	if len(s.Params) > 0 {
-		// 使用 Params
+	if len(params) > 0 {
 		query := url.Values{}
-		for key, value := range s.Params {
+		for key, value := range params {
 			if key == "username" {
-				query.Set(value, s.Task.Username)
+				query.Set(value, task.Username)
 			} else if key == "password" {
-				query.Set(value, s.Task.Password)
+				query.Set(value, task.Password)
 			} else {
 				query.Set(key, value)
 			}
 		}
-		reqBody = []byte(query.Encode())
-		req, err := http.NewRequest(s.Method, u+"?"+query.Encode(), nil)
+		req, err := http.NewRequest(method, u+"?"+query.Encode(), nil)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		s.setupRequestHeaders(req)
-		resp, err := s.HTTPClient(true).Do(req)
+		setupRequestHeaders(req, host, headers)
+		resp, err := client.Do(req)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != 200 {
-			return pkg.ErrorWrongUserOrPwd
+			return nil, pkg.ErrorWrongUserOrPwd
 		}
-		return nil
-	} else if len(s.Forms) > 0 {
-		// 使用 Forms
+		return &httpSession{service: task.Service, client: client}, nil
+	} else if len(forms) > 0 {
 		formData := url.Values{}
-		for key, value := range s.Forms {
+		for key, value := range forms {
 			if key == "username" {
-				formData.Set(value, s.Task.Username)
+				formData.Set(value, task.Username)
 			} else if key == "password" {
-				formData.Set(value, s.Task.Password)
+				formData.Set(value, task.Password)
 			} else {
 				formData.Set(key, value)
 			}
 		}
 
-		if s.Type == "json" {
+		var reqBody []byte
+		var err error
+		if contentType == "json" {
 			reqBody, err = json.Marshal(formData)
 			if err != nil {
-				return err
+				return nil, err
 			}
-		} else if s.Type == "xml" {
+		} else if contentType == "xml" {
 			reqBody, err = xml.Marshal(formData)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		} else {
 			reqBody = []byte(formData.Encode())
 		}
 
-		req, err := http.NewRequest(s.Method, u, bytes.NewBuffer(reqBody))
+		req, err := http.NewRequest(method, u, bytes.NewBuffer(reqBody))
 		if err != nil {
-			return err
+			return nil, err
 		}
-		s.setupRequestHeaders(req)
-		if s.Type == "json" {
+		setupRequestHeaders(req, host, headers)
+		if contentType == "json" {
 			req.Header.Set("Content-Type", "application/json")
-		} else if s.Type == "xml" {
+		} else if contentType == "xml" {
 			req.Header.Set("Content-Type", "application/xml")
 		} else {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
 
-		resp, err := s.HTTPClient(true).Do(req)
+		resp, err := client.Do(req)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return s.matchResponse(resp)
+		err = matchResponse(resp, matchStatus, matchBody, matchHeader)
+		if err != nil {
+			return nil, err
+		}
+		return &httpSession{service: task.Service, client: client}, nil
 	}
 
-	return fmt.Errorf("no valid params or form data provided")
+	return nil, fmt.Errorf("no valid params or form data provided")
 }
 
-func (s *HTTPPlugin) setupRequestHeaders(req *http.Request) {
-	if s.Host != "" {
-		req.Host = s.Host
+func (p *HTTPPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	return nil, pkg.NotImplUnauthorized
+}
+
+func setupRequestHeaders(req *http.Request, host string, headers map[string]string) {
+	if host != "" {
+		req.Host = host
 	}
 	req.Header.Set("User-Agent", pkg.RandomUA())
-	for key, value := range s.Header {
+	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
 }
 
-func (s *HTTPPlugin) matchResponse(resp *http.Response) error {
-	if iutils.ToString(resp.StatusCode) != s.MatchStatus {
+func matchResponse(resp *http.Response, matchStatus, matchBody, matchHeader string) error {
+	if iutils.ToString(resp.StatusCode) != matchStatus {
 		return pkg.ErrorWrongUserOrPwd
 	}
 
-	if s.MatchBody != "" {
+	if matchBody != "" {
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
 		bodyString := string(bodyBytes)
-		if !strings.Contains(bodyString, s.MatchBody) {
+		if !strings.Contains(bodyString, matchBody) {
 			return pkg.ErrorWrongUserOrPwd
 		}
 	}
 
-	if s.MatchHeader != "" {
+	if matchHeader != "" {
 		matchFound := false
 		for key, values := range resp.Header {
 			for _, value := range values {
-				if key == s.MatchHeader || value == s.MatchHeader {
+				if key == matchHeader || value == matchHeader {
 					matchFound = true
 					break
 				}
@@ -212,14 +217,5 @@ func (s *HTTPPlugin) matchResponse(resp *http.Response) error {
 		}
 	}
 
-	return nil
-}
-
-func (s *HTTPPlugin) GetResult() *pkg.Result {
-	// todo list dbs
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *HTTPPlugin) Close() error {
 	return nil
 }

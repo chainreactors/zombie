@@ -1,6 +1,7 @@
 package mongo
 
 import (
+	"context"
 	"fmt"
 	"github.com/chainreactors/zombie/pkg"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -8,83 +9,51 @@ import (
 	"time"
 )
 
-type MongoPlugin struct {
-	*pkg.Task
-	Input string
-	conn  *mongo.Client
+// mongoSession implements pkg.Session over a MongoDB client.
+type mongoSession struct {
+	service string
+	client  *mongo.Client
+	ctx     context.Context
 }
 
-func (s *MongoPlugin) Unauth() (bool, error) {
-	//var err error
-	//var url string
-	//
-	//if s.Password == "" {
-	//	url = fmt.Sprintf("mongodb://%v:%v", s.IP, s.Port)
-	//} else {
-	//	url = fmt.Sprintf("mongodb://%v:%v@%v:%v", "mongodbuser", s.Password, s.IP, s.Port)
-	//}
-	//clientOptions := options.Client().ApplyURI(url).SetConnectTimeout(time.Duration(s.Timeout) * time.Second)
-	//
-	//// 连接到MongoDB
-	//client, err := mongo.Connect(s.Context, clientOptions)
-	//if err != nil {
-	//	return false, err
-	//}
-	//s.conn = client
-	//err = s.conn.Ping(s.Context, nil)
-	//if err != nil {
-	//	return false, err
-	//}
-	//
-	//return true, nil
-	return false, pkg.NotImplUnauthorized
+func (s *mongoSession) Service() string  { return s.service }
+func (s *mongoSession) Raw() interface{} { return s.client }
+
+func (s *mongoSession) Close() error {
+	if s.client != nil {
+		return s.client.Disconnect(s.ctx)
+	}
+	return nil
 }
 
-func (s *MongoPlugin) Name() string {
-	return s.Service
-}
+// MongoPlugin is stateless; all connection state lives in mongoSession.
+type MongoPlugin struct{}
 
-func (s *MongoPlugin) GetResult() *pkg.Result {
-	// todo list dbs
-	return &pkg.Result{Task: s.Task, OK: true}
-}
+func (p *MongoPlugin) Name() string { return "mongo" }
 
-func (s *MongoPlugin) Login() error {
-	var err error
+func (p *MongoPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	var url string
 
-	if s.Password == "" {
-		url = fmt.Sprintf("mongodb://%v:%v", s.IP, s.Port)
+	if task.Password == "" {
+		url = fmt.Sprintf("mongodb://%v:%v", task.IP, task.Port)
 	} else {
-		url = fmt.Sprintf("mongodb://%v:%v@%v:%v", s.Username, s.Password, s.IP, s.Port)
+		url = fmt.Sprintf("mongodb://%v:%v@%v:%v", task.Username, task.Password, task.IP, task.Port)
 	}
-	clientOptions := options.Client().ApplyURI(url).SetConnectTimeout(time.Duration(s.Timeout) * time.Second)
+	clientOptions := options.Client().ApplyURI(url).SetConnectTimeout(time.Duration(task.Timeout) * time.Second)
 
-	// 连接到MongoDB
-	client, err := mongo.Connect(s.Context, clientOptions)
+	client, err := mongo.Connect(task.Context, clientOptions)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	s.conn = client
-	err = s.conn.Ping(s.Context, nil)
+	err = client.Ping(task.Context, nil)
 	if err != nil {
-		return err
+		client.Disconnect(task.Context)
+		return nil, err
 	}
 
-	return nil
+	return &mongoSession{service: task.Service, client: client, ctx: task.Context}, nil
 }
 
-func (s *MongoPlugin) Close() error {
-	if s.conn != nil {
-		return s.conn.Disconnect(s.Context)
-	}
-	return nil
+func (p *MongoPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	return nil, pkg.NotImplUnauthorized
 }
-
-//func (s *MongoPlugin) SetQuery(query string) {
-//	s.Input = query
-//}
-//
-//func (s *MongoPlugin) Output(res interface{}) {
-//
-//}

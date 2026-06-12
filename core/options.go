@@ -16,6 +16,7 @@ type Option struct {
 	InputOptions  `group:"Input Options"`
 	OutputOptions `group:"Output Options"`
 	WordOptions   `group:"Word Options"`
+	ActionOptions `group:"Post-Auth Actions"`
 	MiscOptions   `group:"Misc Options"`
 }
 
@@ -65,6 +66,12 @@ type MiscOptions struct {
 	ListService bool   `short:"l" long:"list" description:"Bool, list all service"`
 	Bar         bool   `long:"bar" description:"Bool, enable bar"`
 	Version     bool   `long:"version" description:"Bool, show version"`
+}
+
+type ActionOptions struct {
+	Proton        bool     `long:"proton" description:"post-auth: collect info + run proton credential scan"`
+	ScanTemplates []string `long:"scan-template" description:"proton template file or directory for --proton"`
+	DBLimit       int      `long:"db-limit" default:"1000" description:"max rows per column in DB credential scan"`
 }
 
 func (opt *Option) Validate() error {
@@ -123,9 +130,15 @@ func (opt *Option) Prepare() (*Runner, error) {
 		NoCheckHoneyPot: opt.NoCheckHoneyPot,
 		Strict:          opt.Strict,
 		Raw:             opt.Raw,
+		Proton:          opt.Proton,
+		ScanTemplates:   opt.ScanTemplates,
+		DBLimit:         opt.DBLimit,
 	}
 
 	runner := NewRunner(runnerOpt)
+	if err := runner.BuildPipeline(); err != nil {
+		return nil, err
+	}
 	runner.File = file
 	runner.OutFunc = outfunc
 	runner.FileFormat = opt.FileFormat

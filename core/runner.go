@@ -12,7 +12,9 @@ import (
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/utils/fileutils"
 	"github.com/chainreactors/utils/iutils"
+	"github.com/chainreactors/zombie/action"
 	"github.com/chainreactors/zombie/pkg"
+	"github.com/chainreactors/zombie/plugin"
 	"github.com/panjf2000/ants/v2"
 )
 
@@ -65,6 +67,9 @@ type Runner struct {
 	outlock *sync.WaitGroup
 	addlock *sync.Mutex
 
+	Plugins  map[string]plugin.Plugin
+	Pipeline []pkg.Action
+
 	Users        *Generator
 	Pwds         *Generator
 	Auths        *Generator
@@ -86,6 +91,7 @@ func NewRunner(opt *RunnerOption) *Runner {
 	}
 	return &Runner{
 		RunnerOption: opt,
+		Plugins:      plugin.DefaultRegistry(),
 		OutputCh:     make(chan *pkg.Result),
 		wg:           &sync.WaitGroup{},
 		outlock:      &sync.WaitGroup{},
@@ -94,6 +100,21 @@ func NewRunner(opt *RunnerOption) *Runner {
 			Tasks: make(map[string]int),
 		},
 	}
+}
+
+func (r *Runner) BuildPipeline() error {
+	if !r.Proton {
+		return nil
+	}
+	if len(r.ScanTemplates) == 0 {
+		return fmt.Errorf("--proton requires --scan-template to specify proton template path")
+	}
+	postAction, err := action.NewPostAction(r.ScanTemplates, r.DBLimit)
+	if err != nil {
+		return fmt.Errorf("failed to init post action: %w", err)
+	}
+	r.Pipeline = append(r.Pipeline, postAction)
+	return nil
 }
 
 func (r *Runner) SetTargets(targets []*Target) {
@@ -181,11 +202,9 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 			}()
 			var res *pkg.Result
 			if task.Mod == parsers.ZombieModUnauth {
-				res = Unauth(task)
-			} else if task.Mod == parsers.ZombieModCheck {
-				res = Brute(task)
+				res = ExecuteUnauth(task, r.Plugins, r.Pipeline)
 			} else {
-				res = Brute(task)
+				res = Execute(task, r.Plugins, r.Pipeline)
 			}
 
 			select {

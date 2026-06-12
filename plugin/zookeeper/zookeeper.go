@@ -7,44 +7,44 @@ import (
 	"time"
 )
 
-type ZookeeperPlugin struct {
-	*pkg.Task
-	conn *zk.Conn
+// zkSession implements pkg.Session over a ZooKeeper connection.
+type zkSession struct {
+	service string
+	conn    *zk.Conn
 }
 
-func (s *ZookeeperPlugin) Name() string {
-	return s.Service
-}
+func (s *zkSession) Service() string  { return s.service }
+func (s *zkSession) Raw() interface{} { return s.conn }
 
-func (s *ZookeeperPlugin) Unauth() (bool, error) {
-	conn, _, err := zk.Connect([]string{fmt.Sprintf("%s:%s", s.IP, s.Port)}, time.Duration(s.Timeout)*time.Second)
-	if err != nil {
-		return false, err
-	}
-	s.conn = conn
-	return true, nil
-}
-
-func (s *ZookeeperPlugin) Login() error {
-	conn, _, err := zk.Connect([]string{fmt.Sprintf("%s:%s", s.IP, s.Port)}, time.Duration(s.Timeout)*time.Second)
-	if err != nil {
-		return err
-	}
-	err = conn.AddAuth("digest", []byte(fmt.Sprintf("%s:%s", s.Username, s.Password)))
-	if err != nil {
-		return err
-	}
-	s.conn = conn
-	return nil
-}
-
-func (s *ZookeeperPlugin) GetResult() *pkg.Result {
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *ZookeeperPlugin) Close() error {
+func (s *zkSession) Close() error {
 	if s.conn != nil {
 		s.conn.Close()
 	}
 	return nil
+}
+
+// ZookeeperPlugin is stateless; all connection state lives in zkSession.
+type ZookeeperPlugin struct{}
+
+func (p *ZookeeperPlugin) Name() string { return "zookeeper" }
+
+func (p *ZookeeperPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	conn, _, err := zk.Connect([]string{fmt.Sprintf("%s:%s", task.IP, task.Port)}, time.Duration(task.Timeout)*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	err = conn.AddAuth("digest", []byte(fmt.Sprintf("%s:%s", task.Username, task.Password)))
+	if err != nil {
+		conn.Close()
+		return nil, err
+	}
+	return &zkSession{service: task.Service, conn: conn}, nil
+}
+
+func (p *ZookeeperPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	conn, _, err := zk.Connect([]string{fmt.Sprintf("%s:%s", task.IP, task.Port)}, time.Duration(task.Timeout)*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	return &zkSession{service: task.Service, conn: conn}, nil
 }

@@ -3,70 +3,44 @@ package mssql
 import (
 	"database/sql"
 	"fmt"
+
 	"github.com/chainreactors/zombie/pkg"
+	"github.com/chainreactors/zombie/plugin/internal/sqlsess"
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
-type MssqlPlugin struct {
-	*pkg.Task
-	//MssqlInf
-	//Input string
-	Instance string
-	conn     *sql.DB
-}
+// MssqlPlugin is a stateless factory that satisfies the Plugin interface.
+type MssqlPlugin struct{}
 
-func (s *MssqlPlugin) Name() string {
-	return s.Service
-}
+func (MssqlPlugin) Name() string { return "mssql" }
 
-func (s *MssqlPlugin) Login() error {
-	if s.Instance == "" {
-		s.Instance = "master"
+// Open authenticates with the credentials from task and returns a SQLSession.
+func (MssqlPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	instance := task.Param["instance"]
+	if instance == "" {
+		instance = "master"
 	}
-	dataSourceName := fmt.Sprintf("server=%s;port=%s;user id=%s;password=%s;database=%s;connection timeout=%d;encrypt=disable", s.IP,
-		s.Port, s.Username, s.Password, s.Instance, s.Timeout)
+	return dial(task, task.Username, task.Password, instance)
+}
 
-	//time.Duration(Utils.Timeout)*time.Second
-	conn, err := sql.Open("mssql", dataSourceName)
+// Unauth attempts an unauthenticated connection using sa with an empty password.
+func (MssqlPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	return dial(task, "sa", "", "master")
+}
+
+func dial(task *pkg.Task, user, password, instance string) (pkg.Session, error) {
+	dsn := fmt.Sprintf("server=%s;port=%s;user id=%s;password=%s;database=%s;connection timeout=%d;encrypt=disable",
+		task.IP, task.Port, user, password, instance, task.Timeout)
+
+	db, err := sql.Open("mssql", dsn)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = conn.Ping()
-	if err != nil {
-		return err
+	if err := db.Ping(); err != nil {
+		_ = db.Close()
+		return nil, err
 	}
 
-	s.conn = conn
-	return nil
-}
-
-func (s *MssqlPlugin) Unauth() (bool, error) {
-	dataSourceName := fmt.Sprintf("server=%s;port=%s;user id=%s;password=%v;database=%v;connection timeout=%v;encrypt=disable", s.IP,
-		s.Port, "sa", "", "master", s.Timeout)
-
-	//time.Duration(Utils.Timeout)*time.Second
-	conn, err := sql.Open("mssql", dataSourceName)
-	if err != nil {
-		return false, err
-	}
-
-	err = conn.Ping()
-	if err != nil {
-		return false, err
-	}
-
-	s.conn = conn
-	return true, nil
-}
-func (s *MssqlPlugin) GetResult() *pkg.Result {
-	// todo list dbs
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *MssqlPlugin) Close() error {
-	if s.conn != nil {
-		return s.conn.Close()
-	}
-	return nil
+	return &sqlsess.Session{DB: db, SvcName: "mssql"}, nil
 }

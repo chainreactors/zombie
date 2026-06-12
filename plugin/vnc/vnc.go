@@ -6,74 +6,49 @@ import (
 	"time"
 )
 
-type VNCPlugin struct {
-	*pkg.Task
-	conn  *vnc.ClientConn
-	Input string
+// vncSession implements pkg.Session over an authenticated VNC connection.
+type vncSession struct {
+	service string
+	conn    *vnc.ClientConn
 }
 
-func (s *VNCPlugin) Unauth() (bool, error) {
-	target := s.Address()
+func (s *vncSession) Service() string  { return s.service }
+func (s *vncSession) Raw() interface{} { return s.conn }
 
-	tcpconn, err := s.DialTimeout("tcp", target, time.Duration(s.Timeout)*time.Second)
-	if err != nil {
-		return false, err
-	}
-
-	config := vnc.ClientConfig{
-		Auth: []vnc.ClientAuth{
-			&vnc.PasswordAuth{Password: ""},
-		},
-	}
-	conn, err := vnc.Client(tcpconn, &config)
-	if err != nil {
-		return false, err
-	}
-	s.conn = conn
-	return true, nil
-}
-
-func (s *VNCPlugin) Login() error {
-	target := s.Address()
-
-	tcpconn, err := s.DialTimeout("tcp", target, time.Duration(s.Timeout)*time.Second)
-	if err != nil {
-		return err
-	}
-
-	config := vnc.ClientConfig{
-		Auth: []vnc.ClientAuth{
-			&vnc.PasswordAuth{Password: s.Password},
-		},
-	}
-	conn, err := vnc.Client(tcpconn, &config)
-	if err != nil {
-		return err
-	}
-	s.conn = conn
-	return nil
-}
-
-func (s *VNCPlugin) Close() error {
+func (s *vncSession) Close() error {
 	if s.conn != nil {
 		return s.conn.Close()
 	}
 	return nil
 }
 
-//func (s *VNCPlugin) SetQuery(query string) {
-//	s.Input = query
-//}
-//
-//func (s *VNCPlugin) Output(res interface{}) {
-//
-//}
+// VNCPlugin is stateless; all connection state lives in vncSession.
+type VNCPlugin struct{}
 
-func (s *VNCPlugin) Name() string {
-	return s.Service
+func (p *VNCPlugin) Name() string { return "vnc" }
+
+func (p *VNCPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	return dial(task, task.Password)
 }
 
-func (s *VNCPlugin) GetResult() *pkg.Result {
-	// todo list dbs
-	return &pkg.Result{Task: s.Task, OK: true}
+func (p *VNCPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	return dial(task, "")
+}
+
+func dial(task *pkg.Task, password string) (pkg.Session, error) {
+	tcpconn, err := task.DialTimeout("tcp", task.Address(), time.Duration(task.Timeout)*time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	config := vnc.ClientConfig{
+		Auth: []vnc.ClientAuth{
+			&vnc.PasswordAuth{Password: password},
+		},
+	}
+	conn, err := vnc.Client(tcpconn, &config)
+	if err != nil {
+		return nil, err
+	}
+	return &vncSession{service: task.Service, conn: conn}, nil
 }
