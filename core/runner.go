@@ -142,7 +142,12 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 		return fmt.Errorf("pitchfork mode requires auth, please set -a/-A")
 	}
 
-	if r.OutFunc != nil {
+	// OutputHandler 是无缓冲 OutputCh 的唯一内建读者兼 console 打印者。除非
+	// 调用方显式 ManualDrain 自行消费 OutputCh，否则必须启动它——否则首个
+	// Output() 在 `OutputCh <- res` 处永久阻塞，整个爆破卡死且零输出。
+	// (历史 bug：曾错误地以 OutFunc!=nil(即是否给了 -f 文件)为门控，
+	//  导致 stdout 输出模式下 OutputHandler 不启动。)
+	if !r.ManualDrain {
 		go r.OutputHandler()
 	}
 
@@ -231,7 +236,7 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	default:
 		return nil
 	}
-	if r.OutFunc != nil {
+	if !r.ManualDrain {
 		r.outlock.Wait()
 	}
 	close(r.OutputCh)
@@ -512,7 +517,10 @@ func (r *Runner) add(task *pkg.Task) {
 }
 
 func (r *Runner) Output(res *pkg.Result) {
-	if r.OutFunc != nil {
+	// outlock 与 OutputHandler 配对：仅在内建 handler 运行时计数，供收尾
+	// outlock.Wait() 等其处理完所有结果再 close(OutputCh)。ManualDrain 模式下
+	// 由外部消费方负责，直接 close 即可。
+	if !r.ManualDrain {
 		r.outlock.Add(1)
 	}
 	if res.OK {
