@@ -1,8 +1,6 @@
 module github.com/chainreactors/zombie
 
-go 1.22.0
-
-toolchain go1.24.3
+go 1.25.0
 
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
@@ -30,8 +28,8 @@ require (
 	github.com/streadway/amqp v1.1.0
 	github.com/vbauerster/mpb/v8 v8.7.2
 	go.mongodb.org/mongo-driver v1.12.0
-	golang.org/x/crypto v0.19.0
-	golang.org/x/net v0.21.0
+	golang.org/x/crypto v0.53.0
+	golang.org/x/net v0.56.0
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -66,8 +64,8 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
 )
 
 require (
