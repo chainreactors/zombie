@@ -20,32 +20,7 @@ var (
 )
 
 func Load() error {
-	var err error
-	err = LoadPorts()
-	if err != nil {
-		return err
-	}
-
-	err = LoadKeyword()
-	if err != nil {
-		return err
-	}
-
-	err = LoadRules()
-	if err != nil {
-		return err
-	}
-
-	err = LoadTemplates()
-	if err != nil {
-		return err
-	}
-
-	err = LoadFingers()
-	if err != nil {
-		return err
-	}
-	return err
+	return LoadResources()
 }
 
 func LoadKeyword() error {
@@ -113,11 +88,10 @@ func LoadTemplates() error {
 		if template.Info.Zombie == "" {
 			continue
 		}
-		Services.Register(&Service{Name: template.Info.Zombie, Source: NeutronSource})
-		err := template.Compile(nil)
-		if err != nil {
-			return err
+		if err := template.Compile(nil); err != nil {
+			continue
 		}
+		Services.Register(&Service{Name: template.Info.Zombie, Source: NeutronSource})
 		TemplateMap[template.Info.Zombie] = template
 
 		// load gogo_finger-zombie-service map
