@@ -295,6 +295,391 @@ func TestPostAction_File(t *testing.T) {
 	}
 }
 
+func TestServiceActionChain(t *testing.T) {
+	dir := t.TempDir()
+	root := `id: root-chain
+service: [ssh]
+chain: [child-chain]
+info:
+  name: Root Chain
+  severity: info
+services:
+  - ops:
+      - shell: "detect-os"
+        name: os_detect
+    extractors:
+      - type: regex
+        name: os_type
+        internal: true
+        part: os_detect
+        regex: ['(Linux)']
+        group: 1
+`
+	child := `id: child-chain
+service: [ssh]
+info:
+  name: Child Chain
+  severity: info
+services:
+  - ops:
+      - shell: "child-command"
+        name: child_output
+    extractors:
+      - type: regex
+        name: child_value
+        part: child_output
+        regex: ['(child-ok)']
+        group: 1
+`
+	if err := os.WriteFile(filepath.Join(dir, "root-chain.yaml"), []byte(root), 0644); err != nil {
+		t.Fatalf("write root template: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "child-chain.yaml"), []byte(child), 0644); err != nil {
+		t.Fatalf("write child template: %v", err)
+	}
+
+	a, err := NewServiceAction([]string{dir}, nil)
+	if err != nil {
+		t.Fatalf("NewServiceAction failed: %v", err)
+	}
+	session := &mockShellSession{
+		files: map[string][]byte{
+			"detect-os":     []byte("Linux\n"),
+			"child-command": []byte("child-ok\n"),
+		},
+	}
+	result, err := a.Run(session, mockTask())
+	if err != nil {
+		t.Fatalf("Run failed: %v", err)
+	}
+
+	for _, extracted := range result.Extracteds {
+		if extracted.Name == "child-chain:child_value" && len(extracted.ExtractResult) == 1 && extracted.ExtractResult[0] == "child-ok" {
+			return
+		}
+	}
+	t.Fatalf("expected chained extraction, got %#v", result.Extracteds)
+}
+
+func TestServiceAction_ChainTargetNotEntrypoint(t *testing.T) {
+	dir := t.TempDir()
+	// root chains to child; child should NOT run as a top-level entry point
+	root := `id: entry
+service: [ssh]
+chain: [helper]
+info:
+  name: Entry
+  severity: info
+services:
+  - ops:
+      - shell: "echo entry"
+        name: entry_out
+    extractors:
+      - type: regex
+        name: entry_val
+        part: entry_out
+        regex: ['(entry)']
+        group: 1
+`
+	helper := `id: helper
+service: [ssh]
+info:
+  name: Helper
+  severity: info
+services:
+  - ops:
+      - shell: "echo helper"
+        name: helper_out
+    extractors:
+      - type: regex
+        name: helper_val
+        part: helper_out
+        regex: ['(helper)']
+        group: 1
+`
+	os.WriteFile(filepath.Join(dir, "entry.yaml"), []byte(root), 0644)
+	os.WriteFile(filepath.Join(dir, "helper.yaml"), []byte(helper), 0644)
+
+	a, err := NewServiceAction([]string{dir}, nil)
+	if err != nil {
+		t.Fatalf("NewServiceAction: %v", err)
+	}
+	session := &mockShellSession{
+		files: map[string][]byte{
+			"echo entry":  []byte("entry\n"),
+			"echo helper": []byte("helper\n"),
+		},
+	}
+	result, err := a.Run(session, mockTask())
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+
+	// Both should appear in results (entry as entry point, helper via chain)
+	found := map[string]bool{}
+	for _, e := range result.Extracteds {
+		found[e.Name] = true
+	}
+	if !found["entry:entry_val"] {
+		t.Error("missing entry extraction")
+	}
+	if !found["helper:helper_val"] {
+		t.Error("missing helper extraction (should run via chain)")
+	}
+
+	// helper should appear exactly once (not duplicated as both entry point and chain)
+	count := 0
+	for _, e := range result.Extracteds {
+		if e.Name == "helper:helper_val" {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Errorf("helper executed %d times, want 1", count)
+	}
+}
+
+func TestServiceAction_ServiceMismatchSkipsChain(t *testing.T) {
+	dir := t.TempDir()
+	root := `id: ssh-root
+service: [ssh]
+chain: [mysql-only]
+info:
+  name: SSH Root
+  severity: info
+services:
+  - ops:
+      - shell: "echo root"
+        name: root_out
+    extractors:
+      - type: regex
+        name: root_val
+        part: root_out
+        regex: ['(root)']
+        group: 1
+`
+	mysqlOnly := `id: mysql-only
+service: [mysql]
+info:
+  name: MySQL Only
+  severity: info
+services:
+  - ops:
+      - shell: "echo mysql"
+        name: mysql_out
+    extractors:
+      - type: regex
+        name: mysql_val
+        part: mysql_out
+        regex: ['(mysql)']
+        group: 1
+`
+	os.WriteFile(filepath.Join(dir, "root.yaml"), []byte(root), 0644)
+	os.WriteFile(filepath.Join(dir, "mysql.yaml"), []byte(mysqlOnly), 0644)
+
+	a, err := NewServiceAction([]string{dir}, nil)
+	if err != nil {
+		t.Fatalf("NewServiceAction: %v", err)
+	}
+	// session is SSH, so mysql-only should be skipped
+	session := &mockShellSession{
+		files: map[string][]byte{
+			"echo root":  []byte("root\n"),
+			"echo mysql": []byte("mysql\n"),
+		},
+	}
+	result, err := a.Run(session, mockTask())
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+
+	for _, e := range result.Extracteds {
+		if e.Name == "mysql-only:mysql_val" {
+			t.Fatal("mysql-only template should NOT execute on SSH session")
+		}
+	}
+	found := false
+	for _, e := range result.Extracteds {
+		if e.Name == "ssh-root:root_val" {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("ssh-root should have executed")
+	}
+}
+
+func TestServiceAction_ServiceMismatchStopsChain(t *testing.T) {
+	// When a chain target doesn't match the session's service, it returns nil
+	// and its own chains (if any) should NOT execute.
+	dir := t.TempDir()
+	root := `id: ssh-entry
+service: [ssh]
+chain: [mysql-gate]
+info:
+  name: SSH Entry
+  severity: info
+services:
+  - ops:
+      - shell: "echo entry"
+        name: entry_out
+    extractors:
+      - type: regex
+        name: entry_val
+        part: entry_out
+        regex: ['(entry)']
+        group: 1
+`
+	gate := `id: mysql-gate
+service: [mysql]
+chain: [after-gate]
+info:
+  name: MySQL Gate
+  severity: info
+services:
+  - ops:
+      - shell: "echo gate"
+        name: gate_out
+    extractors:
+      - type: regex
+        name: gate_val
+        part: gate_out
+        regex: ['(gate)']
+        group: 1
+`
+	afterGate := `id: after-gate
+service: [ssh]
+info:
+  name: After Gate
+  severity: info
+services:
+  - ops:
+      - shell: "echo after"
+        name: after_out
+    extractors:
+      - type: regex
+        name: after_val
+        part: after_out
+        regex: ['(after)']
+        group: 1
+`
+	os.WriteFile(filepath.Join(dir, "entry.yaml"), []byte(root), 0644)
+	os.WriteFile(filepath.Join(dir, "gate.yaml"), []byte(gate), 0644)
+	os.WriteFile(filepath.Join(dir, "after.yaml"), []byte(afterGate), 0644)
+
+	a, err := NewServiceAction([]string{dir}, nil)
+	if err != nil {
+		t.Fatalf("NewServiceAction: %v", err)
+	}
+	session := &mockShellSession{
+		files: map[string][]byte{
+			"echo entry": []byte("entry\n"),
+			"echo gate":  []byte("gate\n"),
+			"echo after": []byte("after\n"),
+		},
+	}
+	result, err := a.Run(session, mockTask())
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+
+	found := map[string]bool{}
+	for _, e := range result.Extracteds {
+		found[e.Name] = true
+	}
+	if !found["ssh-entry:entry_val"] {
+		t.Error("ssh-entry should have executed")
+	}
+	if found["mysql-gate:gate_val"] {
+		t.Error("mysql-gate should NOT execute on SSH session")
+	}
+	if found["after-gate:after_val"] {
+		t.Error("after-gate should NOT execute because mysql-gate was skipped")
+	}
+}
+
+func TestServiceAction_MultipleChains(t *testing.T) {
+	dir := t.TempDir()
+	root := `id: multi-root
+service: [ssh]
+chain: [branch-a, branch-b]
+info:
+  name: Multi Root
+  severity: info
+services:
+  - ops:
+      - shell: "echo root"
+        name: root_out
+    extractors:
+      - type: regex
+        name: root_val
+        part: root_out
+        regex: ['(root)']
+        group: 1
+`
+	branchA := `id: branch-a
+service: [ssh]
+info:
+  name: Branch A
+  severity: info
+services:
+  - ops:
+      - shell: "echo a"
+        name: a_out
+    extractors:
+      - type: regex
+        name: a_val
+        part: a_out
+        regex: ['(a)']
+        group: 1
+`
+	branchB := `id: branch-b
+service: [ssh]
+info:
+  name: Branch B
+  severity: info
+services:
+  - ops:
+      - shell: "echo b"
+        name: b_out
+    extractors:
+      - type: regex
+        name: b_val
+        part: b_out
+        regex: ['(b)']
+        group: 1
+`
+	os.WriteFile(filepath.Join(dir, "root.yaml"), []byte(root), 0644)
+	os.WriteFile(filepath.Join(dir, "a.yaml"), []byte(branchA), 0644)
+	os.WriteFile(filepath.Join(dir, "b.yaml"), []byte(branchB), 0644)
+
+	a, err := NewServiceAction([]string{dir}, nil)
+	if err != nil {
+		t.Fatalf("NewServiceAction: %v", err)
+	}
+	session := &mockShellSession{
+		files: map[string][]byte{
+			"echo root": []byte("root\n"),
+			"echo a":    []byte("a\n"),
+			"echo b":    []byte("b\n"),
+		},
+	}
+	result, err := a.Run(session, mockTask())
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+
+	found := map[string]bool{}
+	for _, e := range result.Extracteds {
+		found[e.Name] = true
+	}
+	for _, want := range []string{"multi-root:root_val", "branch-a:a_val", "branch-b:b_val"} {
+		if !found[want] {
+			t.Errorf("missing extraction %s, got %v", want, found)
+		}
+	}
+}
+
 // --- Worker Integration Test ---
 
 func TestWorkerExecute_WithPostAction(t *testing.T) {
