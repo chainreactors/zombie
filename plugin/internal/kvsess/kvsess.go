@@ -21,6 +21,15 @@ func (s *RedisSession) Get(key string) ([]byte, error) {
 	return val, err
 }
 
+func (s *RedisSession) Command(name string, args ...string) (interface{}, error) {
+	cmdArgs := make([]interface{}, 1+len(args))
+	cmdArgs[0] = name
+	for i, a := range args {
+		cmdArgs[i+1] = a
+	}
+	return s.Client.Do(cmdArgs...).Result()
+}
+
 func (s *RedisSession) Keys(pattern string) ([]string, error) {
 	var allKeys []string
 	var cursor uint64

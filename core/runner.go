@@ -105,17 +105,23 @@ func NewRunner(opt *RunnerOption) *Runner {
 }
 
 func (r *Runner) BuildPipeline() error {
-	if !r.Proton {
-		return nil
+	if r.Proton {
+		if len(r.ScanTemplates) == 0 {
+			return fmt.Errorf("--proton requires --scan-template to specify proton template path")
+		}
+		postAction, err := action.NewPostAction(r.ScanTemplates, r.DBLimit)
+		if err != nil {
+			return fmt.Errorf("failed to init post action: %w", err)
+		}
+		r.Pipeline = append(r.Pipeline, postAction)
 	}
-	if len(r.ScanTemplates) == 0 {
-		return fmt.Errorf("--proton requires --scan-template to specify proton template path")
+	if len(r.ServiceTemplates) > 0 {
+		serviceAction, err := action.NewServiceAction(r.ServiceTemplates, r.ServiceVars)
+		if err != nil {
+			return fmt.Errorf("failed to init service action: %w", err)
+		}
+		r.Pipeline = append(r.Pipeline, serviceAction)
 	}
-	postAction, err := action.NewPostAction(r.ScanTemplates, r.DBLimit)
-	if err != nil {
-		return fmt.Errorf("failed to init post action: %w", err)
-	}
-	r.Pipeline = append(r.Pipeline, postAction)
 	return nil
 }
 

@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/chainreactors/fingers/common"
@@ -264,6 +265,26 @@ func (r *Result) Merge(ar *ActionResult) {
 		r.Loot[k] = v
 	}
 	r.ActionResults = append(r.ActionResults, ar)
+}
+
+func (r *Result) Format(form string) string {
+	if r == nil || r.Task == nil || r.ZombieResult == nil {
+		return ""
+	}
+	switch form {
+	case parsers.ZombieFormatJSON, parsers.ZombieFormatJSONLine:
+		bs, err := json.Marshal(r)
+		if err != nil {
+			return ""
+		}
+		return string(bs) + "\n"
+	default:
+		out := r.ZombieResult.Format(form)
+		if len(r.Extracteds) == 0 {
+			return out
+		}
+		return strings.TrimRight(out, "\n") + " " + r.Extracteds.String()
+	}
 }
 
 type runOpt struct {
