@@ -65,17 +65,22 @@ func (t *Template) Compile(options *protocols.ExecuterOptions) error {
 }
 
 func (t *Template) Execute(session pkg.Session, host string) (*operators.Result, error) {
-	return t.ExecuteWithVariables(session, host, nil)
+	return t.ExecuteWithOptions(session, host, nil, nil)
 }
 
 func (t *Template) ExecuteWithVariables(session pkg.Session, host string, cliVars map[string]interface{}) (*operators.Result, error) {
+	return t.ExecuteWithOptions(session, host, cliVars, nil)
+}
+
+func (t *Template) ExecuteWithOptions(session pkg.Session, host string, cliVars, cliPayloads map[string]interface{}) (*operators.Result, error) {
 	if !t.Match(session.Service()) {
 		return nil, nil
 	}
 
 	payloads := map[string]interface{}{
-		"_session":          session,
-		"_service_cli_vars": cliVars,
+		"_session":              session,
+		"_service_cli_vars":     cliVars,
+		"_service_cli_payloads": cliPayloads,
 	}
 	scanCtx := protocols.NewScanContext(host, payloads)
 	scanCtx.GlobalVars = t.executionVariables(host, cliVars)

@@ -25,7 +25,8 @@ func (r *Request) ExecuteWithResults(input *protocols.ScanContext, dynamicValues
 	}
 
 	cliVars, _ := input.Payloads["_service_cli_vars"].(map[string]interface{})
-	payloadIterator, err := r.payloadIterator(cliVars)
+	cliPayloads, _ := input.Payloads["_service_cli_payloads"].(map[string]interface{})
+	payloadIterator, err := r.payloadIterator(cliVars, cliPayloads)
 	if err != nil {
 		return err
 	}
@@ -96,18 +97,21 @@ func (r *Request) ExecuteWithResults(input *protocols.ScanContext, dynamicValues
 	return nil
 }
 
-func (r *Request) payloadIterator(overrides map[string]interface{}) (*protocols.Iterator, error) {
-	if len(r.Payloads) == 0 {
+func (r *Request) payloadIterator(varOverrides, payloadOverrides map[string]interface{}) (*protocols.Iterator, error) {
+	if len(r.Payloads) == 0 && len(payloadOverrides) == 0 {
 		return nil, nil
 	}
-	payloads := make(map[string]interface{}, len(r.Payloads))
+	payloads := make(map[string]interface{}, len(r.Payloads)+len(payloadOverrides))
 	for k, v := range r.Payloads {
 		payloads[k] = v
 	}
-	for k, v := range overrides {
+	for k, v := range varOverrides {
 		if _, ok := payloads[k]; ok {
 			payloads[k] = v
 		}
+	}
+	for k, v := range payloadOverrides {
+		payloads[k] = v
 	}
 	attack := strings.ToLower(r.AttackType)
 	if attack == "" {

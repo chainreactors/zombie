@@ -490,6 +490,148 @@ services:
 	}
 }
 
+func TestTemplateExplicitPayloadCLIOverride(t *testing.T) {
+	session := &mockKVSession{
+		svc:  "redis",
+		data: map[string]string{},
+	}
+
+	yamlData := `
+id: payload-explicit-override-template
+service: [redis]
+services:
+  - attack: pitchfork
+    payloads:
+      key:
+        - a
+        - b
+    ops:
+      - kv: "SET §key§ 1"
+        name: set_result
+    extractors:
+      - type: regex
+        name: set_ok
+        part: set_result
+        regex: ['(OK)']
+        group: 1
+`
+	var tmpl Template
+	if err := yaml.Unmarshal([]byte(yamlData), &tmpl); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if err := tmpl.Compile(nil); err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+
+	result, err := tmpl.ExecuteWithOptions(session, "127.0.0.1:6379", nil, map[string]interface{}{
+		"key": []string{"cli-a", "cli-b"},
+	})
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if result == nil || len(result.Extracts["set_ok"]) != 2 {
+		t.Fatalf("expected two overridden payload executions, got %#v", result)
+	}
+	expected := []string{"SET cli-a 1", "SET cli-b 1"}
+	if len(session.calls) != len(expected) {
+		t.Fatalf("unexpected call count: %#v", session.calls)
+	}
+	for i, call := range expected {
+		if session.calls[i] != call {
+			t.Fatalf("unexpected calls: %#v", session.calls)
+		}
+	}
+}
+
+func TestTemplateExplicitPayloadBeatsVarOverride(t *testing.T) {
+	session := &mockKVSession{
+		svc:  "redis",
+		data: map[string]string{},
+	}
+
+	yamlData := `
+id: payload-precedence-template
+service: [redis]
+services:
+  - attack: pitchfork
+    payloads:
+      key:
+        - a
+    ops:
+      - kv: "SET §key§ 1"
+        name: set_result
+`
+	var tmpl Template
+	if err := yaml.Unmarshal([]byte(yamlData), &tmpl); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if err := tmpl.Compile(nil); err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+
+	_, err := tmpl.ExecuteWithOptions(
+		session,
+		"127.0.0.1:6379",
+		map[string]interface{}{"key": "var-value"},
+		map[string]interface{}{"key": []string{"payload-value"}},
+	)
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if len(session.calls) != 1 || session.calls[0] != "SET payload-value 1" {
+		t.Fatalf("unexpected calls: %#v", session.calls)
+	}
+}
+
+func TestTemplateExplicitPayloadCanDefinePayloadSet(t *testing.T) {
+	session := &mockKVSession{
+		svc:  "redis",
+		data: map[string]string{},
+	}
+
+	yamlData := `
+id: payload-cli-defined-template
+service: [redis]
+services:
+  - attack: pitchfork
+    ops:
+      - kv: "SET §key§ 1"
+        name: set_result
+    extractors:
+      - type: regex
+        name: set_ok
+        part: set_result
+        regex: ['(OK)']
+        group: 1
+`
+	var tmpl Template
+	if err := yaml.Unmarshal([]byte(yamlData), &tmpl); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if err := tmpl.Compile(nil); err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+
+	result, err := tmpl.ExecuteWithOptions(session, "127.0.0.1:6379", nil, map[string]interface{}{
+		"key": []string{"cli-a", "cli-b"},
+	})
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if result == nil || len(result.Extracts["set_ok"]) != 2 {
+		t.Fatalf("expected CLI-defined payload executions, got %#v", result)
+	}
+	expected := []string{"SET cli-a 1", "SET cli-b 1"}
+	if len(session.calls) != len(expected) {
+		t.Fatalf("unexpected call count: %#v", session.calls)
+	}
+	for i, call := range expected {
+		if session.calls[i] != call {
+			t.Fatalf("unexpected calls: %#v", session.calls)
+		}
+	}
+}
+
 func TestLegacyOpsCompat(t *testing.T) {
 	session := &mockShellSession{
 		svc:     "ssh",
