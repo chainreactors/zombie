@@ -20,3 +20,27 @@ func TestParseKeyValueArgsRejectsInvalid(t *testing.T) {
 		t.Fatal("expected invalid key=value to fail")
 	}
 }
+
+func TestParsePayloadArgsPreservesRepeatedKeys(t *testing.T) {
+	got, err := parsePayloadArgs([]string{"key=a", "key=b", "cmd=id"})
+	if err != nil {
+		t.Fatalf("parsePayloadArgs: %v", err)
+	}
+	keyVals, ok := got["key"].([]string)
+	if !ok {
+		t.Fatalf("expected key payload to be []string, got %#v", got["key"])
+	}
+	if len(keyVals) != 2 || keyVals[0] != "a" || keyVals[1] != "b" {
+		t.Fatalf("unexpected key payload values: %#v", keyVals)
+	}
+	cmdVals, ok := got["cmd"].([]string)
+	if !ok || len(cmdVals) != 1 || cmdVals[0] != "id" {
+		t.Fatalf("unexpected cmd payload values: %#v", got["cmd"])
+	}
+}
+
+func TestParsePayloadArgsRejectsInvalid(t *testing.T) {
+	if _, err := parsePayloadArgs([]string{"cmd"}); err == nil {
+		t.Fatal("expected invalid key=value to fail")
+	}
+}

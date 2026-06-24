@@ -21,6 +21,7 @@ type RunnerOption struct {
 	DBLimit          int
 	ServiceTemplates []string
 	ServiceVars      map[string]interface{}
+	ServicePayloads  map[string]interface{}
 
 	// ProxyDial 非 nil 时透传到每个 Task，使插件通过代理建立连接。
 	ProxyDial pkg.DialFunc

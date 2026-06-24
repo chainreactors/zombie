@@ -116,7 +116,7 @@ func (r *Runner) BuildPipeline() error {
 		r.Pipeline = append(r.Pipeline, postAction)
 	}
 	if len(r.ServiceTemplates) > 0 {
-		serviceAction, err := action.NewServiceAction(r.ServiceTemplates, r.ServiceVars)
+		serviceAction, err := action.NewServiceAction(r.ServiceTemplates, r.ServiceVars, r.ServicePayloads)
 		if err != nil {
 			return fmt.Errorf("failed to init service action: %w", err)
 		}

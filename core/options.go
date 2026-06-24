@@ -74,6 +74,7 @@ type ActionOptions struct {
 	DBLimit          int      `long:"db-limit" default:"1000" description:"max rows per column in DB credential scan"`
 	ServiceTemplates []string `long:"service-template" description:"service protocol template file or directory for post-auth exploitation"`
 	ServiceVars      []string `short:"V" long:"var" description:"custom service-template variables in key=value format"`
+	ServicePayloads  []string `long:"payload" description:"custom service-template payloads in key=value format; repeat key for multiple values"`
 }
 
 func (opt *Option) Validate() error {
@@ -125,6 +126,10 @@ func (opt *Option) Prepare() (*Runner, error) {
 	if err != nil {
 		return nil, err
 	}
+	servicePayloads, err := parsePayloadArgs(opt.ServicePayloads)
+	if err != nil {
+		return nil, err
+	}
 
 	runnerOpt := &RunnerOption{
 		Threads:          opt.Threads,
@@ -142,6 +147,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		DBLimit:          opt.DBLimit,
 		ServiceTemplates: opt.ServiceTemplates,
 		ServiceVars:      serviceVars,
+		ServicePayloads:  servicePayloads,
 	}
 
 	runner := NewRunner(runnerOpt)

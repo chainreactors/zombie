@@ -18,9 +18,10 @@ type ServiceAction struct {
 	templates []*service.Template
 	index     map[string]*service.Template
 	vars      map[string]interface{}
+	payloads  map[string]interface{}
 }
 
-func NewServiceAction(templatePaths []string, vars map[string]interface{}) (*ServiceAction, error) {
+func NewServiceAction(templatePaths []string, vars map[string]interface{}, payloads ...map[string]interface{}) (*ServiceAction, error) {
 	execOpts := &protocols.ExecuterOptions{Options: &protocols.Options{}}
 	var templates []*service.Template
 	for _, p := range templatePaths {
@@ -39,7 +40,12 @@ func NewServiceAction(templatePaths []string, vars map[string]interface{}) (*Ser
 		index[t.Id] = t
 	}
 
-	return &ServiceAction{templates: templates, index: index, vars: vars}, nil
+	var cliPayloads map[string]interface{}
+	if len(payloads) > 0 {
+		cliPayloads = payloads[0]
+	}
+
+	return &ServiceAction{templates: templates, index: index, vars: vars, payloads: cliPayloads}, nil
 }
 
 func (a *ServiceAction) Name() string { return "service" }
@@ -82,7 +88,7 @@ func (a *ServiceAction) executeTemplate(tmpl *service.Template, session pkg.Sess
 		vars[k] = v
 	}
 
-	opResult, err := tmpl.ExecuteWithVariables(session, host, vars)
+	opResult, err := tmpl.ExecuteWithOptions(session, host, vars, a.payloads)
 	if err != nil {
 		logs.Log.Debugf("[service] template %s failed on %s: %v", tmpl.Id, host, err)
 		return
