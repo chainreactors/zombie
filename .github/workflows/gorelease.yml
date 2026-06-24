@@ -8,11 +8,11 @@ on:
 
 jobs:
   goreleaser:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -29,12 +29,12 @@ jobs:
           platform: x64
       -
         name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.20'
+          go-version-file: go.mod
       -
         name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: latest
@@ -44,24 +44,28 @@ jobs:
           GOPATH: "/home/runner/go"
 
       - name: Set up Go 1.17
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: '1.17'
+        continue-on-error: true
 
       - name: Compile for Windows x64
         run: go build -o dist/zombie_windows7_amd64.exe -ldflags "-s -w" -tags="forceposix nobar noembed" -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
         env:
           GOOS: windows
           GOARCH: amd64
+        continue-on-error: true
 
       - name: Compile for Windows x86
         run: go build -o dist/zombie_windows7_386.exe -ldflags "-s -w"  -tags="forceposix nobar noembed" -asmflags "all=-trimpath=${{ env.GOPATH }}" -gcflags "all=-trimpath=${{ env.GOPATH }}" .
         env:
           GOOS: windows
           GOARCH: '386'
+        continue-on-error: true
 
       - name: Zip files
         run: zip -r -j dist/zombie_archive.zip dist/zombie* README.md
+        continue-on-error: true
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
@@ -71,4 +75,3 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
-          draft: true
