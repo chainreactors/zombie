@@ -1,0 +1,28 @@
+id: local-ssh-smoke
+service: [ssh]
+info:
+  name: Local SSH service-template smoke test
+  severity: info
+  tags: local,docker,ssh
+
+services:
+  - ops:
+      - shell: "printf zombie-ssh-ok"
+        name: marker
+      - shell: "id -un"
+        name: whoami
+    matchers:
+      - type: word
+        part: marker
+        words: ["zombie-ssh-ok"]
+    extractors:
+      - type: regex
+        name: ssh_marker
+        part: marker
+        regex: ['(zombie-ssh-ok)']
+        group: 1
+      - type: regex
+        name: ssh_user
+        part: whoami
+        regex: ['(?m)^([A-Za-z0-9_-]+)$']
+        group: 1

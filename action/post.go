@@ -20,19 +20,48 @@ type PostAction struct {
 
 func NewPostAction(templatePaths []string) (*PostAction, error) {
 	execOpts := &protocols.ExecuterOptions{Options: &protocols.Options{}}
-	var rules []file.Rule
+	var tmpls []*template.Template
 	for _, p := range templatePaths {
-		tmpls, err := loadTemplatesFromPath(p, execOpts)
+		loaded, err := loadTemplatesFromPath(p, execOpts)
 		if err != nil {
 			return nil, fmt.Errorf("load templates from %s: %w", p, err)
 		}
-		for _, tmpl := range tmpls {
-			if len(tmpl.RequestsFile) > 0 {
-				rules = append(rules, file.Rule{
-					ID: tmpl.Id, Name: tmpl.Info.Name,
-					Severity: tmpl.Info.Severity, Requests: tmpl.RequestsFile,
-				})
-			}
+		tmpls = append(tmpls, loaded...)
+	}
+	return newPostActionFromTemplates(tmpls, execOpts)
+}
+
+func NewPostActionFromData(data []byte) (*PostAction, error) {
+	if len(data) == 0 {
+		return nil, fmt.Errorf("empty loot template data")
+	}
+	execOpts := &protocols.ExecuterOptions{Options: &protocols.Options{}}
+	var list []template.Template
+	if err := yaml.Unmarshal(data, &list); err != nil {
+		return nil, fmt.Errorf("unmarshal loot templates: %w", err)
+	}
+	var compiled []*template.Template
+	for i := range list {
+		tmpl := &list[i]
+		if len(tmpl.RequestsFile) == 0 {
+			continue
+		}
+		if err := tmpl.Compile(execOpts); err != nil {
+			continue
+		}
+		compiled = append(compiled, tmpl)
+	}
+	return newPostActionFromTemplates(compiled, execOpts)
+}
+
+func newPostActionFromTemplates(tmpls []*template.Template, execOpts *protocols.ExecuterOptions) (*PostAction, error) {
+	var rules []file.Rule
+	for _, tmpl := range tmpls {
+		if len(tmpl.RequestsFile) > 0 {
+			rules = append(rules, file.Rule{
+				ID: tmpl.Id, Name: tmpl.Info.Name,
+				Severity: tmpl.Info.Severity, Requests: tmpl.RequestsFile,
+			})
 		}
 	}
 	if len(rules) == 0 {
@@ -53,8 +82,7 @@ func (a *PostAction) ScanData(data []byte, label string) []*parsers.Extracted {
 	}
 	var results []*parsers.Extracted
 	for _, group := range a.scanner.Groups {
-		findings := a.scanner.ScanData(data, label, group)
-		for _, f := range findings {
+		for _, f := range a.scanner.ScanData(data, label, group) {
 			var extracts []string
 			for _, e := range f.Extracts {
 				extracts = append(extracts, e.Value)

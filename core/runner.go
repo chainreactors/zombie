@@ -148,6 +148,18 @@ func (r *Runner) BuildPipeline() error {
 		}
 		r.Pipeline = append(r.Pipeline, serviceAction)
 	}
+
+	if r.Gather && r.PostAction == nil {
+		if data := pkg.LootTemplateData; len(data) > 0 {
+			pa, err := action.NewPostActionFromData(data)
+			if err != nil {
+				logs.Log.Debugf("loot scanner disabled: %v", err)
+			} else {
+				r.PostAction = pa
+			}
+		}
+	}
+
 	return nil
 }
 

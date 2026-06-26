@@ -632,6 +632,111 @@ services:
 	}
 }
 
+func TestResponsePreserved(t *testing.T) {
+	session := &mockShellSession{
+		svc:     "ssh",
+		outputs: map[string]string{"id": "uid=0(root)", "hostname": "box1"},
+	}
+
+	yamlData := `
+ops:
+  - shell: "id"
+    name: whoami
+  - shell: "hostname"
+    name: host
+matchers:
+  - type: word
+    part: whoami
+    words: ["root"]
+`
+	var req Request
+	if err := yaml.Unmarshal([]byte(yamlData), &req); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if err := req.Compile(&protocols.ExecuterOptions{Options: &protocols.Options{}}); err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+
+	payloads := map[string]interface{}{"_session": session}
+	scanCtx := protocols.NewScanContext("10.0.0.1:22", payloads)
+
+	var result *operators.Result
+	err := req.ExecuteWithResults(scanCtx, nil, nil, func(event *protocols.InternalWrappedEvent) {
+		if event.OperatorsResult != nil {
+			result = event.OperatorsResult
+		}
+	})
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if result == nil {
+		t.Fatal("expected result")
+	}
+	if result.Response == "" {
+		t.Fatal("Response should contain raw op output")
+	}
+	if !containsStr(result.Response, "uid=0(root)") {
+		t.Errorf("Response missing id output, got %q", result.Response)
+	}
+	if !containsStr(result.Response, "box1") {
+		t.Errorf("Response missing hostname output, got %q", result.Response)
+	}
+}
+
+func TestResponsePreservedWithoutMatch(t *testing.T) {
+	session := &mockShellSession{
+		svc:     "ssh",
+		outputs: map[string]string{"echo hello": "hello"},
+	}
+
+	tmplYaml := `
+id: no-match-tmpl
+service: [ssh]
+info:
+  name: No Match
+  severity: info
+services:
+  - ops:
+      - shell: "echo hello"
+        name: greeting
+    matchers:
+      - type: word
+        part: greeting
+        words: ["NOMATCH"]
+`
+	var tmpl Template
+	if err := yaml.Unmarshal([]byte(tmplYaml), &tmpl); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if err := tmpl.Compile(&protocols.ExecuterOptions{Options: &protocols.Options{}}); err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+
+	result, err := tmpl.Execute(session, "10.0.0.1:22")
+	if err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+	if result.Response == "" {
+		t.Fatal("Response should be populated even when matchers don't match")
+	}
+	if !containsStr(result.Response, "hello") {
+		t.Errorf("Response missing op output, got %q", result.Response)
+	}
+}
+
+func containsStr(s, sub string) bool {
+	return len(s) >= len(sub) && (s == sub || len(s) > 0 && findSubstr(s, sub))
+}
+
+func findSubstr(s, sub string) bool {
+	for i := 0; i <= len(s)-len(sub); i++ {
+		if s[i:i+len(sub)] == sub {
+			return true
+		}
+	}
+	return false
+}
+
 func TestLegacyOpsCompat(t *testing.T) {
 	session := &mockShellSession{
 		svc:     "ssh",

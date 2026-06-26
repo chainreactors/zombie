@@ -6,6 +6,7 @@ import (
 
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/neutron/common"
+	"github.com/chainreactors/neutron/operators"
 	"github.com/chainreactors/neutron/protocols"
 	"github.com/chainreactors/zombie/pkg"
 )
@@ -81,10 +82,15 @@ func (r *Request) ExecuteWithResults(input *protocols.ScanContext, dynamicValues
 			}
 		}
 
-		dslMap["response"] = allResponses.String()
+		resp := allResponses.String()
+		dslMap["response"] = resp
 
 		event := protocols.CreateEvent(r, dslMap)
-		if event.OperatorsResult != nil && len(payloadValues) > 0 {
+		if event.OperatorsResult == nil {
+			event.OperatorsResult = &operators.Result{}
+		}
+		event.OperatorsResult.Response = resp
+		if len(payloadValues) > 0 {
 			event.OperatorsResult.PayloadValues = payloadValues
 		}
 		callback(event)

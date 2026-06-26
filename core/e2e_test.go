@@ -357,6 +357,55 @@ func TestE2E_WorkerExecute_MultipleServices_ClosedPort(t *testing.T) {
 	}
 }
 
+// === Gather / Loot Pipeline ===
+
+func TestE2E_RunnerAPI_GatherPipeline(t *testing.T) {
+	if len(pkg.ServiceTemplateData) == 0 {
+		t.Skip("embedded service templates not available (run go generate)")
+	}
+	opt := NewDefaultRunnerOption()
+	opt.Gather = true
+
+	runner := NewRunner(opt)
+	if err := runner.BuildPipeline(); err != nil {
+		t.Fatalf("build failed: %v", err)
+	}
+	if len(runner.Pipeline) == 0 {
+		t.Fatal("--gather should create a ServiceAction in the pipeline")
+	}
+	if runner.Pipeline[0].Name() != "service" {
+		t.Errorf("pipeline[0].Name() = %q, want service", runner.Pipeline[0].Name())
+	}
+	if runner.PostAction == nil {
+		t.Fatal("--gather should auto-create PostAction from embedded loot rules")
+	}
+}
+
+func TestE2E_RunnerAPI_ProtonOverridesGatherLoot(t *testing.T) {
+	tmplDir := createE2ETemplate(t)
+	opt := NewDefaultRunnerOption()
+	opt.Proton = true
+	opt.ScanTemplates = []string{tmplDir}
+	opt.Gather = true
+
+	runner := NewRunner(opt)
+	if err := runner.BuildPipeline(); err != nil {
+		t.Fatalf("build failed: %v", err)
+	}
+	if runner.PostAction == nil {
+		t.Fatal("PostAction should be set")
+	}
+}
+
+func TestE2E_EmbeddedDataLoaded(t *testing.T) {
+	if len(pkg.ServiceTemplateData) == 0 {
+		t.Skip("embedded templates not available (run go generate)")
+	}
+	if len(pkg.LootTemplateData) == 0 {
+		t.Error("LootTemplateData should be loaded when ServiceTemplateData is present")
+	}
+}
+
 // === Helpers ===
 
 func findFreePort(t *testing.T) int {

@@ -14,7 +14,6 @@ func init() {
 	pkg.Services.Register(&pkg.Service{Name: "zookeeper", DefaultPort: "2181", Source: pkg.PluginSource})
 }
 
-// zkSession implements pkg.Session over a ZooKeeper connection.
 type zkSession struct {
 	service string
 	conn    *zk.Conn
@@ -68,7 +67,6 @@ func (s *zkSession) Command(name string, args ...string) (interface{}, error) {
 	}
 }
 
-// ZookeeperPlugin is stateless; all connection state lives in zkSession.
 type ZookeeperPlugin struct{}
 
 func (p *ZookeeperPlugin) Name() string { return "zookeeper" }

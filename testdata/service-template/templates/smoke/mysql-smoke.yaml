@@ -1,0 +1,28 @@
+id: local-mysql-smoke
+service: [mysql]
+info:
+  name: Local MySQL service-template smoke test
+  severity: info
+  tags: local,docker,mysql
+
+services:
+  - ops:
+      - db: "SELECT marker FROM zombie.smoke WHERE id = 1"
+        name: marker
+      - db: "SHOW DATABASES"
+        name: databases
+    matchers:
+      - type: word
+        part: marker
+        words: ["zombie-mysql-ok"]
+    extractors:
+      - type: regex
+        name: mysql_marker
+        part: marker
+        regex: ['(?m)^(zombie-mysql-ok)$']
+        group: 1
+      - type: regex
+        name: mysql_database
+        part: databases
+        regex: ['(?m)^(zombie)$']
+        group: 1

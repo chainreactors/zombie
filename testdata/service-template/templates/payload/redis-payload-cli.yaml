@@ -1,0 +1,24 @@
+id: local-redis-payload-cli
+service: [redis]
+info:
+  name: Local Redis service-template CLI payload smoke test
+  severity: info
+  tags: local,docker,redis,payload
+
+services:
+  - attack: pitchfork
+    ops:
+      - kv: "SET §payload_key§ payload-cli-ok"
+        name: set_result
+      - kv: "GET §payload_key§"
+        name: get_result
+    matchers:
+      - type: word
+        part: get_result
+        words: ["payload-cli-ok"]
+    extractors:
+      - type: regex
+        name: redis_payload_value
+        part: get_result
+        regex: ['(payload-cli-ok)']
+        group: 1
