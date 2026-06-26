@@ -61,6 +61,9 @@ func defaultLoad() error {
 	if err := LoadServiceTemplates(); err != nil {
 		return err
 	}
+	if err := LoadLootTemplates(); err != nil {
+		return err
+	}
 	return LoadFingers()
 }
 

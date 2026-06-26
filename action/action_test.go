@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/chainreactors/parsers"
@@ -562,6 +563,140 @@ services:
 		if !found[want] {
 			t.Errorf("missing extraction %s, got %v", want, found)
 		}
+	}
+}
+
+// --- ServiceAction Loot Population ---
+
+func TestServiceAction_LootPopulated(t *testing.T) {
+	dir := t.TempDir()
+	tmpl := `id: loot-test
+service: [ssh]
+info:
+  name: Loot Test
+  severity: info
+services:
+  - ops:
+      - shell: "cat /etc/passwd"
+        name: passwd
+    extractors:
+      - type: regex
+        name: users
+        part: passwd
+        regex: ['(\w+):']
+`
+	os.WriteFile(filepath.Join(dir, "loot.yaml"), []byte(tmpl), 0644)
+	a := loadAndCreateServiceAction(t, dir)
+	session := &mockShellSession{
+		files: map[string][]byte{
+			"cat /etc/passwd": []byte("root:x:0:0:root:/root:/bin/bash\nwww:x:33:33:www-data:/var/www\n"),
+		},
+	}
+	result, err := a.Run(session, mockTask())
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+	if result.Loot == nil || len(result.Loot) == 0 {
+		t.Fatal("Loot should be populated with raw response data")
+	}
+	data, ok := result.Loot["loot-test"]
+	if !ok {
+		t.Fatalf("Loot missing key 'loot-test', got keys: %v", lootKeys(result.Loot))
+	}
+	if !strings.Contains(string(data), "root:x:0:0") {
+		t.Errorf("Loot should contain raw passwd output, got %q", string(data))
+	}
+}
+
+func TestServiceAction_LootPopulatedWithoutMatch(t *testing.T) {
+	dir := t.TempDir()
+	tmpl := `id: nomatch-loot
+service: [ssh]
+info:
+  name: No Match Loot
+  severity: info
+services:
+  - ops:
+      - shell: "whoami"
+        name: user
+    matchers:
+      - type: word
+        part: user
+        words: ["WILL_NOT_MATCH"]
+`
+	os.WriteFile(filepath.Join(dir, "nomatch.yaml"), []byte(tmpl), 0644)
+	a := loadAndCreateServiceAction(t, dir)
+	session := &mockShellSession{
+		files: map[string][]byte{
+			"whoami": []byte("testuser\n"),
+		},
+	}
+	result, err := a.Run(session, mockTask())
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+	if result.Loot == nil || len(result.Loot) == 0 {
+		t.Fatal("Loot should be populated even when matchers don't match")
+	}
+	if !strings.Contains(string(result.Loot["nomatch-loot"]), "testuser") {
+		t.Error("Loot should contain raw response regardless of match result")
+	}
+}
+
+func lootKeys(loot map[string][]byte) []string {
+	var keys []string
+	for k := range loot {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+// --- PostAction from Data ---
+
+func TestNewPostActionFromData(t *testing.T) {
+	yamlData := []byte(`- id: test-loot-rule
+  info:
+    name: Test Password
+    severity: high
+  file:
+    - extensions: [all]
+      matchers:
+        - type: word
+          words: ["password"]
+      extractors:
+        - type: regex
+          regex: ['(?i)password\s*[=:]\s*(\S+)']
+          group: 1
+`)
+	pa, err := NewPostActionFromData(yamlData)
+	if err != nil {
+		t.Fatalf("NewPostActionFromData: %v", err)
+	}
+	results := pa.ScanData([]byte("password = secret123\n"), "test")
+	if len(results) == 0 {
+		t.Fatal("should detect password in scanned data")
+	}
+	found := false
+	for _, e := range results {
+		for _, v := range e.ExtractResult {
+			if v == "secret123" {
+				found = true
+			}
+		}
+	}
+	if !found {
+		t.Error("should extract 'secret123' from loot data")
+	}
+}
+
+func TestNewPostActionFromData_Empty(t *testing.T) {
+	_, err := NewPostActionFromData(nil)
+	if err == nil {
+		t.Error("expected error for nil data")
+	}
+	_, err = NewPostActionFromData([]byte{})
+	if err == nil {
+		t.Error("expected error for empty data")
 	}
 }
 

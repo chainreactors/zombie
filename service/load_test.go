@@ -88,6 +88,53 @@ func TestLoadAllTemplates(t *testing.T) {
 	}
 }
 
+func TestLoadLootTemplates(t *testing.T) {
+	lootDir := "../../proton/templates/loot"
+	if _, err := os.Stat(lootDir); os.IsNotExist(err) {
+		t.Skipf("loot templates dir not found: %s", lootDir)
+	}
+
+	var total, passed int
+	filepath.WalkDir(lootDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(path, ".yaml") && !strings.HasSuffix(path, ".yml") {
+			return nil
+		}
+		total++
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Errorf("read %s: %v", path, err)
+			return nil
+		}
+
+		var raw map[string]interface{}
+		if err := yaml.Unmarshal(data, &raw); err != nil {
+			t.Errorf("unmarshal %s: %v", path, err)
+			return nil
+		}
+		if raw["id"] == nil {
+			t.Errorf("%s: missing id", path)
+			return nil
+		}
+		if raw["file"] == nil {
+			t.Errorf("%s: missing file section", path)
+			return nil
+		}
+
+		passed++
+		t.Logf("OK  %s (id=%v)", filepath.Base(path), raw["id"])
+		return nil
+	})
+
+	t.Logf("\n--- Loot templates: %d total, %d passed ---", total, passed)
+	if total == 0 {
+		t.Error("no loot templates found")
+	}
+}
+
 func hasAction(op *Op) bool {
 	return op.Shell != "" || op.DB != "" || op.KV != "" ||
 		(op.File != nil && (op.File.List != "" || op.File.Read != "")) ||

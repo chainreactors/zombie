@@ -1,0 +1,33 @@
+id: local-redis-smoke
+service: [redis]
+info:
+  name: Local Redis service-template smoke test
+  severity: info
+  tags: local,docker,redis
+
+services:
+  - ops:
+      - kv: "PING"
+        name: ping
+      - kv: "INFO server"
+        name: info
+      - kv: "GET zombie:template"
+        name: value
+    matchers:
+      - type: word
+        part: ping
+        words: ["PONG"]
+      - type: word
+        part: value
+        words: ["zombie-template-ok"]
+    extractors:
+      - type: regex
+        name: redis_version
+        part: info
+        regex: ['redis_version:([0-9.]+)']
+        group: 1
+      - type: regex
+        name: redis_value
+        part: value
+        regex: ['(zombie-template-ok)']
+        group: 1

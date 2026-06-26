@@ -103,6 +103,13 @@ func (a *ServiceAction) Run(session pkg.Session, task *pkg.Task) (*pkg.ActionRes
 			}
 		}
 
+		if opResult.Response != "" {
+			if result.Loot == nil {
+				result.Loot = make(map[string][]byte)
+			}
+			result.Loot[id] = []byte(opResult.Response)
+		}
+
 		chainVars := copyVars(mergedVars)
 		for k, v := range opResult.DynamicValues {
 			if len(v) > 0 {

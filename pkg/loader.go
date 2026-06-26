@@ -17,6 +17,7 @@ var (
 	Keywords            map[string][]string            = make(map[string][]string)
 	TemplateMap         map[string]*templates.Template = make(map[string]*templates.Template)
 	ServiceTemplateData []byte
+	LootTemplateData    []byte
 	FingersEngine       *fingers.FingersEngine
 )
 
@@ -111,6 +112,11 @@ func LoadTemplates() error {
 
 func LoadServiceTemplates() error {
 	ServiceTemplateData = LoadConfig("zombie_service")
+	return nil
+}
+
+func LoadLootTemplates() error {
+	LootTemplateData = LoadConfig("zombie_loot")
 	return nil
 }
 

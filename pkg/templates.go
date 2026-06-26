@@ -21,6 +21,12 @@ var zombieRuleData []byte
 //go:embed data/zombie_template.bin
 var zombieTemplateData []byte
 
+//go:embed data/zombie_service.bin
+var zombieServiceData []byte
+
+//go:embed data/zombie_loot.bin
+var zombieLootData []byte
+
 //go:embed data/port.bin
 var portData []byte
 
@@ -30,7 +36,6 @@ var socketData []byte
 //go:embed data/http.bin
 var httpData []byte
 
-var RandomDir = "/g8kZMwp4oeKsL2in"
 
 func loadEmbeddedConfig(typ string) []byte {
 	if typ == "zombie_default" {
@@ -41,6 +46,10 @@ func loadEmbeddedConfig(typ string) []byte {
 		return encode.MustDeflateDeCompress(zombieRuleData)
 	}else if typ == "zombie_template" {
 		return encode.MustDeflateDeCompress(zombieTemplateData)
+	}else if typ == "zombie_service" {
+		return encode.MustDeflateDeCompress(zombieServiceData)
+	}else if typ == "zombie_loot" {
+		return encode.MustDeflateDeCompress(zombieLootData)
 	}else if typ == "port" {
 		return encode.MustDeflateDeCompress(portData)
 	}else if typ == "socket" {

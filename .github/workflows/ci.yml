@@ -12,36 +12,88 @@ permissions:
   contents: read
 
 jobs:
-  basic:
-    name: basic checks (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - windows-latest
-
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: true
 
-      - name: Download dependencies
-        run: go mod download
+      - run: go vet ./...
 
-      - name: Test
-        run: go test -count=1 ./...
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Vet
-        run: go vet ./...
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
 
-      - name: Build packages
-        run: go build ./...
+      - run: go mod download
+
+      - name: Unit & E2E tests
+        run: go test -count=1 -timeout 300s ./...
+
+  build:
+    name: build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - run: go build ./...
+
+      - name: Build with emptytemplates tag
+        run: go build -tags emptytemplates ./...
+
+  templates:
+    name: template validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Validate service templates
+        run: go test -count=1 -run TestLoadAllTemplates ./service/...
+
+      - name: Validate loot templates
+        run: go test -count=1 -run TestLoadLootTemplates ./service/...
+
+      - name: Verify embedded data is current
+        run: |
+          go run templates/templates_gen.go -t templates -o /tmp/templates_check.go -need zombie -embed
+          diff -q pkg/templates.go /tmp/templates_check.go || {
+            echo "::error::pkg/templates.go is out of date — run 'go generate' and commit"
+            exit 1
+          }

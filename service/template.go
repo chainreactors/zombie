@@ -142,6 +142,7 @@ func (t *Template) ExecuteWithOptions(session pkg.Session, host string, cliVars,
 	scanCtx.GlobalVars = t.executionVariables(host, cliVars)
 
 	var merged *operators.Result
+	var allRawResponses strings.Builder
 	previous := make(map[string]interface{})
 	dynamicValues := copyMap(scanCtx.GlobalVars)
 	for k, v := range scanCtx.Payloads {
@@ -154,6 +155,12 @@ func (t *Template) ExecuteWithOptions(session pkg.Session, host string, cliVars,
 		err := req.ExecuteWithResults(scanCtx, dynamicValues, previous, func(event *protocols.InternalWrappedEvent) {
 			if event.OperatorsResult == nil {
 				return
+			}
+			if event.OperatorsResult.Response != "" {
+				if allRawResponses.Len() > 0 {
+					allRawResponses.WriteString("\n")
+				}
+				allRawResponses.WriteString(event.OperatorsResult.Response)
 			}
 			for k, v := range event.OperatorsResult.DynamicValues {
 				if len(v) > 0 {
@@ -176,8 +183,9 @@ func (t *Template) ExecuteWithOptions(session pkg.Session, host string, cliVars,
 	}
 
 	if merged == nil {
-		return &operators.Result{}, nil
+		merged = &operators.Result{}
 	}
+	merged.Response = allRawResponses.String()
 	return merged, nil
 }
 
