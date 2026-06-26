@@ -89,7 +89,7 @@ func TestLoadAllTemplates(t *testing.T) {
 }
 
 func TestLoadLootTemplates(t *testing.T) {
-	lootDir := "../../proton/templates/loot"
+	lootDir := "../templates/zombie/loot"
 	if _, err := os.Stat(lootDir); os.IsNotExist(err) {
 		t.Skipf("loot templates dir not found: %s", lootDir)
 	}
