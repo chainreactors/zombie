@@ -71,7 +71,6 @@ type MiscOptions struct {
 type ActionOptions struct {
 	Proton           bool     `long:"proton" description:"post-auth: collect info + run proton credential scan"`
 	ScanTemplates    []string `long:"scan-template" description:"proton template file or directory for --proton"`
-	DBLimit          int      `long:"db-limit" default:"1000" description:"max rows per column in DB credential scan"`
 	ServiceTemplates []string `long:"service-template" description:"service protocol template file or directory for post-auth exploitation"`
 	ServiceVars      []string `short:"V" long:"var" description:"custom service-template variables in key=value format"`
 	ServicePayloads  []string `long:"payload" description:"custom service-template payloads in key=value format; repeat key for multiple values"`
@@ -147,7 +146,6 @@ func (opt *Option) Prepare() (*Runner, error) {
 		Raw:              opt.Raw,
 		Proton:           opt.Proton,
 		ScanTemplates:    opt.ScanTemplates,
-		DBLimit:          opt.DBLimit,
 		ServiceTemplates: opt.ServiceTemplates,
 		ServiceVars:      serviceVars,
 		ServicePayloads:  servicePayloads,

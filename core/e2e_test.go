@@ -265,11 +265,11 @@ func TestE2E_RunnerAPI_ProtonPipeline(t *testing.T) {
 	if err := runner.BuildPipeline(); err != nil {
 		t.Fatalf("build failed: %v", err)
 	}
-	if len(runner.Pipeline) != 1 {
-		t.Fatalf("expected 1 action, got %d", len(runner.Pipeline))
+	if runner.PostAction == nil {
+		t.Fatal("expected PostAction to be set")
 	}
-	if runner.Pipeline[0].Name() != "post" {
-		t.Errorf("name = %q, want post", runner.Pipeline[0].Name())
+	if runner.PostAction.Name() != "post" {
+		t.Errorf("name = %q, want post", runner.PostAction.Name())
 	}
 }
 
@@ -297,7 +297,7 @@ func TestE2E_WorkerExecute_ClosedPort(t *testing.T) {
 		Timeout: 1,
 	}
 
-	result := Execute(task, runner.Plugins, runner.Pipeline)
+	result := Execute(task, runner.Plugins, runner.Pipeline, nil)
 	if result.OK {
 		t.Error("should not succeed on closed port")
 	}
@@ -325,7 +325,7 @@ func TestE2E_WorkerExecute_WithProton_ClosedPort(t *testing.T) {
 		Timeout: 1,
 	}
 
-	result := Execute(task, runner.Plugins, runner.Pipeline)
+	result := Execute(task, runner.Plugins, runner.Pipeline, nil)
 	if result.OK {
 		t.Error("should not succeed on closed port")
 	}
@@ -348,7 +348,7 @@ func TestE2E_WorkerExecute_MultipleServices_ClosedPort(t *testing.T) {
 				},
 				Timeout: 1,
 			}
-			result := Execute(task, runner.Plugins, runner.Pipeline)
+			result := Execute(task, runner.Plugins, runner.Pipeline, nil)
 			if result.OK {
 				t.Errorf("%s should not succeed on closed port", svc)
 			}

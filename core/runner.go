@@ -70,8 +70,9 @@ type Runner struct {
 	outMu    sync.Mutex
 	outClose bool
 
-	Plugins  map[string]plugin.Plugin
-	Pipeline []pkg.Action
+	Plugins    map[string]plugin.Plugin
+	Pipeline   []pkg.Action
+	PostAction *action.PostAction
 
 	Users        *Generator
 	Pwds         *Generator
@@ -110,11 +111,11 @@ func (r *Runner) BuildPipeline() error {
 		if len(r.ScanTemplates) == 0 {
 			return fmt.Errorf("--proton requires --scan-template to specify proton template path")
 		}
-		postAction, err := action.NewPostAction(r.ScanTemplates, r.DBLimit)
+		pa, err := action.NewPostAction(r.ScanTemplates)
 		if err != nil {
 			return fmt.Errorf("failed to init post action: %w", err)
 		}
-		r.Pipeline = append(r.Pipeline, postAction)
+		r.PostAction = pa
 	}
 
 	var serviceTemplates []*service.Template
@@ -235,9 +236,9 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 			}()
 			var res *pkg.Result
 			if task.Mod == parsers.ZombieModUnauth {
-				res = ExecuteUnauth(task, r.Plugins, r.Pipeline)
+				res = ExecuteUnauth(task, r.Plugins, r.Pipeline, r.PostAction)
 			} else {
-				res = Execute(task, r.Plugins, r.Pipeline)
+				res = Execute(task, r.Plugins, r.Pipeline, r.PostAction)
 			}
 
 			select {
