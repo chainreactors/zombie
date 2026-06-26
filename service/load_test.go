@@ -92,7 +92,7 @@ func hasAction(op *Op) bool {
 	return op.Shell != "" || op.DB != "" || op.KV != "" ||
 		(op.File != nil && (op.File.List != "" || op.File.Read != "")) ||
 		op.LDAP != nil ||
-		op.Exec != "" || op.Query != "" || op.Databases ||
+		op.Exec != "" || op.Query != "" ||
 		op.Get != "" || op.Keys != "" || op.Cmd != "" ||
 		op.List != "" || op.Read != "" || op.Search != nil
 }

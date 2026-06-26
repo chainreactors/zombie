@@ -140,8 +140,6 @@ func normalizeOp(op *Op) *Op {
 		n.Shell = n.Exec
 	case n.Query != "":
 		n.DB = n.Query
-	case n.Databases:
-		n.DB = "__databases__"
 	case n.Get != "":
 		n.KV = "GET " + n.Get
 	case n.Keys != "":
@@ -223,7 +221,7 @@ func executeOp(session pkg.Session, op *Op) (string, error) {
 }
 
 func execShell(session pkg.Session, cmd string) (string, error) {
-	sh, ok := pkg.AsShell(session)
+	sh, ok := session.(pkg.ShellSession)
 	if !ok {
 		return "", fmt.Errorf("session does not support shell")
 	}
@@ -232,17 +230,9 @@ func execShell(session pkg.Session, cmd string) (string, error) {
 }
 
 func execDB(session pkg.Session, query string) (string, error) {
-	sq, ok := pkg.AsSQL(session)
+	sq, ok := session.(pkg.SQLSession)
 	if !ok {
 		return "", fmt.Errorf("session does not support db")
-	}
-	switch strings.ToLower(strings.TrimSpace(query)) {
-	case "__databases__", "databases", "show databases":
-		dbs, err := sq.Databases()
-		if err != nil {
-			return "", err
-		}
-		return strings.Join(dbs, "\n"), nil
 	}
 	rows, err := sq.Query(query)
 	if err != nil {
@@ -257,6 +247,11 @@ func execDB(session pkg.Session, query string) (string, error) {
 }
 
 func execKV(session pkg.Session, expr string) (string, error) {
+	kv, ok := session.(pkg.KVSession)
+	if !ok {
+		return "", fmt.Errorf("session does not support kv")
+	}
+
 	parts, err := parseCommandFields(expr)
 	if err != nil {
 		return "", err
@@ -268,36 +263,26 @@ func execKV(session pkg.Session, expr string) (string, error) {
 	verb := strings.ToUpper(parts[0])
 	arg := strings.Join(parts[1:], " ")
 
-	kv, isKV := pkg.AsKV(session)
-
 	switch verb {
 	case "GET":
-		if isKV {
-			val, err := kv.Get(arg)
-			return string(val), err
-		}
+		val, err := kv.Get(arg)
+		return string(val), err
 	case "KEYS":
-		if isKV {
-			if arg == "" {
-				arg = "*"
-			}
-			keys, err := kv.Keys(arg)
-			if err != nil {
-				return "", err
-			}
-			return strings.Join(keys, "\n"), nil
+		if arg == "" {
+			arg = "*"
 		}
+		keys, err := kv.Keys(arg)
+		if err != nil {
+			return "", err
+		}
+		return strings.Join(keys, "\n"), nil
+	default:
+		result, err := kv.Command(parts[0], parts[1:]...)
+		if err != nil {
+			return "", err
+		}
+		return formatCommandResult(result), nil
 	}
-
-	rc, ok := session.(RawCommander)
-	if !ok {
-		return "", fmt.Errorf("session does not support command: %s", verb)
-	}
-	result, err := rc.Command(parts[0], parts[1:]...)
-	if err != nil {
-		return "", err
-	}
-	return formatCommandResult(result), nil
 }
 
 func formatCommandResult(result interface{}) string {
@@ -390,7 +375,7 @@ func parseCommandFields(expr string) ([]string, error) {
 }
 
 func execFile(session pkg.Session, op *FileOp) (string, error) {
-	fs, ok := pkg.AsFile(session)
+	fs, ok := session.(pkg.FileSession)
 	if !ok {
 		return "", fmt.Errorf("session does not support file")
 	}
@@ -415,7 +400,7 @@ func execFile(session pkg.Session, op *FileOp) (string, error) {
 }
 
 func execLDAP(session pkg.Session, op *LDAPOp) (string, error) {
-	dir, ok := pkg.AsDirectory(session)
+	dir, ok := session.(pkg.DirectorySession)
 	if !ok {
 		return "", fmt.Errorf("session does not support ldap")
 	}
