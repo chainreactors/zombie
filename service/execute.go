@@ -167,6 +167,8 @@ func evaluateOp(op *Op, values map[string]interface{}) *Op {
 		f := *op.File
 		f.List = evaluateField(op.File.List, values)
 		f.Read = evaluateField(op.File.Read, values)
+		f.Write = evaluateField(op.File.Write, values)
+		f.Data = evaluateField(op.File.Data, values)
 		evaluated.File = &f
 	}
 	if op.LDAP != nil {
@@ -402,8 +404,13 @@ func execFile(session pkg.Session, op *FileOp) (string, error) {
 	case op.Read != "":
 		data, err := fs.Read(op.Read)
 		return string(data), err
+	case op.Write != "":
+		if err := fs.Write(op.Write, []byte(op.Data)); err != nil {
+			return "", err
+		}
+		return "OK", nil
 	default:
-		return "", fmt.Errorf("file op: set list or read")
+		return "", fmt.Errorf("file op: set list, read, or write")
 	}
 }
 
