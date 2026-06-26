@@ -28,7 +28,7 @@ type Template struct {
 	Variables map[string]interface{} `json:"variables,omitempty" yaml:"variables,omitempty"`
 	Info      Info                   `json:"info" yaml:"info"`
 
-	Services        []*Request         `json:"services,omitempty" yaml:"services,omitempty"`
+	RequestsService []*Request         `json:"services,omitempty" yaml:"services,omitempty"`
 	RequestsHTTP    []*http.Request    `json:"http,omitempty" yaml:"http,omitempty"`
 	RequestsNetwork []*network.Request `json:"network,omitempty" yaml:"network,omitempty"`
 
@@ -81,7 +81,7 @@ func (t *Template) Compile(options *protocols.ExecuterOptions) error {
 
 	t.allRequests = nil
 
-	for _, req := range t.Services {
+	for _, req := range t.RequestsService {
 		if len(req.Payloads) > 0 {
 			attack := req.AttackType
 			if attack == "" {

@@ -50,7 +50,7 @@ func TestLoadAllTemplates(t *testing.T) {
 			failed++
 			return nil
 		}
-		if len(tmpl.Services) == 0 {
+		if len(tmpl.RequestsService) == 0 {
 			t.Errorf("%s: no service request blocks", path)
 			failed++
 			return nil
@@ -62,7 +62,7 @@ func TestLoadAllTemplates(t *testing.T) {
 			return nil
 		}
 
-		for i, req := range tmpl.Services {
+		for i, req := range tmpl.RequestsService {
 			if len(req.Ops) == 0 {
 				t.Errorf("%s: services[%d] has no ops", path, i)
 				failed++
@@ -78,7 +78,7 @@ func TestLoadAllTemplates(t *testing.T) {
 		}
 
 		passed++
-		t.Logf("OK  %s (id=%s, service=%v, blocks=%d)", filepath.Base(path), tmpl.Id, tmpl.Service, len(tmpl.Services))
+		t.Logf("OK  %s (id=%s, service=%v, blocks=%d)", filepath.Base(path), tmpl.Id, tmpl.Service, len(tmpl.RequestsService))
 		return nil
 	})
 
