@@ -200,7 +200,7 @@ func loadServiceTemplateBytes(data []byte, execOpts *protocols.ExecuterOptions) 
 	if err := yaml.Unmarshal(data, &tmpl); err != nil {
 		return nil, err
 	}
-	if len(tmpl.Services) == 0 && len(tmpl.RequestsHTTP) == 0 && len(tmpl.RequestsNetwork) == 0 {
+	if len(tmpl.RequestsService) == 0 && len(tmpl.RequestsHTTP) == 0 && len(tmpl.RequestsNetwork) == 0 {
 		return nil, nil
 	}
 	if err := tmpl.Compile(execOpts); err != nil {
@@ -221,7 +221,7 @@ func LoadServiceTemplatesFromData(data []byte) ([]*service.Template, error) {
 	var all []*service.Template
 	for i := range list {
 		tmpl := &list[i]
-		if len(tmpl.Services) == 0 && len(tmpl.RequestsHTTP) == 0 && len(tmpl.RequestsNetwork) == 0 {
+		if len(tmpl.RequestsService) == 0 && len(tmpl.RequestsHTTP) == 0 && len(tmpl.RequestsNetwork) == 0 {
 			continue
 		}
 		if err := tmpl.Compile(execOpts); err != nil {
