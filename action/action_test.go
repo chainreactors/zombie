@@ -99,6 +99,7 @@ func loadAndCreateServiceAction(t *testing.T, dir string) *ServiceAction {
 	}
 	a, err := NewServiceAction(tmpls, nil)
 	if err != nil {
+		t.Fatalf("NewServiceAction: %v", err)
 	}
 	return a
 }
@@ -147,19 +148,17 @@ file:
 
 func TestPostAction_ScanData(t *testing.T) {
 	dir := createTestTemplate(t)
-	a, err := NewPostAction([]string{dir}, 100)
+	a, err := NewPostAction([]string{dir})
 	if err != nil {
 		t.Fatalf("NewPostAction failed: %v", err)
 	}
 
-	result := &pkg.ActionResult{}
-	a.scanData([]byte("password = hunter2\nclean line\n"), "test:label", result)
-
-	if len(result.Extracteds) == 0 {
+	results := a.ScanData([]byte("password = hunter2\nclean line\n"), "test:label")
+	if len(results) == 0 {
 		t.Fatal("should find password in test data")
 	}
 	found := false
-	for _, e := range result.Extracteds {
+	for _, e := range results {
 		for _, v := range e.ExtractResult {
 			if v == "hunter2" {
 				found = true
@@ -173,20 +172,18 @@ func TestPostAction_ScanData(t *testing.T) {
 
 func TestPostAction_GitHubToken(t *testing.T) {
 	dir := createTestTemplate(t)
-	a, err := NewPostAction([]string{dir}, 100)
+	a, err := NewPostAction([]string{dir})
 	if err != nil {
 		t.Fatalf("NewPostAction failed: %v", err)
 	}
 
 	token := "ghp_abcdefghijklmnopqrstuvwxyz1234567890"
-	result := &pkg.ActionResult{}
-	a.scanData([]byte("GITHUB_TOKEN="+token+"\n"), "test:github", result)
-
-	if len(result.Extracteds) == 0 {
+	results := a.ScanData([]byte("GITHUB_TOKEN="+token+"\n"), "test:github")
+	if len(results) == 0 {
 		t.Fatal("should find GitHub token")
 	}
 	found := false
-	for _, e := range result.Extracteds {
+	for _, e := range results {
 		for _, v := range e.ExtractResult {
 			if v == token {
 				found = true
@@ -195,116 +192,6 @@ func TestPostAction_GitHubToken(t *testing.T) {
 	}
 	if !found {
 		t.Error("should extract GitHub token")
-	}
-}
-
-func TestPostAction_Shell(t *testing.T) {
-	dir := createTestTemplate(t)
-	a, err := NewPostAction([]string{dir}, 100)
-	if err != nil {
-		t.Fatalf("NewPostAction failed: %v", err)
-	}
-
-	session := &mockShellSession{
-		files: map[string][]byte{
-			"hostname":  []byte("prodserver\n"),
-			"id":        []byte("uid=0(root)\n"),
-			"~/.my.cnf": []byte("[client]\npassword = dbpass123\n"),
-		},
-	}
-
-	result, err := a.Run(session, mockTask())
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result.Loot) == 0 {
-		t.Fatal("should produce loot")
-	}
-
-	hasProtonFinding := false
-	for _, e := range result.Extracteds {
-		if containsSubstr(e.Name, "test-secret-scan") {
-			hasProtonFinding = true
-		}
-	}
-	if !hasProtonFinding {
-		t.Error("should have proton scan findings")
-	}
-}
-
-func TestPostAction_SQL(t *testing.T) {
-	dir := createTestTemplate(t)
-	a, err := NewPostAction([]string{dir}, 100)
-	if err != nil {
-		t.Fatalf("NewPostAction failed: %v", err)
-	}
-
-	session := &mockSQLSession{
-		service: "mysql",
-		rows: map[string][][]string{
-			"mysql.user": {
-				{"user", "host"},
-				{"root", "localhost"},
-			},
-		},
-	}
-	task := mockTask()
-	task.Service = "mysql"
-	task.Port = "3306"
-
-	result, err := a.Run(session, task)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	foundDB := false
-	for _, e := range result.Extracteds {
-		if e.Name == "databases" {
-			foundDB = true
-		}
-	}
-	if !foundDB {
-		t.Error("should have extracted databases")
-	}
-}
-
-func TestPostAction_KV(t *testing.T) {
-	dir := createTestTemplate(t)
-	a, err := NewPostAction([]string{dir}, 100)
-	if err != nil {
-		t.Fatalf("NewPostAction failed: %v", err)
-	}
-
-	session := &mockKVSession{}
-	task := mockTask()
-	task.Service = "redis"
-
-	result, err := a.Run(session, task)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result.Extracteds) == 0 {
-		t.Fatal("should find GitHub token in Redis key")
-	}
-}
-
-func TestPostAction_File(t *testing.T) {
-	dir := createTestTemplate(t)
-	a, err := NewPostAction([]string{dir}, 100)
-	if err != nil {
-		t.Fatalf("NewPostAction failed: %v", err)
-	}
-
-	session := &mockFileSession{}
-	task := mockTask()
-	task.Service = "ftp"
-
-	result, err := a.Run(session, task)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(result.Loot) == 0 {
-		t.Error("should collect .env as loot")
 	}
 }
 
@@ -680,37 +567,15 @@ services:
 
 // --- Worker Integration Test ---
 
-func TestWorkerExecute_WithPostAction(t *testing.T) {
+func TestPostAction_ScanLoot(t *testing.T) {
 	dir := createTestTemplate(t)
-	a, err := NewPostAction([]string{dir}, 100)
+	a, err := NewPostAction([]string{dir})
 	if err != nil {
 		t.Fatalf("NewPostAction failed: %v", err)
 	}
 
-	session := &mockShellSession{
-		files: map[string][]byte{
-			"hostname":       []byte("testhost\n"),
-			"/etc/shadow":    []byte("root:$6$hash:18000:0:99999:7:::\n"),
-			"~/.vault-token": []byte("s.abcdefghij1234567890\n"),
-		},
+	results := a.ScanData([]byte("[client]\npassword = dbpass123\n"), "ssh:10.0.0.1:22:~/.my.cnf")
+	if len(results) == 0 {
+		t.Fatal("should find password in loot data")
 	}
-
-	task := mockTask()
-	result := &pkg.Result{Task: task, OK: true}
-
-	ar, err := a.Run(session, task)
-	if err != nil {
-		t.Fatalf("action failed: %v", err)
-	}
-	result.Merge(ar)
-
-	if !result.OK {
-		t.Fatal("result should be OK")
-	}
-	if len(result.Loot) == 0 {
-		t.Fatal("should have loot")
-	}
-
-	t.Logf("Worker: %d extracteds, %d loot, %d action results",
-		len(result.Extracteds), len(result.Loot), len(result.ActionResults))
 }

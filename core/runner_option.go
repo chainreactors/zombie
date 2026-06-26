@@ -18,7 +18,6 @@ type RunnerOption struct {
 	// Post-auth actions
 	Proton           bool
 	ScanTemplates    []string
-	DBLimit          int
 	ServiceTemplates []string
 	ServiceVars      map[string]interface{}
 	ServicePayloads  map[string]interface{}

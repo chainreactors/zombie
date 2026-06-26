@@ -42,7 +42,7 @@ func TestPanic_NilSession_Execute(t *testing.T) {
 	plugins := map[string]plugin.Plugin{"nil-session": &nilSessionPlugin{}}
 	task := baseTask("nil-session")
 
-	result := Execute(task, plugins, nil)
+	result := Execute(task, plugins, nil, nil)
 	if result.OK {
 		t.Error("should not be OK")
 	}
@@ -56,7 +56,7 @@ func TestPanic_NilSession_ExecuteUnauth(t *testing.T) {
 	plugins := map[string]plugin.Plugin{"nil-session": &nilSessionPlugin{}}
 	task := baseTask("nil-session")
 
-	result := ExecuteUnauth(task, plugins, nil)
+	result := ExecuteUnauth(task, plugins, nil, nil)
 	if result.OK {
 		t.Error("should not be OK")
 	}
@@ -72,7 +72,7 @@ func TestPanic_NoPlugin(t *testing.T) {
 	plugins := map[string]plugin.Plugin{}
 	task := baseTask("nonexistent")
 
-	result := Execute(task, plugins, nil)
+	result := Execute(task, plugins, nil, nil)
 	if result.OK {
 		t.Error("should not be OK")
 	}
@@ -169,13 +169,10 @@ func TestPanic_MergeNilActionResult(t *testing.T) {
 
 func TestPanic_PostAction_EmptyData(t *testing.T) {
 	dir := createPanicTestTemplate(t)
-	a, err := action.NewPostAction([]string{dir}, 100)
+	a, err := action.NewPostAction([]string{dir})
 	if err != nil {
 		t.Fatalf("NewPostAction: %v", err)
 	}
-
-	session := &mockShell{files: map[string][]byte{}}
-	task := baseTask("ssh")
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -183,11 +180,8 @@ func TestPanic_PostAction_EmptyData(t *testing.T) {
 		}
 	}()
 
-	result, err := a.Run(session, task)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	t.Logf("empty data: extracteds=%d, loot=%d", len(result.Extracteds), len(result.Loot))
+	results := a.ScanData([]byte{}, "test:empty")
+	t.Logf("empty data: extracteds=%d", len(results))
 }
 
 // --- OutputHandler nil Err ---

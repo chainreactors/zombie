@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/chainreactors/logs"
+	"github.com/chainreactors/zombie/action"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/chainreactors/zombie/plugin"
 )
@@ -11,7 +12,7 @@ import (
 var ErrNoUnauth = errors.New("cannot unauth login")
 var ErrNoPlugin = errors.New("no plugin for service")
 
-func Execute(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []pkg.Action) *pkg.Result {
+func Execute(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []pkg.Action, postAction *action.PostAction) *pkg.Result {
 	p := resolvePlugin(task.Service, plugins)
 	if p == nil {
 		return pkg.NewResult(task, ErrNoPlugin)
@@ -27,18 +28,23 @@ func Execute(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []pkg.Ac
 	defer session.Close()
 
 	result := &pkg.Result{Task: task, OK: true}
-	for _, action := range pipeline {
-		ar, err := action.Run(session, task)
+	for _, a := range pipeline {
+		ar, err := a.Run(session, task)
 		if err != nil {
-			logs.Log.Debugf("[%s] action %s failed on %s: %v", task.Service, action.Name(), task.URI(), err)
+			logs.Log.Debugf("[%s] action %s failed on %s: %v", task.Service, a.Name(), task.URI(), err)
 			continue
 		}
 		result.Merge(ar)
 	}
+	if postAction != nil {
+		for label, data := range result.Loot {
+			result.Extracteds = append(result.Extracteds, postAction.ScanData(data, label)...)
+		}
+	}
 	return result
 }
 
-func ExecuteUnauth(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []pkg.Action) *pkg.Result {
+func ExecuteUnauth(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []pkg.Action, postAction *action.PostAction) *pkg.Result {
 	p := resolvePlugin(task.Service, plugins)
 	if p == nil {
 		return pkg.NewResult(task, ErrNoPlugin)
@@ -54,12 +60,17 @@ func ExecuteUnauth(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []
 	defer session.Close()
 
 	result := &pkg.Result{Task: task, OK: true}
-	for _, action := range pipeline {
-		ar, err := action.Run(session, task)
+	for _, a := range pipeline {
+		ar, err := a.Run(session, task)
 		if err != nil {
-			logs.Log.Debugf("[%s] action %s failed on %s: %v", task.Service, action.Name(), task.URI(), err)
+			logs.Log.Debugf("[%s] action %s failed on %s: %v", task.Service, a.Name(), task.URI(), err)
 		}
 		result.Merge(ar)
+	}
+	if postAction != nil {
+		for label, data := range result.Loot {
+			result.Extracteds = append(result.Extracteds, postAction.ScanData(data, label)...)
+		}
 	}
 	return result
 }
