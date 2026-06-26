@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+func init() {
+	pkg.RegisterPlugin("vnc", &VNCPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "vnc", DefaultPort: "5900", Source: pkg.PluginSource})
+}
+
 // vncSession implements pkg.Session over an authenticated VNC connection.
 type vncSession struct {
 	service string

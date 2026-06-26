@@ -26,6 +26,11 @@ func (s *mongoSession) Close() error {
 	return nil
 }
 
+func init() {
+	pkg.RegisterPlugin("mongo", &MongoPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "mongo", DefaultPort: "27017", Alias: []string{"mongodb"}, Source: pkg.PluginSource})
+}
+
 // MongoPlugin is stateless; all connection state lives in mongoSession.
 type MongoPlugin struct{}
 

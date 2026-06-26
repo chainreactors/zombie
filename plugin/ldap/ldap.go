@@ -7,6 +7,11 @@ import (
 	ldap "github.com/go-ldap/ldap/v3"
 )
 
+func init() {
+	pkg.RegisterPlugin("ldap", &LdapPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "ldap", DefaultPort: "389", Source: pkg.PluginSource})
+}
+
 // ldapSession implements pkg.DirectorySession over a bound LDAP connection.
 type ldapSession struct {
 	service string

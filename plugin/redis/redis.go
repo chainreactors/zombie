@@ -8,6 +8,11 @@ import (
 	"github.com/go-redis/redis"
 )
 
+func init() {
+	pkg.RegisterPlugin("redis", &RedisPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "redis", DefaultPort: "6379", Source: pkg.PluginSource})
+}
+
 // RedisPlugin is a stateless factory that satisfies the Plugin interface.
 type RedisPlugin struct{}
 

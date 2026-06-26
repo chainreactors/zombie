@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+func init() {
+	pkg.RegisterPlugin("snmp", &SnmpPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "snmp", DefaultPort: "161", Source: pkg.PluginSource})
+}
+
 // snmpSession implements pkg.Session over an SNMP connection.
 type snmpSession struct {
 	service string

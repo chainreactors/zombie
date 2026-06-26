@@ -6,6 +6,11 @@ import (
 	"github.com/streadway/amqp"
 )
 
+func init() {
+	pkg.RegisterPlugin("amqp", &AMQPPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "amqp", DefaultPort: "5672", Source: pkg.PluginSource})
+}
+
 // amqpSession implements pkg.Session over an AMQP connection.
 type amqpSession struct {
 	service string

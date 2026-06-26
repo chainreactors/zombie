@@ -35,40 +35,7 @@ func (e TimeoutError) Error() string {
 
 func (e TimeoutError) Unwrap() error { return e.err }
 
-func init() {
-	RegisterServices()
-}
-
-var (
-	UnknownService    = &Service{Name: "unknown", DefaultPort: "", Source: "unknown"}
-	FTPService        = &Service{Name: "ftp", DefaultPort: "21", Source: PluginSource}
-	SSHService        = &Service{Name: "ssh", DefaultPort: "22", Source: PluginSource}
-	SMBService        = &Service{Name: "smb", DefaultPort: "445", Source: PluginSource}
-	MSSQLService      = &Service{Name: "mssql", DefaultPort: "1433", Source: PluginSource}
-	MYSQLService      = &Service{Name: "mysql", DefaultPort: "3306", Source: PluginSource}
-	POSTGRESQLService = &Service{Name: "postgresql", DefaultPort: "5432", Alias: []string{"postgre"}, Source: PluginSource}
-	REDISService      = &Service{Name: "redis", DefaultPort: "6379", Source: PluginSource}
-	MONGOService      = &Service{Name: "mongo", DefaultPort: "27017", Alias: []string{"mongodb"}, Source: PluginSource}
-	VNCService        = &Service{Name: "vnc", DefaultPort: "5900", Source: PluginSource}
-	RDPService        = &Service{Name: "rdp", DefaultPort: "3389", Source: PluginSource}
-	SNMPService       = &Service{Name: "snmp", DefaultPort: "161", Source: PluginSource}
-	ORACLEService     = &Service{Name: "oracle", DefaultPort: "1521", Source: PluginSource}
-	HTTPService       = &Service{Name: "http", DefaultPort: "80", Source: PluginSource}
-	HTTPSService      = &Service{Name: "https", DefaultPort: "443", Source: PluginSource}
-	GETService        = &Service{Name: "get", DefaultPort: "80", Source: PluginSource}
-	PostService       = &Service{Name: "post", DefaultPort: "80", Source: PluginSource}
-	LDAPService       = &Service{Name: "ldap", DefaultPort: "389", Source: PluginSource}
-	SOCKS5Service     = &Service{Name: "socks5", DefaultPort: "1080", Source: PluginSource}
-	TELNETService     = &Service{Name: "telnet", DefaultPort: "23", Source: PluginSource}
-	POP3Service       = &Service{Name: "pop3", DefaultPort: "110", Alias: []string{"pop"}, Source: PluginSource}
-	RSYNCService      = &Service{Name: "rsync", DefaultPort: "873", Source: PluginSource}
-	ZookeeperService  = &Service{Name: "zookeeper", DefaultPort: "2181", Source: PluginSource}
-	AmqpService       = &Service{Name: "amqp", DefaultPort: "5672", Source: PluginSource}
-	MqttService       = &Service{Name: "mqtt", DefaultPort: "1883", Source: PluginSource}
-	MemcachedService  = &Service{Name: "memcached", DefaultPort: "11211", Source: PluginSource}
-	HTTPProxyService  = &Service{Name: "http_proxy", DefaultPort: "8080", Source: PluginSource}
-	HTTPDigestService = &Service{Name: "digest", DefaultPort: "80", Source: PluginSource}
-)
+var UnknownService = &Service{Name: "unknown", DefaultPort: "", Source: "unknown"}
 
 var Services = services{
 	Plugins: map[string]*Service{},
@@ -111,37 +78,6 @@ func (ss *services) DefaultPort(service string) string {
 	return ""
 }
 
-func RegisterServices() {
-	Services.Register(FTPService)
-	Services.Register(SSHService)
-	Services.Register(SMBService)
-	Services.Register(MSSQLService)
-	Services.Register(MYSQLService)
-	Services.Register(POSTGRESQLService)
-	Services.Register(REDISService)
-	Services.Register(MONGOService)
-	Services.Register(VNCService)
-	Services.Register(RDPService)
-	Services.Register(SNMPService)
-	Services.Register(ORACLEService)
-	Services.Register(HTTPService)
-	Services.Register(HTTPSService)
-	Services.Register(GETService)
-	Services.Register(PostService)
-	Services.Register(LDAPService)
-	Services.Register(SOCKS5Service)
-	Services.Register(TELNETService)
-	Services.Register(POP3Service)
-	Services.Register(RSYNCService)
-	Services.Register(ZookeeperService)
-	Services.Register(AmqpService)
-	Services.Register(MqttService)
-	Services.Register(MemcachedService)
-	Services.Register(HTTPProxyService)
-	Services.Register(HTTPDigestService)
-	// alias service
-	//Services.Register(&Service{Name: "tomcat", DefaultPort: "8080", Source: PluginSource})
-}
 
 const (
 	PluginSource  = "plugin"

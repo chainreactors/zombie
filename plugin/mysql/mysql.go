@@ -10,6 +10,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+func init() {
+	pkg.RegisterPlugin("mysql", &MysqlPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "mysql", DefaultPort: "3306", Source: pkg.PluginSource})
+}
+
 type nilLog struct{}
 
 func (nilLog) Print(v ...interface{}) {}

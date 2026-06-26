@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+func init() {
+	pkg.RegisterPlugin("zookeeper", &ZookeeperPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "zookeeper", DefaultPort: "2181", Source: pkg.PluginSource})
+}
+
 // zkSession implements pkg.Session over a ZooKeeper connection.
 type zkSession struct {
 	service string

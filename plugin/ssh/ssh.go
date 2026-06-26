@@ -11,6 +11,11 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+func init() {
+	pkg.RegisterPlugin("ssh", &SshPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "ssh", DefaultPort: "22", Source: pkg.PluginSource})
+}
+
 // sshSession implements pkg.ShellSession over an authenticated SSH connection.
 type sshSession struct {
 	service string

@@ -6,6 +6,11 @@ import (
 	"strconv"
 )
 
+func init() {
+	pkg.RegisterPlugin("pop3", &Pop3Plugin{})
+	pkg.Services.Register(&pkg.Service{Name: "pop3", DefaultPort: "110", Alias: []string{"pop"}, Source: pkg.PluginSource})
+}
+
 // pop3Session implements pkg.Session over an authenticated POP3 connection.
 type pop3Session struct {
 	service string

@@ -9,6 +9,11 @@ import (
 	_ "github.com/sijms/go-ora/v2"
 )
 
+func init() {
+	pkg.RegisterPlugin("oracle", &OraclePlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "oracle", DefaultPort: "1521", Source: pkg.PluginSource})
+}
+
 // OraclePlugin is a stateless factory that satisfies the Plugin interface.
 type OraclePlugin struct{}
 
