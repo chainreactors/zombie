@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/chainreactors/zombie/pkg"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
@@ -24,6 +25,38 @@ func (s *mongoSession) Close() error {
 		return s.client.Disconnect(s.ctx)
 	}
 	return nil
+}
+
+func (s *mongoSession) Get(key string) ([]byte, error) {
+	result := s.client.Database("admin").RunCommand(s.ctx, bson.D{{Key: key, Value: 1}})
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	raw, err := result.DecodeBytes()
+	if err != nil {
+		return nil, err
+	}
+	return []byte(raw.String()), nil
+}
+
+func (s *mongoSession) Keys(pattern string) ([]string, error) {
+	return s.client.ListDatabaseNames(s.ctx, bson.D{})
+}
+
+func (s *mongoSession) Command(name string, args ...string) (interface{}, error) {
+	cmd := bson.D{{Key: name, Value: 1}}
+	for i := 0; i+1 < len(args); i += 2 {
+		cmd = append(cmd, bson.E{Key: args[i], Value: args[i+1]})
+	}
+	result := s.client.Database("admin").RunCommand(s.ctx, cmd)
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	raw, err := result.DecodeBytes()
+	if err != nil {
+		return nil, err
+	}
+	return raw.String(), nil
 }
 
 func init() {

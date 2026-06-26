@@ -11,12 +11,6 @@ const ServiceProtocol protocols.ProtocolType = 6
 
 var _ protocols.Request = &Request{}
 
-// RawCommander is an optional interface for sessions that support
-// arbitrary command execution beyond their typed interface (e.g., Redis CONFIG/SLAVEOF).
-type RawCommander interface {
-	Command(name string, args ...string) (interface{}, error)
-}
-
 // Request implements protocols.Request for the service protocol.
 type Request struct {
 	operators.Operators `json:",inline" yaml:",inline"`
@@ -45,10 +39,9 @@ type Op struct {
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 
 	// Legacy aliases kept so existing service templates continue to load.
-	Exec      string  `json:"exec,omitempty" yaml:"exec,omitempty"`
-	Query     string  `json:"query,omitempty" yaml:"query,omitempty"`
-	Databases bool    `json:"databases,omitempty" yaml:"databases,omitempty"`
-	Get       string  `json:"get,omitempty" yaml:"get,omitempty"`
+	Exec  string `json:"exec,omitempty" yaml:"exec,omitempty"`
+	Query string `json:"query,omitempty" yaml:"query,omitempty"`
+	Get   string `json:"get,omitempty" yaml:"get,omitempty"`
 	Keys      string  `json:"keys,omitempty" yaml:"keys,omitempty"`
 	Cmd       string  `json:"cmd,omitempty" yaml:"cmd,omitempty"`
 	List      string  `json:"list,omitempty" yaml:"list,omitempty"`
