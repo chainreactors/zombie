@@ -15,6 +15,7 @@ import (
 	"github.com/chainreactors/zombie/action"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/chainreactors/zombie/plugin"
+	"github.com/chainreactors/zombie/service"
 	"github.com/panjf2000/ants/v2"
 )
 
@@ -115,10 +116,34 @@ func (r *Runner) BuildPipeline() error {
 		}
 		r.Pipeline = append(r.Pipeline, postAction)
 	}
+
+	var serviceTemplates []*service.Template
+	if r.Gather {
+		embedded, err := action.LoadServiceTemplatesFromData(pkg.ServiceTemplateData)
+		if err != nil {
+			return fmt.Errorf("failed to load embedded service templates: %w", err)
+		}
+		serviceTemplates = append(serviceTemplates, embedded...)
+	}
 	if len(r.ServiceTemplates) > 0 {
-		serviceAction, err := action.NewServiceAction(r.ServiceTemplates, r.ServiceVars, r.ServicePayloads)
+		fromPaths, err := action.LoadServiceTemplatesFromPaths(r.ServiceTemplates)
+		if err != nil {
+			return fmt.Errorf("failed to load service templates: %w", err)
+		}
+		serviceTemplates = append(serviceTemplates, fromPaths...)
+	}
+	if len(serviceTemplates) > 0 {
+		serviceAction, err := action.NewServiceAction(serviceTemplates, r.ServiceVars, r.ServicePayloads)
 		if err != nil {
 			return fmt.Errorf("failed to init service action: %w", err)
+		}
+		if r.Risk != "" {
+			serviceAction.SetRisk(r.Risk)
+		}
+		if r.Gather && len(r.Tags) == 0 {
+			serviceAction.SetTags([]string{"gather"})
+		} else if len(r.Tags) > 0 {
+			serviceAction.SetTags(r.Tags)
 		}
 		r.Pipeline = append(r.Pipeline, serviceAction)
 	}

@@ -27,6 +27,7 @@ type FileSession interface {
 	Session
 	List(path string) ([]string, error)
 	Read(path string) ([]byte, error)
+	Write(path string, data []byte) error
 }
 
 type DirectorySession interface {

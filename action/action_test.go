@@ -80,6 +80,7 @@ func (m *mockFileSession) Read(path string) ([]byte, error) {
 	}
 	return nil, fmt.Errorf("not found")
 }
+func (m *mockFileSession) Write(path string, data []byte) error { return nil }
 
 func containsSubstr(s, sub string) bool {
 	for i := 0; i <= len(s)-len(sub); i++ {
@@ -88,6 +89,18 @@ func containsSubstr(s, sub string) bool {
 		}
 	}
 	return false
+}
+
+func loadAndCreateServiceAction(t *testing.T, dir string) *ServiceAction {
+	t.Helper()
+	tmpls, err := LoadServiceTemplatesFromPaths([]string{dir})
+	if err != nil {
+		t.Fatalf("load templates: %v", err)
+	}
+	a, err := NewServiceAction(tmpls, nil)
+	if err != nil {
+	}
+	return a
 }
 
 func mockTask() *pkg.Task {
@@ -338,10 +351,7 @@ services:
 		t.Fatalf("write child template: %v", err)
 	}
 
-	a, err := NewServiceAction([]string{dir}, nil)
-	if err != nil {
-		t.Fatalf("NewServiceAction failed: %v", err)
-	}
+	a := loadAndCreateServiceAction(t, dir)
 	session := &mockShellSession{
 		files: map[string][]byte{
 			"detect-os":     []byte("Linux\n"),
@@ -400,10 +410,7 @@ services:
 	os.WriteFile(filepath.Join(dir, "entry.yaml"), []byte(root), 0644)
 	os.WriteFile(filepath.Join(dir, "helper.yaml"), []byte(helper), 0644)
 
-	a, err := NewServiceAction([]string{dir}, nil)
-	if err != nil {
-		t.Fatalf("NewServiceAction: %v", err)
-	}
+	a := loadAndCreateServiceAction(t, dir)
 	session := &mockShellSession{
 		files: map[string][]byte{
 			"echo entry":  []byte("entry\n"),
@@ -477,10 +484,7 @@ services:
 	os.WriteFile(filepath.Join(dir, "root.yaml"), []byte(root), 0644)
 	os.WriteFile(filepath.Join(dir, "mysql.yaml"), []byte(mysqlOnly), 0644)
 
-	a, err := NewServiceAction([]string{dir}, nil)
-	if err != nil {
-		t.Fatalf("NewServiceAction: %v", err)
-	}
+	a := loadAndCreateServiceAction(t, dir)
 	// session is SSH, so mysql-only should be skipped
 	session := &mockShellSession{
 		files: map[string][]byte{
@@ -567,10 +571,7 @@ services:
 	os.WriteFile(filepath.Join(dir, "gate.yaml"), []byte(gate), 0644)
 	os.WriteFile(filepath.Join(dir, "after.yaml"), []byte(afterGate), 0644)
 
-	a, err := NewServiceAction([]string{dir}, nil)
-	if err != nil {
-		t.Fatalf("NewServiceAction: %v", err)
-	}
+	a := loadAndCreateServiceAction(t, dir)
 	session := &mockShellSession{
 		files: map[string][]byte{
 			"echo entry": []byte("entry\n"),
@@ -653,10 +654,7 @@ services:
 	os.WriteFile(filepath.Join(dir, "a.yaml"), []byte(branchA), 0644)
 	os.WriteFile(filepath.Join(dir, "b.yaml"), []byte(branchB), 0644)
 
-	a, err := NewServiceAction([]string{dir}, nil)
-	if err != nil {
-		t.Fatalf("NewServiceAction: %v", err)
-	}
+	a := loadAndCreateServiceAction(t, dir)
 	session := &mockShellSession{
 		files: map[string][]byte{
 			"echo root": []byte("root\n"),

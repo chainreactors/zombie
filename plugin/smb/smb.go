@@ -89,6 +89,19 @@ func (s *smbSession) Read(path string) ([]byte, error) {
 	return io.ReadAll(f)
 }
 
+func (s *smbSession) Write(path string, data []byte) error {
+	share, rel := parseSharePath(path)
+	if share == "" || rel == "" {
+		return fmt.Errorf("path must include share and file: %q", path)
+	}
+	mount, err := s.conn.Mount(share)
+	if err != nil {
+		return fmt.Errorf("mount %q: %w", share, err)
+	}
+	defer mount.Umount()
+	return mount.WriteFile(rel, data, 0644)
+}
+
 // SmbPlugin is stateless; all connection state lives in smbSession.
 type SmbPlugin struct{}
 

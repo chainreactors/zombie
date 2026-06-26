@@ -20,18 +20,11 @@ type ServiceAction struct {
 	chain    *templates.ChainExecutor
 	vars     map[string]interface{}
 	payloads map[string]interface{}
+	risk     string
+	tags     []string
 }
 
-func NewServiceAction(templatePaths []string, vars map[string]interface{}, payloads ...map[string]interface{}) (*ServiceAction, error) {
-	execOpts := &protocols.ExecuterOptions{Options: &protocols.Options{}}
-	var loaded []*service.Template
-	for _, p := range templatePaths {
-		tmpls, err := loadServiceTemplatesFromPath(p, execOpts)
-		if err != nil {
-			return nil, fmt.Errorf("load service templates from %s: %w", p, err)
-		}
-		loaded = append(loaded, tmpls...)
-	}
+func NewServiceAction(loaded []*service.Template, vars map[string]interface{}, payloads ...map[string]interface{}) (*ServiceAction, error) {
 	if len(loaded) == 0 {
 		return nil, fmt.Errorf("no service templates loaded")
 	}
@@ -51,8 +44,16 @@ func NewServiceAction(templatePaths []string, vars map[string]interface{}, paylo
 		cliPayloads = payloads[0]
 	}
 
-	return &ServiceAction{index: index, chain: chain, vars: vars, payloads: cliPayloads}, nil
+	return &ServiceAction{
+		index:    index,
+		chain:    chain,
+		vars:     vars,
+		payloads: cliPayloads,
+	}, nil
 }
+
+func (a *ServiceAction) SetRisk(risk string) { a.risk = risk }
+func (a *ServiceAction) SetTags(tags []string) { a.tags = tags }
 
 func (a *ServiceAction) Name() string { return "service" }
 
@@ -64,6 +65,12 @@ func (a *ServiceAction) Run(session pkg.Session, task *pkg.Task) (*pkg.ActionRes
 	a.chain.Execute(a.chain.Entrypoints(), func(id string, vars map[string]interface{}) *templates.ChainResult {
 		tmpl, ok := a.index[id]
 		if !ok || !tmpl.Match(svc) {
+			return nil
+		}
+		if !tmpl.RiskAllowed(a.risk) {
+			return nil
+		}
+		if len(a.tags) > 0 && !a.matchTags(tmpl) {
 			return nil
 		}
 
@@ -113,6 +120,15 @@ func (a *ServiceAction) Run(session pkg.Session, task *pkg.Task) (*pkg.ActionRes
 	return result, nil
 }
 
+func (a *ServiceAction) matchTags(tmpl *service.Template) bool {
+	for _, tag := range a.tags {
+		if tmpl.HasTag(tag) {
+			return true
+		}
+	}
+	return false
+}
+
 func copyVars(src map[string]interface{}) map[string]interface{} {
 	if src == nil {
 		return make(map[string]interface{})
@@ -122,6 +138,19 @@ func copyVars(src map[string]interface{}) map[string]interface{} {
 		dst[k] = v
 	}
 	return dst
+}
+
+func LoadServiceTemplatesFromPaths(paths []string) ([]*service.Template, error) {
+	execOpts := &protocols.ExecuterOptions{Options: &protocols.Options{}}
+	var all []*service.Template
+	for _, p := range paths {
+		tmpls, err := loadServiceTemplatesFromPath(p, execOpts)
+		if err != nil {
+			return nil, fmt.Errorf("load service templates from %s: %w", p, err)
+		}
+		all = append(all, tmpls...)
+	}
+	return all, nil
 }
 
 func loadServiceTemplatesFromPath(path string, execOpts *protocols.ExecuterOptions) ([]*service.Template, error) {
@@ -156,15 +185,43 @@ func loadServiceTemplateFile(path string, execOpts *protocols.ExecuterOptions) (
 	if err != nil {
 		return nil, err
 	}
+	return loadServiceTemplateBytes(data, execOpts)
+}
+
+func loadServiceTemplateBytes(data []byte, execOpts *protocols.ExecuterOptions) ([]*service.Template, error) {
 	var tmpl service.Template
 	if err := yaml.Unmarshal(data, &tmpl); err != nil {
 		return nil, err
 	}
-	if len(tmpl.Services) == 0 {
+	if len(tmpl.Services) == 0 && len(tmpl.RequestsHTTP) == 0 && len(tmpl.RequestsNetwork) == 0 {
 		return nil, nil
 	}
 	if err := tmpl.Compile(execOpts); err != nil {
 		return nil, err
 	}
 	return []*service.Template{&tmpl}, nil
+}
+
+func LoadServiceTemplatesFromData(data []byte) ([]*service.Template, error) {
+	if len(data) == 0 {
+		return nil, nil
+	}
+	execOpts := &protocols.ExecuterOptions{Options: &protocols.Options{}}
+	var list []service.Template
+	if err := yaml.Unmarshal(data, &list); err != nil {
+		return loadServiceTemplateBytes(data, execOpts)
+	}
+	var all []*service.Template
+	for i := range list {
+		tmpl := &list[i]
+		if len(tmpl.Services) == 0 && len(tmpl.RequestsHTTP) == 0 && len(tmpl.RequestsNetwork) == 0 {
+			continue
+		}
+		if err := tmpl.Compile(execOpts); err != nil {
+			logs.Log.Debugf("[service] skip embedded template %s: %v", tmpl.Id, err)
+			continue
+		}
+		all = append(all, tmpl)
+	}
+	return all, nil
 }

@@ -13,10 +13,11 @@ import (
 )
 
 var (
-	Rules         map[string]string              = make(map[string]string)
-	Keywords      map[string][]string            = make(map[string][]string)
-	TemplateMap   map[string]*templates.Template = make(map[string]*templates.Template)
-	FingersEngine *fingers.FingersEngine
+	Rules               map[string]string              = make(map[string]string)
+	Keywords            map[string][]string            = make(map[string][]string)
+	TemplateMap         map[string]*templates.Template = make(map[string]*templates.Template)
+	ServiceTemplateData []byte
+	FingersEngine       *fingers.FingersEngine
 )
 
 func Load() error {
@@ -105,6 +106,11 @@ func LoadTemplates() error {
 		}
 	}
 	parsers.RegisterZombieServiceAlias()
+	return nil
+}
+
+func LoadServiceTemplates() error {
+	ServiceTemplateData = LoadConfig("zombie_service")
 	return nil
 }
 

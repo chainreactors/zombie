@@ -1,6 +1,7 @@
 package ftp
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/chainreactors/zombie/pkg"
@@ -42,6 +43,10 @@ func (s *ftpSession) Read(path string) ([]byte, error) {
 	}
 	defer resp.Close()
 	return io.ReadAll(resp)
+}
+
+func (s *ftpSession) Write(path string, data []byte) error {
+	return s.conn.Stor(path, bytes.NewReader(data))
 }
 
 // FtpPlugin is stateless; all connection state lives in ftpSession.

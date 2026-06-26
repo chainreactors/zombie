@@ -58,8 +58,10 @@ type Op struct {
 
 // FileOp specifies a file session operation. Set exactly one field.
 type FileOp struct {
-	List string `json:"list,omitempty" yaml:"list,omitempty"`
-	Read string `json:"read,omitempty" yaml:"read,omitempty"`
+	List  string `json:"list,omitempty" yaml:"list,omitempty"`
+	Read  string `json:"read,omitempty" yaml:"read,omitempty"`
+	Write string `json:"write,omitempty" yaml:"write,omitempty"`
+	Data  string `json:"data,omitempty" yaml:"data,omitempty"`
 }
 
 // LDAPOp specifies an LDAP search operation.

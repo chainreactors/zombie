@@ -75,6 +75,9 @@ type ActionOptions struct {
 	ServiceTemplates []string `long:"service-template" description:"service protocol template file or directory for post-auth exploitation"`
 	ServiceVars      []string `short:"V" long:"var" description:"custom service-template variables in key=value format"`
 	ServicePayloads  []string `long:"payload" description:"custom service-template payloads in key=value format; repeat key for multiple values"`
+	Gather           bool     `long:"gather" description:"post-auth: run built-in service templates for info gathering (tag=gather)"`
+	Risk             string   `long:"risk" description:"filter service templates by max risk level (safe/dangerous/critical)"`
+	Tags             []string `long:"tags" description:"filter service templates by tags"`
 }
 
 func (opt *Option) Validate() error {
@@ -148,6 +151,9 @@ func (opt *Option) Prepare() (*Runner, error) {
 		ServiceTemplates: opt.ServiceTemplates,
 		ServiceVars:      serviceVars,
 		ServicePayloads:  servicePayloads,
+		Gather:           opt.Gather,
+		Risk:             opt.Risk,
+		Tags:             opt.Tags,
 	}
 
 	runner := NewRunner(runnerOpt)
