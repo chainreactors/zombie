@@ -11,6 +11,11 @@ import (
 	"github.com/hirochachacha/go-smb2"
 )
 
+func init() {
+	pkg.RegisterPlugin("smb", &SmbPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "smb", DefaultPort: "445", Source: pkg.PluginSource})
+}
+
 // smbSession implements pkg.FileSession over an authenticated SMB2 session.
 type smbSession struct {
 	service string

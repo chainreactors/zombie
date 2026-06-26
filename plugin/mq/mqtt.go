@@ -6,6 +6,11 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
+func init() {
+	pkg.RegisterPlugin("mqtt", &MQTTPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "mqtt", DefaultPort: "1883", Source: pkg.PluginSource})
+}
+
 // mqttSession implements pkg.Session over an MQTT client connection.
 type mqttSession struct {
 	service string

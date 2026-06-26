@@ -8,6 +8,11 @@ import (
 	"github.com/jlaffaye/ftp"
 )
 
+func init() {
+	pkg.RegisterPlugin("ftp", &FtpPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "ftp", DefaultPort: "21", Source: pkg.PluginSource})
+}
+
 // ftpSession implements pkg.FileSession over an authenticated FTP connection.
 type ftpSession struct {
 	service string

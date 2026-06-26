@@ -4,6 +4,11 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 )
 
+func init() {
+	pkg.RegisterPlugin("rsync", &RsyncPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "rsync", DefaultPort: "873", Source: pkg.PluginSource})
+}
+
 // rsyncSession implements pkg.Session. Rsync uses short-lived socket
 // connections per operation, so there is no persistent conn to wrap.
 type rsyncSession struct {

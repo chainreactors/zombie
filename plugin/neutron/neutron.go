@@ -12,6 +12,8 @@ import (
 )
 
 func init() {
+	pkg.RegisterPlugin("neutron", &NeutronPlugin{})
+
 	if neutroncommon.NeutronLog == nil {
 		neutroncommon.NeutronLog = logs.Log
 	}

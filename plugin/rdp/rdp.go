@@ -5,6 +5,11 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 )
 
+func init() {
+	pkg.RegisterPlugin("rdp", &RdpPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "rdp", DefaultPort: "3389", Source: pkg.PluginSource})
+}
+
 // rdpSession implements pkg.Session. RDP has no persistent connection,
 // so Close is a no-op and Raw returns nil.
 type rdpSession struct {

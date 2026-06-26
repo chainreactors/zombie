@@ -6,6 +6,11 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 )
 
+func init() {
+	pkg.RegisterPlugin("memcached", &MemcachePlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "memcached", DefaultPort: "11211", Source: pkg.PluginSource})
+}
+
 // memcacheSession implements pkg.Session over a memcache client.
 type memcacheSession struct {
 	service string

@@ -8,6 +8,11 @@ import (
 	"net/url"
 )
 
+func init() {
+	pkg.RegisterPlugin("socks5", &Socks5Plugin{})
+	pkg.Services.Register(&pkg.Service{Name: "socks5", DefaultPort: "1080", Source: pkg.PluginSource})
+}
+
 // socks5Session implements pkg.Session over a SOCKS5 proxy dialer.
 type socks5Session struct {
 	service string

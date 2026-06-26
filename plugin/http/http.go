@@ -13,6 +13,21 @@ import (
 	"strings"
 )
 
+func init() {
+	pkg.RegisterPlugin("http", &HttpAuthPlugin{})
+	pkg.RegisterPlugin("https", &HttpAuthPlugin{})
+	pkg.RegisterPlugin("get", NewHTTPPlugin("GET"))
+	pkg.RegisterPlugin("post", NewHTTPPlugin("POST"))
+	pkg.RegisterPlugin("http_proxy", &HTTPProxyPlugin{})
+	pkg.RegisterPlugin("digest", &HTTPDigestPlugin{})
+	pkg.Services.Register(&pkg.Service{Name: "http", DefaultPort: "80", Source: pkg.PluginSource})
+	pkg.Services.Register(&pkg.Service{Name: "https", DefaultPort: "443", Source: pkg.PluginSource})
+	pkg.Services.Register(&pkg.Service{Name: "get", DefaultPort: "80", Source: pkg.PluginSource})
+	pkg.Services.Register(&pkg.Service{Name: "post", DefaultPort: "80", Source: pkg.PluginSource})
+	pkg.Services.Register(&pkg.Service{Name: "http_proxy", DefaultPort: "8080", Source: pkg.PluginSource})
+	pkg.Services.Register(&pkg.Service{Name: "digest", DefaultPort: "80", Source: pkg.PluginSource})
+}
+
 // httpSession implements pkg.Session for HTTP GET/POST login.
 // HTTP is stateless, so Close is a no-op and Raw returns the http.Client.
 type httpSession struct {

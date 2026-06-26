@@ -2,8 +2,11 @@ package plugin
 
 import "github.com/chainreactors/zombie/pkg"
 
-type Plugin interface {
-	Name() string
-	Open(task *pkg.Task) (pkg.Session, error)
-	Unauth(task *pkg.Task) (pkg.Session, error)
+type Plugin = pkg.Plugin
+
+func Register(name string, p Plugin) { pkg.RegisterPlugin(name, p) }
+func Get(service string) (Plugin, bool) { return pkg.GetPlugin(service) }
+
+func DefaultRegistry() map[string]Plugin {
+	return pkg.DefaultPluginRegistry()
 }
