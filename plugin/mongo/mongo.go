@@ -3,14 +3,15 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/chainreactors/zombie/pkg"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 )
 
-// mongoSession implements pkg.Session over a MongoDB client.
 type mongoSession struct {
 	service string
 	client  *mongo.Client
@@ -27,8 +28,44 @@ func (s *mongoSession) Close() error {
 	return nil
 }
 
-func (s *mongoSession) Get(key string) ([]byte, error) {
-	result := s.client.Database("admin").RunCommand(s.ctx, bson.D{{Key: key, Value: 1}})
+func (s *mongoSession) Query(query string, args ...any) ([][]string, error) {
+	query = strings.TrimSpace(query)
+
+	parts := strings.SplitN(query, " ", 2)
+	cmd := parts[0]
+
+	switch strings.ToLower(cmd) {
+	case "show":
+		if len(parts) > 1 && strings.HasPrefix(strings.ToLower(parts[1]), "db") {
+			dbs, err := s.client.ListDatabaseNames(s.ctx, bson.D{})
+			if err != nil {
+				return nil, err
+			}
+			rows := [][]string{{"database"}}
+			for _, db := range dbs {
+				rows = append(rows, []string{db})
+			}
+			return rows, nil
+		}
+		if len(parts) > 1 && strings.HasPrefix(strings.ToLower(parts[1]), "collection") {
+			dbAndRest := strings.TrimPrefix(strings.ToLower(parts[1]), "collections ")
+			colls, err := s.client.Database(dbAndRest).ListCollectionNames(s.ctx, bson.D{})
+			if err != nil {
+				return nil, err
+			}
+			rows := [][]string{{"collection"}}
+			for _, c := range colls {
+				rows = append(rows, []string{c})
+			}
+			return rows, nil
+		}
+	}
+
+	cmdDoc := bson.D{{Key: cmd, Value: 1}}
+	if len(parts) > 1 {
+		cmdDoc = append(cmdDoc, bson.E{Key: "arg", Value: parts[1]})
+	}
+	result := s.client.Database("admin").RunCommand(s.ctx, cmdDoc)
 	if result.Err() != nil {
 		return nil, result.Err()
 	}
@@ -36,27 +73,7 @@ func (s *mongoSession) Get(key string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []byte(raw.String()), nil
-}
-
-func (s *mongoSession) Keys(pattern string) ([]string, error) {
-	return s.client.ListDatabaseNames(s.ctx, bson.D{})
-}
-
-func (s *mongoSession) Command(name string, args ...string) (interface{}, error) {
-	cmd := bson.D{{Key: name, Value: 1}}
-	for i := 0; i+1 < len(args); i += 2 {
-		cmd = append(cmd, bson.E{Key: args[i], Value: args[i+1]})
-	}
-	result := s.client.Database("admin").RunCommand(s.ctx, cmd)
-	if result.Err() != nil {
-		return nil, result.Err()
-	}
-	raw, err := result.DecodeBytes()
-	if err != nil {
-		return nil, err
-	}
-	return raw.String(), nil
+	return [][]string{{"result"}, {raw.String()}}, nil
 }
 
 func init() {
@@ -64,14 +81,12 @@ func init() {
 	pkg.Services.Register(&pkg.Service{Name: "mongo", DefaultPort: "27017", Alias: []string{"mongodb"}, Source: pkg.PluginSource})
 }
 
-// MongoPlugin is stateless; all connection state lives in mongoSession.
 type MongoPlugin struct{}
 
 func (p *MongoPlugin) Name() string { return "mongo" }
 
 func (p *MongoPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	var url string
-
 	if task.Password == "" {
 		url = fmt.Sprintf("mongodb://%v:%v", task.IP, task.Port)
 	} else {
@@ -83,12 +98,10 @@ func (p *MongoPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = client.Ping(task.Context, nil)
-	if err != nil {
+	if err := client.Ping(task.Context, nil); err != nil {
 		client.Disconnect(task.Context)
 		return nil, err
 	}
-
 	return &mongoSession{service: task.Service, client: client, ctx: task.Context}, nil
 }
 
