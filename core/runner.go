@@ -500,10 +500,15 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 
 	go func() {
 		defer close(ch)
+		// ctx 取消(FirstOnly 命中)时用带标签 break 退出循环,落到下面的 wg.Wait()
+		// 等所有 user goroutine(ch 的发送者)退出后,再由 defer 执行 close(ch)。
+		// 绝不能在此 return:那会跳过 wg.Wait(),让 close(ch) 与仍在 `ch <- task`
+		// 的发送者并发,触发 panic: send on closed channel。
+	genLoop:
 		for _, user := range users {
 			select {
 			case <-ctx.Done():
-				return
+				break genLoop
 			default:
 			}
 			wg.Add(1)
@@ -513,7 +518,11 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 				if !r.NoUnAuth {
 					userLocker := &sync.Mutex{}
 					userLocker.Lock()
-					ch <- &pkg.Task{
+					// 与下方 brute 发送一致:用 select 让 ctx 取消时能退出,不在无人
+					// 接收的 ch 上裸发送(裸发送在 ctx 取消时既会卡死 wg.Wait,又会与
+					// close(ch) 竞争触发 panic: send on closed channel)。
+					select {
+					case ch <- &pkg.Task{
 						ZombieResult: &parsers.ZombieResult{
 							IP:       target.IP,
 							Port:     target.Port,
@@ -527,6 +536,9 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 						Context:  ctx,
 						Canceler: canceler,
 						Locker:   userLocker,
+					}:
+					case <-ctx.Done():
+						return
 					}
 					userLocker.Lock()
 					userLocker.Unlock()
