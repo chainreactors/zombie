@@ -92,7 +92,12 @@ func (p *MongoPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	} else {
 		url = fmt.Sprintf("mongodb://%v:%v@%v:%v", task.Username, task.Password, task.IP, task.Port)
 	}
-	clientOptions := options.Client().ApplyURI(url).SetConnectTimeout(time.Duration(task.Timeout) * time.Second)
+	// SetServerSelectionTimeout 限制 server selection / 命令等待,否则只 SetConnectTimeout
+	// 在过滤端口上仍会按驱动默认 30s 阻塞,超出 task.Timeout。
+	timeout := time.Duration(task.Timeout) * time.Second
+	clientOptions := options.Client().ApplyURI(url).
+		SetConnectTimeout(timeout).
+		SetServerSelectionTimeout(timeout)
 
 	client, err := mongo.Connect(task.Context, clientOptions)
 	if err != nil {
@@ -105,6 +110,24 @@ func (p *MongoPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	return &mongoSession{service: task.Service, client: client, ctx: task.Context}, nil
 }
 
+// Unauth 以无凭据连接,并执行需要鉴权的 listDatabases 来证明“未授权可访问”。
+// 只用 Ping 不够:mongo 的 ping 命令在开启鉴权的实例上同样放行,会把需鉴权实例
+// 误报为未授权;listDatabases 在开启鉴权时返回 Unauthorized 错误,从而正确区分
+// 真正的无认证实例(返回会话=命中)与需鉴权实例(返回错误=未命中)。
 func (p *MongoPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
-	return nil, pkg.NotImplUnauthorized
+	url := fmt.Sprintf("mongodb://%v:%v", task.IP, task.Port)
+	timeout := time.Duration(task.Timeout) * time.Second
+	clientOptions := options.Client().ApplyURI(url).
+		SetConnectTimeout(timeout).
+		SetServerSelectionTimeout(timeout)
+
+	client, err := mongo.Connect(task.Context, clientOptions)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := client.ListDatabaseNames(task.Context, bson.D{}); err != nil {
+		client.Disconnect(task.Context)
+		return nil, err
+	}
+	return &mongoSession{service: task.Service, client: client, ctx: task.Context}, nil
 }
