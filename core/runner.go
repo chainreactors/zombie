@@ -460,19 +460,8 @@ func (r *Runner) RunWithClusterBomb(ctx context.Context, targets chan *Target) {
 				locker.Unlock()
 			}
 
-			ch := r.clusterBombGenerate(targetCtx, cancel, cur)
-		loop:
-			for {
-				select {
-				case task, ok := <-ch:
-					if ok {
-						r.add(task)
-					} else {
-						break loop
-					}
-				case <-targetCtx.Done():
-					break loop
-				}
+			for task := range r.clusterBombGenerate(targetCtx, cancel, cur) {
+				r.add(task)
 			}
 		}()
 	}
