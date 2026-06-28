@@ -10,7 +10,6 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 	"net"
 	"net/http"
-	"strings"
 )
 
 type Target struct {
@@ -42,9 +41,12 @@ func (t *Target) URL() string {
 }
 
 func (t *Target) UpdateService(s string) {
-	t.Service = strings.ToLower(s)
+	// 规范化为 canonical 插件名(别名 postgre→postgresql 等),否则执行期 resolvePlugin
+	// 找不到别名 key 会落到 neutron 兜底。未注册时返回小写原值+空端口(已由 Validate 拦截)。
+	canonical, port, _ := pkg.NormalizeService(s)
+	t.Service = canonical
 	if t.Port == "" {
-		t.Port = pkg.Services.DefaultPort(t.Service)
+		t.Port = port
 	}
 }
 

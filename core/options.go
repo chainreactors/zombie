@@ -103,6 +103,20 @@ func (opt *Option) Validate() error {
 	if opt.UsernameRule != "" && (opt.Username == nil && opt.UsernameFile == "") {
 		return errors.New("use custom username rule must set username, please set -u/-U")
 	}
+	// 校验 -s 指定的服务名:未注册的服务名(memcache/postgres/8080…)在 Prepare 阶段会经
+	// DefaultPort 触发崩溃或后续静默 0,这里提前友好报错。用 NormalizeService 以接受别名
+	// (postgre/mongodb 等),且与执行期 canonical 解析口径一致。
+	if opt.ServiceName != "" {
+		for _, name := range strings.Split(opt.ServiceName, ",") {
+			if strings.TrimSpace(name) == "" {
+				continue
+			}
+			if _, _, ok := pkg.NormalizeService(name); !ok {
+				return fmt.Errorf("unknown service %q, supported services: %s",
+					strings.ToLower(strings.TrimSpace(name)), pkg.SupportedServiceNames())
+			}
+		}
+	}
 	return nil
 }
 
@@ -170,7 +184,13 @@ func (opt *Option) Prepare() (*Runner, error) {
 	logs.Log.Importantf("mod: %s, check-unauth: %t, check-honeypot: %t", runner.Mod, !runner.NoUnAuth, !runner.NoCheckHoneyPot)
 
 	if opt.ServiceName != "" {
-		runner.Services = strings.Split(strings.ToLower(opt.ServiceName), ",")
+		// canonical 化:targetGenerate 的服务过滤按 canonical 名匹配(json/gogo 目标存的是
+		// canonical),别名(mongodb 等)若不归一会过滤不到任何目标。
+		for _, name := range strings.Split(opt.ServiceName, ",") {
+			if canonical, _, ok := pkg.NormalizeService(name); ok {
+				runner.Services = append(runner.Services, canonical)
+			}
+		}
 	}
 
 	if opt.JsonFile != "" {
