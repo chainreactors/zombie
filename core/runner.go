@@ -80,8 +80,8 @@ type Runner struct {
 	Addrs    utils.Addrs
 	Targets  []*Target
 	Services []string
-	// OutputCh 无缓冲。默认由内建 OutputHandler 消费;直接消费它的 SDK 调用方必须在
-	// Run 前置 RunnerOption.ManualDrain=true 并自行并发 drain,否则首个 Output() 会死锁。
+	// OutputCh 无缓冲。OutFunc 非 nil 时由内建 OutputHandler 消费;
+	// OutFunc 为 nil 的 SDK 调用方应自行并发消费。
 	OutputCh     chan *pkg.Result
 	File         *fileutils.File
 	OutFunc      func(string)
@@ -211,11 +211,7 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 		return fmt.Errorf("pitchfork mode requires auth, please set -a/-A")
 	}
 
-	// OutputHandler 是无缓冲 OutputCh 的唯一内建读者兼 console 打印者,除非调用方
-	// 显式 ManualDrain 自行消费,否则必须启动它——否则首个 Output() 在 `OutputCh <- res`
-	// 永久阻塞,整个爆破死锁且零输出(历史 bug:曾以 OutFunc!=nil 即“是否给了 -f”为
-	// 门控,导致 stdout/-o 输出模式下 handler 不启动)。
-	if !r.ManualDrain {
+	if r.OutFunc != nil {
 		go r.OutputHandler()
 	}
 
@@ -303,8 +299,7 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	default:
 		return nil
 	}
-	// 等内建 handler 处理完所有在飞结果再 close;ManualDrain 模式无内建 handler,直接 close。
-	if !r.ManualDrain {
+	if r.OutFunc != nil {
 		r.outlock.Wait()
 	}
 	r.outMu.Lock()
@@ -507,10 +502,6 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 
 	go func() {
 		defer close(ch)
-		// ctx 取消(FirstOnly 命中)时用带标签 break 退出循环,落到下面的 wg.Wait()
-		// 等所有 user goroutine(ch 的发送者)退出后,再由 defer 执行 close(ch)。
-		// 绝不能在此 return:那会跳过 wg.Wait(),让 close(ch) 与仍在 `ch <- task`
-		// 的发送者并发,触发 panic: send on closed channel。
 	genLoop:
 		for _, user := range users {
 			select {
@@ -525,9 +516,6 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 				if !r.NoUnAuth {
 					userLocker := &sync.Mutex{}
 					userLocker.Lock()
-					// 与下方 brute 发送一致:用 select 让 ctx 取消时能退出,不在无人
-					// 接收的 ch 上裸发送(裸发送在 ctx 取消时既会卡死 wg.Wait,又会与
-					// close(ch) 竞争触发 panic: send on closed channel)。
 					select {
 					case ch <- &pkg.Task{
 						ZombieResult: &parsers.ZombieResult{
@@ -612,9 +600,7 @@ func (r *Runner) add(task *pkg.Task) {
 }
 
 func (r *Runner) Output(res *pkg.Result) {
-	// outlock 与内建 OutputHandler 配对计数(收尾 outlock.Wait() 等其处理完所有结果再
-	// close OutputCh);仅在 handler 运行(非 ManualDrain)时计数,保持平衡。
-	if !r.ManualDrain {
+	if r.OutFunc != nil {
 		r.outlock.Add(1)
 	}
 	r.stat.RecordResult(res)
@@ -634,9 +620,7 @@ loop:
 				break loop
 			}
 			if result.OK {
-				// 以写出器 OutFunc 是否存在为准(而非 File):既防 SDK 只设 File 不设 OutFunc
-				// 时 nil 调用,也允许 SDK 提供无文件的自定义 sink。
-				if r.OutFunc != nil {
+				if r.File != nil && r.OutFunc != nil {
 					r.OutFunc(result.Format(r.FileFormat))
 				}
 				logs.Log.Console(result.Format(r.OutputFormat))

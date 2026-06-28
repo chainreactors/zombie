@@ -102,10 +102,7 @@ func ParseUrl(u string) (*Target, bool) {
 	}
 
 	if parsed.Scheme != "" {
-		t.Service = parsed.Scheme
-		if t.Port == "" {
-			t.Port = pkg.Services.DefaultPort(t.Service)
-		}
+		t.UpdateService(parsed.Scheme)
 		t.Scheme = parsed.Scheme
 	} else if t.Port != "" {
 		t.Service = pkg.GetDefault(t.Port)

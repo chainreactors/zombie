@@ -98,6 +98,9 @@ func RunWithArgs(ctx context.Context, args []string, opts RunOptions) error {
 	if err != nil {
 		return err
 	}
+	if runner.OutFunc == nil {
+		runner.OutFunc = func(string) {}
+	}
 	if opts.ProxyDial != nil {
 		runner.ProxyDial = opts.ProxyDial
 	}
