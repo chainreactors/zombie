@@ -5,6 +5,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestRunWithArgsListsServices(t *testing.T) {
@@ -27,5 +28,32 @@ func TestRunWithArgsRejectsUnsupportedMod(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "unsupported mod") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRunWithArgsWithoutOutputFileDoesNotDeadlock(t *testing.T) {
+	done := make(chan error, 1)
+	go func() {
+		var out bytes.Buffer
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		done <- RunWithArgs(ctx, []string{
+			"-i", "127.0.0.1:1",
+			"-s", "redis",
+			"-m", ModSniper,
+			"-u", "default",
+			"-p", "test",
+			"--timeout", "1",
+			"-q",
+		}, RunOptions{Output: &out})
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(4 * time.Second):
+		t.Fatal("RunWithArgs deadlocked without -f")
 	}
 }
