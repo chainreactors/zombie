@@ -103,15 +103,12 @@ func (opt *Option) Validate() error {
 	if opt.UsernameRule != "" && (opt.Username == nil && opt.UsernameFile == "") {
 		return errors.New("use custom username rule must set username, please set -u/-U")
 	}
-	// 校验 -s 指定的服务名:未注册的服务名(memcache/postgres/8080…)在 Prepare 阶段会经
-	// DefaultPort 触发崩溃或后续静默 0,这里提前友好报错。用 NormalizeService 以接受别名
-	// (postgre/mongodb 等),且与执行期 canonical 解析口径一致。
 	if opt.ServiceName != "" {
 		for _, name := range strings.Split(opt.ServiceName, ",") {
 			if strings.TrimSpace(name) == "" {
 				continue
 			}
-			if _, _, ok := pkg.NormalizeService(name); !ok {
+			if _, ok := pkg.Services.Get(name); !ok {
 				return fmt.Errorf("unknown service %q, supported services: %s",
 					strings.ToLower(strings.TrimSpace(name)), pkg.SupportedServiceNames())
 			}
@@ -184,11 +181,9 @@ func (opt *Option) Prepare() (*Runner, error) {
 	logs.Log.Importantf("mod: %s, check-unauth: %t, check-honeypot: %t", runner.Mod, !runner.NoUnAuth, !runner.NoCheckHoneyPot)
 
 	if opt.ServiceName != "" {
-		// canonical 化:targetGenerate 的服务过滤按 canonical 名匹配(json/gogo 目标存的是
-		// canonical),别名(mongodb 等)若不归一会过滤不到任何目标。
 		for _, name := range strings.Split(opt.ServiceName, ",") {
-			if canonical, _, ok := pkg.NormalizeService(name); ok {
-				runner.Services = append(runner.Services, canonical)
+			if s, ok := pkg.Services.Get(name); ok {
+				runner.Services = append(runner.Services, s.Name)
 			}
 		}
 	}
@@ -244,10 +239,27 @@ func (opt *Option) Prepare() (*Runner, error) {
 		}
 	}
 
+	filterServices := map[string]struct{}{}
+	if opt.FilterService != "" {
+		for _, name := range strings.Split(opt.FilterService, ",") {
+			name = strings.TrimSpace(name)
+			if name == "" {
+				continue
+			}
+			if s, ok := pkg.Services.Get(name); ok {
+				filterServices[s.Name] = struct{}{}
+			} else {
+				filterServices[strings.ToLower(name)] = struct{}{}
+			}
+		}
+	}
+
 	for _, t := range targets {
 		// 如果指定了service, 将会覆盖json或gogo中的字段
 		if opt.ServiceName != "" {
 			t.UpdateService(opt.ServiceName)
+		} else if t.Service != "" {
+			t.UpdateService(t.Service)
 		}
 
 		if t.Service == "" {
@@ -255,15 +267,8 @@ func (opt *Option) Prepare() (*Runner, error) {
 			continue
 		}
 
-		if opt.FilterService != "" {
-			var ok bool
-			for _, s := range strings.Split(opt.FilterService, ",") {
-				if s == t.Service {
-					ok = true
-					break
-				}
-			}
-			if !ok {
+		if len(filterServices) > 0 {
+			if _, ok := filterServices[t.Service]; !ok {
 				continue
 			}
 		}

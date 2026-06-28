@@ -48,6 +48,7 @@ type services struct {
 }
 
 func (ss *services) Get(name string) (*Service, bool) {
+	name = strings.ToLower(strings.TrimSpace(name))
 	if s, ok := ss.Plugins[name]; ok {
 		return s, true
 	}
@@ -73,24 +74,7 @@ func (ss *services) DefaultPort(service string) string {
 	if s, ok := ss.Get(service); ok {
 		return s.DefaultPort
 	}
-	// 未注册服务名返回空端口。不能走 utils.ParsePortsString:它解引用 utils.PrePort 全局,
-	// 而 zombie 初始化的是 fingers/resources.PrePort,utils.PrePort 恒为 nil → 对未知服务名
-	// 会 nil 解引用 SIGSEGV(见 -s memcache/-s postgres 崩溃)。未知服务统一在 Validate 期
-	// 友好报错,这里不再尝试把服务名当端口解析。
 	return ""
-}
-
-// NormalizeService 把服务名或别名规范化为 canonical 插件名(如 postgre→postgresql、
-// mongodb→mongo),并返回其默认端口。未注册返回 (lower, "", false)。
-// -s 校验 / runner.Services 过滤 / Target.UpdateService 必须统一用它:插件注册表只认
-// canonical key(RegisterPlugin("postgresql"...)),别名不在其中,否则别名会“校验通过却
-// 在执行期 resolvePlugin 落到 neutron 兜底”(实测 -s postgre/-s mongodb 跑成 neutron)。
-func NormalizeService(service string) (canonical, defaultPort string, ok bool) {
-	name := strings.ToLower(strings.TrimSpace(service))
-	if s, found := Services.Get(name); found {
-		return s.Name, s.DefaultPort, true
-	}
-	return name, "", false
 }
 
 // SupportedServiceNames 返回所有已注册服务名(已排序),供未知服务的友好报错使用。
