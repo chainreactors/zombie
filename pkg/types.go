@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/chainreactors/fingers/common"
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/utils/httpx"
 	"net"
 	"net/http"

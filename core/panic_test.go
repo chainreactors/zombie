@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/zombie/action"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/chainreactors/zombie/plugin"

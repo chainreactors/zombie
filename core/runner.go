@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/chainreactors/logs"
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/utils/fileutils"
 	"github.com/chainreactors/utils/iutils"
@@ -74,12 +74,12 @@ type Runner struct {
 	Pipeline   []pkg.Action
 	PostAction *action.PostAction
 
-	Users    *Generator
-	Pwds     *Generator
-	Auths    *Generator
-	Addrs    utils.Addrs
-	Targets  []*Target
-	Services []string
+	Users          *Generator
+	Pwds           *Generator
+	Auths          *Generator
+	Addrs          utils.Addrs
+	Targets        []*Target
+	Services       []string
 	OutputCh       chan *pkg.Result
 	ResultCallback func(*parsers.ZombieResult)
 	File           *fileutils.File

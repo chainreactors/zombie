@@ -163,8 +163,10 @@ func (t *Template) ExecuteWithOptions(session pkg.Session, host string, cliVars,
 				allRawResponses.WriteString(event.OperatorsResult.Response)
 			}
 			for k, v := range event.OperatorsResult.DynamicValues {
-				if len(v) > 0 {
-					dynamicValues[k] = v[0]
+				if s, ok := v.([]string); ok && len(s) > 0 {
+					dynamicValues[k] = s[0]
+				} else if v != nil {
+					dynamicValues[k] = v
 				}
 			}
 			if !event.OperatorsResult.Matched && !event.OperatorsResult.Extracted {
