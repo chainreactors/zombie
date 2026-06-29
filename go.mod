@@ -6,12 +6,12 @@ toolchain go1.24.3
 
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
-	github.com/chainreactors/fingers v1.2.1
+	github.com/chainreactors/fingers v1.2.2-0.20260629060048-25d52909ff9b
 	github.com/chainreactors/logs v0.0.0-20260508055944-c678762ed15c
-	github.com/chainreactors/neutron v0.0.0-20260624180655-6264ae4da3f9
-	github.com/chainreactors/parsers v0.0.0-20260608085142-3d2c51baa8fe
+	github.com/chainreactors/neutron v0.1.1-0.20260629055246-979be130dcaa
 	github.com/chainreactors/proton v0.3.0
-	github.com/chainreactors/utils v0.0.0-20260529172343-6465cb8568b2
+	github.com/chainreactors/utils v0.0.0-20260629054935-23a3e0a235f9
+	github.com/chainreactors/utils/parsers v0.0.0-20260629054935-23a3e0a235f9
 	github.com/chainreactors/words v0.0.0-20260520145736-270600e60fb4
 	github.com/denisenkom/go-mssqldb v0.9.0
 	github.com/eclipse/paho.mqtt.golang v1.4.3
