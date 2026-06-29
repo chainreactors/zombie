@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/chainreactors/neutron/protocols"
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/proton/proton/file"
 	"github.com/chainreactors/proton/template"
 	"github.com/chainreactors/zombie/pkg"

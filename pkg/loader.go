@@ -4,7 +4,7 @@ import (
 	"github.com/chainreactors/fingers/fingers"
 	"github.com/chainreactors/fingers/resources"
 	templates "github.com/chainreactors/neutron/templates"
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/words/mask"

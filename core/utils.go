@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"

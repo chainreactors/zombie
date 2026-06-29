@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 )
 
 func TestResultFormatJSONIncludesExtracteds(t *testing.T) {

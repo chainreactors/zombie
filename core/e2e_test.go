@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/zombie/pkg"
 )
 

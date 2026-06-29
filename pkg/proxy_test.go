@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 )
 
 // TestTaskHTTPClientProxy 验证 http 系插件统一使用的 task.HTTPClient 会经过 ProxyDial。

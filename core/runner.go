@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/chainreactors/logs"
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/utils/fileutils"
 	"github.com/chainreactors/utils/iutils"
@@ -80,11 +80,12 @@ type Runner struct {
 	Addrs        utils.Addrs
 	Targets      []*Target
 	Services     []string
-	OutputCh     chan *pkg.Result
-	File         *fileutils.File
-	OutFunc      func(string)
-	FileFormat   string
-	OutputFormat string
+	OutputCh       chan *pkg.Result
+	ResultCallback func(*parsers.ZombieResult)
+	File           *fileutils.File
+	OutFunc        func(string)
+	FileFormat     string
+	OutputFormat   string
 	Pool         *ants.PoolWithFunc
 	hostSem      *hostLimiter
 }
@@ -613,6 +614,9 @@ loop:
 				break loop
 			}
 			if result.OK {
+				if r.ResultCallback != nil && result.ZombieResult != nil {
+					r.ResultCallback(result.ZombieResult)
+				}
 				if r.File != nil {
 					r.OutFunc(result.Format(r.FileFormat))
 				}
