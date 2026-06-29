@@ -103,17 +103,6 @@ func (opt *Option) Validate() error {
 	if opt.UsernameRule != "" && (opt.Username == nil && opt.UsernameFile == "") {
 		return errors.New("use custom username rule must set username, please set -u/-U")
 	}
-	if opt.ServiceName != "" {
-		for _, name := range strings.Split(opt.ServiceName, ",") {
-			if strings.TrimSpace(name) == "" {
-				continue
-			}
-			if _, ok := pkg.Services.Get(name); !ok {
-				return fmt.Errorf("unknown service %q, supported services: %s",
-					strings.ToLower(strings.TrimSpace(name)), pkg.SupportedServiceNames())
-			}
-		}
-	}
 	return nil
 }
 
@@ -122,16 +111,10 @@ func (opt *Option) Prepare() (*Runner, error) {
 	var targets []*Target
 
 	var file *fileutils.File
-	var outfunc func(string)
 	if opt.OutputFile != "" {
 		file, err = fileutils.NewFile(opt.OutputFile, fileutils.ModeAppend, false, false)
 		if err != nil {
 			return nil, err
-		}
-		outfunc = func(s string) {
-			if err := file.SyncWrite(s); err != nil {
-				logs.Log.Warn(fmt.Sprintf("write output file failed: %v", err))
-			}
 		}
 	}
 
@@ -170,7 +153,6 @@ func (opt *Option) Prepare() (*Runner, error) {
 		return nil, err
 	}
 	runner.File = file
-	runner.OutFunc = outfunc
 	runner.FileFormat = opt.FileFormat
 	runner.OutputFormat = opt.OutputFormat
 
@@ -182,9 +164,15 @@ func (opt *Option) Prepare() (*Runner, error) {
 
 	if opt.ServiceName != "" {
 		for _, name := range strings.Split(opt.ServiceName, ",") {
-			if s, ok := pkg.Services.Get(name); ok {
-				runner.Services = append(runner.Services, s.Name)
+			name = strings.TrimSpace(name)
+			if name == "" {
+				continue
 			}
+			s, ok := pkg.Services.Get(name)
+			if !ok {
+				return nil, fmt.Errorf("unknown service %q, supported: %s", name, pkg.SupportedServiceNames())
+			}
+			runner.Services = append(runner.Services, s.Name)
 		}
 	}
 

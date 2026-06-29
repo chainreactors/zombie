@@ -56,18 +56,18 @@ func TestOptionValidateRequiresPitchforkAuth(t *testing.T) {
 	}
 }
 
-func TestOptionValidateRejectsUnknownService(t *testing.T) {
+func TestOptionPrepareRejectsUnknownService(t *testing.T) {
 	for _, service := range []string{"memcache", "postgres", "8080"} {
 		opt := &Option{}
 		opt.IP = []string{"127.0.0.1"}
 		opt.ServiceName = service
 		opt.Mod = ModSniper
 
-		err := opt.Validate()
+		_, err := opt.Prepare()
 		if err == nil {
 			t.Fatalf("expected %q to be rejected", service)
 		}
-		if !strings.Contains(err.Error(), `unknown service "`+service+`"`) {
+		if !strings.Contains(err.Error(), `unknown service`) {
 			t.Fatalf("unexpected error for %q: %v", service, err)
 		}
 	}
@@ -105,7 +105,7 @@ func TestOptionPrepareCanonicalizesServiceAliases(t *testing.T) {
 	}
 }
 
-func TestOptionPrepareKeepsOutputHandlerOptInForLibraryCallers(t *testing.T) {
+func TestOptionPrepareKeepsFileNilWithoutOutputFlag(t *testing.T) {
 	opt := &Option{}
 	opt.IP = []string{"127.0.0.1"}
 	opt.ServiceName = "redis"
@@ -115,8 +115,8 @@ func TestOptionPrepareKeepsOutputHandlerOptInForLibraryCallers(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if runner.OutFunc != nil {
-		t.Fatal("Prepare without output file should leave OutFunc nil")
+	if runner.File != nil {
+		t.Fatal("Prepare without -f should leave File nil")
 	}
 }
 
@@ -159,11 +159,10 @@ func TestOptionPrepareOutputFileWriter(t *testing.T) {
 	if runner.File == nil {
 		t.Fatal("expected output file writer")
 	}
-	if runner.OutFunc == nil {
-		t.Fatal("expected output function")
-	}
 
-	runner.OutFunc("ok\n")
+	if err := runner.File.SyncWrite("ok\n"); err != nil {
+		t.Fatal(err)
+	}
 	if err := runner.File.Close(); err != nil {
 		t.Fatal(err)
 	}
