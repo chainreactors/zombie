@@ -3,7 +3,7 @@ package pkg
 import (
 	"github.com/chainreactors/fingers/fingers"
 	templates "github.com/chainreactors/neutron/templates"
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/words/mask"

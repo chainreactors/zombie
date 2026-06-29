@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/chainreactors/logs"
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/jessevdk/go-flags"
 )

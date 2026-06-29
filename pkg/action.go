@@ -2,7 +2,7 @@ package pkg
 
 import (
 	"github.com/chainreactors/fingers/common"
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 )
 
 type ActionResult struct {

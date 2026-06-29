@@ -9,7 +9,7 @@ import (
 	"github.com/chainreactors/logs"
 	"github.com/chainreactors/neutron/protocols"
 	"github.com/chainreactors/neutron/templates"
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/chainreactors/zombie/service"
 	"gopkg.in/yaml.v3"
@@ -112,8 +112,10 @@ func (a *ServiceAction) Run(session pkg.Session, task *pkg.Task) (*pkg.ActionRes
 
 		chainVars := copyVars(mergedVars)
 		for k, v := range opResult.DynamicValues {
-			if len(v) > 0 {
-				chainVars[k] = v[0]
+			if s, ok := v.([]string); ok && len(s) > 0 {
+				chainVars[k] = s[0]
+			} else if v != nil {
+				chainVars[k] = v
 			}
 		}
 		for k, v := range opResult.Extracts {
