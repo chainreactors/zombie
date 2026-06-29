@@ -42,10 +42,14 @@ func (t *Target) URL() string {
 }
 
 func (t *Target) UpdateService(s string) {
-	t.Service = strings.ToLower(s)
-	if t.Port == "" {
-		t.Port = pkg.Services.DefaultPort(t.Service)
+	if svc, ok := pkg.Services.Get(s); ok {
+		t.Service = svc.Name
+		if t.Port == "" {
+			t.Port = svc.DefaultPort
+		}
+		return
 	}
+	t.Service = strings.ToLower(strings.TrimSpace(s))
 }
 
 func (t *Target) Addr() *utils.Addr {

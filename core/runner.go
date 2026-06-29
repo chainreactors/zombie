@@ -74,16 +74,15 @@ type Runner struct {
 	Pipeline   []pkg.Action
 	PostAction *action.PostAction
 
-	Users        *Generator
-	Pwds         *Generator
-	Auths        *Generator
-	Addrs        utils.Addrs
-	Targets      []*Target
-	Services     []string
+	Users          *Generator
+	Pwds           *Generator
+	Auths          *Generator
+	Addrs          utils.Addrs
+	Targets        []*Target
+	Services       []string
 	OutputCh       chan *pkg.Result
 	ResultCallback func(*parsers.ZombieResult)
 	File           *fileutils.File
-	OutFunc        func(string)
 	FileFormat     string
 	OutputFormat   string
 	Pool         *ants.PoolWithFunc
@@ -210,9 +209,7 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 		return fmt.Errorf("pitchfork mode requires auth, please set -a/-A")
 	}
 
-	if r.OutFunc != nil {
-		go r.OutputHandler()
-	}
+	go r.OutputHandler()
 
 	r.hostSem = newHostLimiter(r.Concurrency)
 	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
@@ -298,9 +295,7 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	default:
 		return nil
 	}
-	if r.OutFunc != nil {
-		r.outlock.Wait()
-	}
+	r.outlock.Wait()
 	r.outMu.Lock()
 	r.outClose = true
 	close(r.OutputCh)
@@ -459,19 +454,8 @@ func (r *Runner) RunWithClusterBomb(ctx context.Context, targets chan *Target) {
 				locker.Unlock()
 			}
 
-			ch := r.clusterBombGenerate(targetCtx, cancel, cur)
-		loop:
-			for {
-				select {
-				case task, ok := <-ch:
-					if ok {
-						r.add(task)
-					} else {
-						break loop
-					}
-				case <-targetCtx.Done():
-					break loop
-				}
+			for task := range r.clusterBombGenerate(targetCtx, cancel, cur) {
+				r.add(task)
 			}
 		}()
 	}
@@ -501,10 +485,11 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 
 	go func() {
 		defer close(ch)
+	genLoop:
 		for _, user := range users {
 			select {
 			case <-ctx.Done():
-				return
+				break genLoop
 			default:
 			}
 			wg.Add(1)
@@ -514,7 +499,8 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 				if !r.NoUnAuth {
 					userLocker := &sync.Mutex{}
 					userLocker.Lock()
-					ch <- &pkg.Task{
+					select {
+					case ch <- &pkg.Task{
 						ZombieResult: &parsers.ZombieResult{
 							IP:       target.IP,
 							Port:     target.Port,
@@ -528,6 +514,9 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 						Context:  ctx,
 						Canceler: canceler,
 						Locker:   userLocker,
+					}:
+					case <-ctx.Done():
+						return
 					}
 					userLocker.Lock()
 					userLocker.Unlock()
@@ -594,9 +583,7 @@ func (r *Runner) add(task *pkg.Task) {
 }
 
 func (r *Runner) Output(res *pkg.Result) {
-	if r.OutFunc != nil {
-		r.outlock.Add(1)
-	}
+	r.outlock.Add(1)
 	r.stat.RecordResult(res)
 	r.outMu.Lock()
 	if !r.outClose {
@@ -606,29 +593,24 @@ func (r *Runner) Output(res *pkg.Result) {
 }
 
 func (r *Runner) OutputHandler() {
-loop:
-	for {
-		select {
-		case result, ok := <-r.OutputCh:
-			if !ok {
-				break loop
+	for result := range r.OutputCh {
+		if result.OK {
+			if r.ResultCallback != nil && result.ZombieResult != nil {
+				r.ResultCallback(result.ZombieResult)
 			}
-			if result.OK {
-				if r.ResultCallback != nil && result.ZombieResult != nil {
-					r.ResultCallback(result.ZombieResult)
+			if r.File != nil {
+				if err := r.File.SyncWrite(result.Format(r.FileFormat)); err != nil {
+					logs.Log.Warnf("write output file failed: %v", err)
 				}
-				if r.File != nil {
-					r.OutFunc(result.Format(r.FileFormat))
-				}
-				logs.Log.Console(result.Format(r.OutputFormat))
-			} else {
-				errMsg := "unknown error"
-				if result.Err != nil {
-					errMsg = result.Err.Error()
-				}
-				logs.Log.Debugf("[%s] %s %s %s ,%s login failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Service, errMsg)
 			}
-			r.outlock.Done()
+			logs.Log.Console(result.Format(r.OutputFormat))
+		} else {
+			errMsg := "unknown error"
+			if result.Err != nil {
+				errMsg = result.Err.Error()
+			}
+			logs.Log.Debugf("[%s] %s %s %s ,%s login failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Service, errMsg)
 		}
+		r.outlock.Done()
 	}
 }

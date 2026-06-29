@@ -111,16 +111,10 @@ func (opt *Option) Prepare() (*Runner, error) {
 	var targets []*Target
 
 	var file *fileutils.File
-	var outfunc func(string)
 	if opt.OutputFile != "" {
 		file, err = fileutils.NewFile(opt.OutputFile, fileutils.ModeAppend, false, false)
 		if err != nil {
 			return nil, err
-		}
-		outfunc = func(s string) {
-			if err := file.SyncWrite(s); err != nil {
-				logs.Log.Warn(fmt.Sprintf("write output file failed: %v", err))
-			}
 		}
 	}
 
@@ -159,7 +153,6 @@ func (opt *Option) Prepare() (*Runner, error) {
 		return nil, err
 	}
 	runner.File = file
-	runner.OutFunc = outfunc
 	runner.FileFormat = opt.FileFormat
 	runner.OutputFormat = opt.OutputFormat
 
@@ -170,7 +163,17 @@ func (opt *Option) Prepare() (*Runner, error) {
 	logs.Log.Importantf("mod: %s, check-unauth: %t, check-honeypot: %t", runner.Mod, !runner.NoUnAuth, !runner.NoCheckHoneyPot)
 
 	if opt.ServiceName != "" {
-		runner.Services = strings.Split(strings.ToLower(opt.ServiceName), ",")
+		for _, name := range strings.Split(opt.ServiceName, ",") {
+			name = strings.TrimSpace(name)
+			if name == "" {
+				continue
+			}
+			s, ok := pkg.Services.Get(name)
+			if !ok {
+				return nil, fmt.Errorf("unknown service %q, supported: %s", name, pkg.SupportedServiceNames())
+			}
+			runner.Services = append(runner.Services, s.Name)
+		}
 	}
 
 	if opt.JsonFile != "" {
@@ -224,10 +227,27 @@ func (opt *Option) Prepare() (*Runner, error) {
 		}
 	}
 
+	filterServices := map[string]struct{}{}
+	if opt.FilterService != "" {
+		for _, name := range strings.Split(opt.FilterService, ",") {
+			name = strings.TrimSpace(name)
+			if name == "" {
+				continue
+			}
+			if s, ok := pkg.Services.Get(name); ok {
+				filterServices[s.Name] = struct{}{}
+			} else {
+				filterServices[strings.ToLower(name)] = struct{}{}
+			}
+		}
+	}
+
 	for _, t := range targets {
 		// 如果指定了service, 将会覆盖json或gogo中的字段
 		if opt.ServiceName != "" {
 			t.UpdateService(opt.ServiceName)
+		} else if t.Service != "" {
+			t.UpdateService(t.Service)
 		}
 
 		if t.Service == "" {
@@ -235,15 +255,8 @@ func (opt *Option) Prepare() (*Runner, error) {
 			continue
 		}
 
-		if opt.FilterService != "" {
-			var ok bool
-			for _, s := range strings.Split(opt.FilterService, ",") {
-				if s == t.Service {
-					ok = true
-					break
-				}
-			}
-			if !ok {
+		if len(filterServices) > 0 {
+			if _, ok := filterServices[t.Service]; !ok {
 				continue
 			}
 		}

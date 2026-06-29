@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"github.com/chainreactors/fingers/common"
 	"github.com/chainreactors/utils/parsers"
-	"github.com/chainreactors/utils"
 	"github.com/chainreactors/utils/httpx"
 	"net"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -48,6 +48,7 @@ type services struct {
 }
 
 func (ss *services) Get(name string) (*Service, bool) {
+	name = strings.ToLower(strings.TrimSpace(name))
 	if s, ok := ss.Plugins[name]; ok {
 		return s, true
 	}
@@ -72,12 +73,19 @@ func (ss *services) Register(s *Service) bool {
 func (ss *services) DefaultPort(service string) string {
 	if s, ok := ss.Get(service); ok {
 		return s.DefaultPort
-	} else if s := utils.ParsePortsString(service); len(s) > 0 {
-		return s[0]
 	}
 	return ""
 }
 
+// SupportedServiceNames 返回所有已注册服务名(已排序),供未知服务的友好报错使用。
+func SupportedServiceNames() string {
+	names := make([]string, 0, len(Services.Plugins))
+	for name := range Services.Plugins {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return strings.Join(names, ", ")
+}
 
 const (
 	PluginSource  = "plugin"

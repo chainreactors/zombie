@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"github.com/chainreactors/fingers/fingers"
-	"github.com/chainreactors/fingers/resources"
 	templates "github.com/chainreactors/neutron/templates"
 	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/utils"
@@ -19,6 +18,8 @@ var (
 	ServiceTemplateData []byte
 	LootTemplateData    []byte
 	FingersEngine       *fingers.FingersEngine
+	PortPreset          *utils.PortPreset
+	portConfigData      []byte
 )
 
 func Load() error {
@@ -123,20 +124,20 @@ func LoadLootTemplates() error {
 func LoadPorts() error {
 	var ports []*utils.PortConfig
 	content := LoadConfig("port")
-	resources.PortData = content
+	portConfigData = content
 	err := yaml.Unmarshal(content, &ports)
 	if err != nil {
 		return err
 	}
 
-	resources.PrePort = utils.NewPortPreset(ports)
+	PortPreset = utils.NewPortPreset(ports)
 	return nil
 }
 
 func LoadFingers() error {
-	resources.FingersHTTPData = LoadConfig("http")
-	resources.FingersSocketData = LoadConfig("socket")
-	engine, err := fingers.NewFingersEngine(resources.FingersHTTPData, resources.FingersSocketData, resources.PortData)
+	httpData := LoadConfig("http")
+	socketData := LoadConfig("socket")
+	engine, err := fingers.NewFingersEngine(httpData, socketData, portConfigData)
 	if err != nil {
 		return err
 	}

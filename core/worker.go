@@ -79,6 +79,11 @@ func resolvePlugin(service string, plugins map[string]plugin.Plugin) plugin.Plug
 	if p, ok := plugins[service]; ok {
 		return p
 	}
+	if s, ok := pkg.Services.Get(service); ok {
+		if p, ok := plugins[s.Name]; ok {
+			return p
+		}
+	}
 	if p, ok := plugins["neutron"]; ok {
 		return p
 	}

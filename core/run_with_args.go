@@ -100,11 +100,11 @@ func RunWithArgs(ctx context.Context, args []string, opts RunOptions) error {
 	if err != nil {
 		return err
 	}
-	if opts.ProxyDial != nil {
-		runner.ProxyDial = opts.ProxyDial
-	}
 	if opts.OnResult != nil {
 		runner.ResultCallback = opts.OnResult
+	}
+	if opts.ProxyDial != nil {
+		runner.ProxyDial = opts.ProxyDial
 	}
 	return runner.RunWithContext(ctx)
 }
