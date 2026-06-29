@@ -6,7 +6,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 )
 
 func TestClassifyError_Timeout(t *testing.T) {

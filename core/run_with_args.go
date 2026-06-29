@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/chainreactors/logs"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/jessevdk/go-flags"
 )
@@ -18,6 +19,7 @@ type RunOptions struct {
 	Output    io.Writer
 	Version   string
 	ProxyDial pkg.DialFunc
+	OnResult  func(*parsers.ZombieResult)
 }
 
 func Help() string {
@@ -100,6 +102,9 @@ func RunWithArgs(ctx context.Context, args []string, opts RunOptions) error {
 	}
 	if opts.ProxyDial != nil {
 		runner.ProxyDial = opts.ProxyDial
+	}
+	if opts.OnResult != nil {
+		runner.ResultCallback = opts.OnResult
 	}
 	return runner.RunWithContext(ctx)
 }
