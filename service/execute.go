@@ -134,7 +134,7 @@ func (r *Request) payloadIterator(varOverrides, payloadOverrides map[string]inte
 	return generator.NewIterator(), nil
 }
 
-// normalizeOp maps legacy fields to the primary shell/db/kv/file/ldap fields.
+// normalizeOp maps legacy fields to the primary shell/db/kv/file/ldap/audit fields.
 func normalizeOp(op *Op) *Op {
 	if op.Shell != "" || op.DB != "" || op.KV != "" || op.File != nil || op.LDAP != nil {
 		return op
