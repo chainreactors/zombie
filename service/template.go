@@ -198,19 +198,7 @@ func mergeResult(dst, src *operators.Result) {
 	if src.Extracted {
 		dst.Extracted = true
 	}
-	for k, v := range src.Matches {
-		if dst.Matches == nil {
-			dst.Matches = make(map[string][]string)
-		}
-		dst.Matches[k] = append(dst.Matches[k], v...)
-	}
-	for k, v := range src.Extracts {
-		if dst.Extracts == nil {
-			dst.Extracts = make(map[string][]string)
-		}
-		dst.Extracts[k] = append(dst.Extracts[k], v...)
-	}
-	dst.OutputExtracts = append(dst.OutputExtracts, src.OutputExtracts...)
+	dst.Events = append(dst.Events, src.Events...)
 }
 
 func (t *Template) executionVariables(host string, cliVars map[string]interface{}) map[string]interface{} {

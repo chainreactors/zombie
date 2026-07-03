@@ -84,13 +84,8 @@ func (a *PostAction) ScanData(data []byte, label string) []*parsers.Extracted {
 	for _, group := range a.scanner.Groups {
 		for _, f := range a.scanner.ScanData(data, label, group) {
 			var extracts []string
-			for _, e := range f.Extracts {
+			for _, e := range f.Events {
 				extracts = append(extracts, e.Value)
-			}
-			for _, events := range f.Matches {
-				for _, e := range events {
-					extracts = append(extracts, e.Value)
-				}
 			}
 			if len(extracts) > 0 {
 				results = append(results, &parsers.Extracted{

@@ -1,6 +1,6 @@
 module github.com/chainreactors/zombie
 
-go 1.22.0
+go 1.24.0
 
 toolchain go1.24.3
 
@@ -8,10 +8,11 @@ require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
 	github.com/chainreactors/fingers v1.2.2-0.20260629103336-467eef72e53e
 	github.com/chainreactors/logs v0.0.0-20260508055944-c678762ed15c
-	github.com/chainreactors/neutron v0.1.1-0.20260629055246-979be130dcaa
-	github.com/chainreactors/proton v0.3.0
+	github.com/chainreactors/neutron v0.1.1-0.20260703124839-c4091ad1e02d
+	github.com/chainreactors/parsers v0.0.0-20260608085142-3d2c51baa8fe
+	github.com/chainreactors/proton v0.3.3-0.20260703125000-97bdff4bcf27
 	github.com/chainreactors/utils v0.0.0-20260629103303-9318b2958679
-	github.com/chainreactors/utils/parsers v0.0.0-20260629054935-23a3e0a235f9
+	github.com/chainreactors/utils/parsers v0.0.0-20260703124640-175b2abe30c2
 	github.com/chainreactors/words v0.0.0-20260520145736-270600e60fb4
 	github.com/denisenkom/go-mssqldb v0.9.0
 	github.com/eclipse/paho.mqtt.golang v1.4.3
@@ -31,8 +32,8 @@ require (
 	github.com/streadway/amqp v1.1.0
 	github.com/vbauerster/mpb/v8 v8.7.2
 	go.mongodb.org/mongo-driver v1.12.0
-	golang.org/x/crypto v0.19.0
-	golang.org/x/net v0.21.0
+	golang.org/x/crypto v0.31.0
+	golang.org/x/net v0.33.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -42,7 +43,8 @@ require (
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
 	github.com/charlievieth/fastwalk v1.0.14 // indirect
-	github.com/dlclark/regexp2 v1.11.5 // indirect
+	github.com/clipperhouse/stringish v0.1.1 // indirect
+	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/edsrzf/mmap-go v1.2.0 // indirect
 	github.com/emersion/go-message v0.15.0 // indirect
@@ -60,13 +62,12 @@ require (
 	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/mozillazg/go-pinyin v0.20.0 // indirect
 	github.com/nwaples/rardecode v1.1.3 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/tetratelabs/wazero v1.9.0 // indirect
 	github.com/twmb/murmur3 v1.1.8 // indirect
@@ -80,8 +81,8 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 )
 
 require (
@@ -91,7 +92,6 @@ require (
 	github.com/lunixbochs/struc v0.0.0-20200707160740-784aaebc1d40
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
-	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/xinsnake/go-http-digest-auth-client v0.6.0
 	gopkg.in/yaml.v3 v3.0.1
 )

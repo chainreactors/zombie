@@ -89,16 +89,10 @@ func (a *ServiceAction) Run(session pkg.Session, task *pkg.Task) (*pkg.ActionRes
 		}
 
 		if opResult.Matched || opResult.Extracted {
-			for name, extracts := range opResult.Extracts {
+			for name, extracts := range opResult.ExtractsByName() {
 				result.Extracteds = append(result.Extracteds, &parsers.Extracted{
 					Name:          fmt.Sprintf("%s:%s", id, name),
 					ExtractResult: extracts,
-				})
-			}
-			for _, output := range opResult.OutputExtracts {
-				result.Extracteds = append(result.Extracteds, &parsers.Extracted{
-					Name:          id,
-					ExtractResult: []string{output},
 				})
 			}
 		}
@@ -118,7 +112,7 @@ func (a *ServiceAction) Run(session pkg.Session, task *pkg.Task) (*pkg.ActionRes
 				chainVars[k] = v
 			}
 		}
-		for k, v := range opResult.Extracts {
+		for k, v := range opResult.ExtractsByName() {
 			if len(v) > 0 {
 				chainVars[k] = v[0]
 			}
