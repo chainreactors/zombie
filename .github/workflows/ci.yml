@@ -25,15 +25,14 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - run: go vet ./...
+      - name: Install libre2-dev
+        run: sudo apt-get update -qq && sudo apt-get install -y libre2-dev g++
 
-  test:
-    name: test (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+      - run: go vet -tags re2_cgo ./...
+
+  test-linux:
+    name: test (ubuntu)
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,19 +42,41 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+
+      - name: Install libre2-dev
+        run: sudo apt-get update -qq && sudo apt-get install -y libre2-dev g++
 
       - run: go mod download
 
       - name: Unit & E2E tests
-        run: go test -count=1 -timeout 300s ./...
+        run: go test -tags re2_cgo -count=1 -timeout 300s ./...
 
-  build:
-    name: build (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+  test-windows:
+    name: test (windows)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          pacboy: gcc:p re2:p pkg-config:p go:p
+
+      - run: go mod download
+
+      - name: Unit & E2E tests
+        run: go test -tags re2_cgo -count=1 -timeout 300s ./...
+
+  build-linux:
+    name: build (ubuntu)
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,10 +87,36 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - run: go build ./...
+      - name: Install libre2-dev
+        run: sudo apt-get update -qq && sudo apt-get install -y libre2-dev g++
+
+      - run: go build -tags re2_cgo ./...
 
       - name: Build with emptytemplates tag
-        run: go build -tags emptytemplates ./...
+        run: go build -tags "emptytemplates re2_cgo" ./...
+
+  build-windows:
+    name: build (windows)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          pacboy: gcc:p re2:p pkg-config:p go:p
+
+      - run: go build -tags re2_cgo ./...
+
+      - name: Build with emptytemplates tag
+        run: go build -tags "emptytemplates re2_cgo" ./...
 
   templates:
     name: template validation
@@ -84,15 +131,18 @@ jobs:
           go-version-file: go.mod
           cache: true
 
+      - name: Install libre2-dev
+        run: sudo apt-get update -qq && sudo apt-get install -y libre2-dev g++
+
       - name: Validate service templates
-        run: go test -count=1 -run TestLoadAllTemplates ./service/...
+        run: go test -tags re2_cgo -count=1 -run TestLoadAllTemplates ./service/...
 
       - name: Validate loot templates
-        run: go test -count=1 -run TestLoadLootTemplates ./service/...
+        run: go test -tags re2_cgo -count=1 -run TestLoadLootTemplates ./service/...
 
       - name: Verify embedded data is current
         run: |
-          go run templates/templates_gen.go -t templates -o /tmp/templates_check.go -need zombie -embed
+          go run -tags re2_cgo templates/templates_gen.go -t templates -o /tmp/templates_check.go -need zombie -embed
           diff -q pkg/templates.go /tmp/templates_check.go || {
             echo "::error::pkg/templates.go is out of date — run 'go generate' and commit"
             exit 1
