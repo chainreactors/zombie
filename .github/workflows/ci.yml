@@ -63,7 +63,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          pacboy: gcc:p go:p
+          pacboy: gcc:p go:p git:p
 
       - run: go mod download
 
@@ -105,7 +105,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          pacboy: gcc:p go:p
+          pacboy: gcc:p go:p git:p
 
       - run: go build -tags "re2_cgo re2_static" ./...
 
