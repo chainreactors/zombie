@@ -9,7 +9,6 @@ require (
 	github.com/chainreactors/fingers v1.2.2-0.20260629103336-467eef72e53e
 	github.com/chainreactors/logs v0.0.0-20260508055944-c678762ed15c
 	github.com/chainreactors/neutron v0.1.1-0.20260703124839-c4091ad1e02d
-	github.com/chainreactors/parsers v0.0.0-20260608085142-3d2c51baa8fe
 	github.com/chainreactors/proton v0.3.3-0.20260703125000-97bdff4bcf27
 	github.com/chainreactors/utils v0.0.0-20260629103303-9318b2958679
 	github.com/chainreactors/utils/parsers v0.0.0-20260703124640-175b2abe30c2
@@ -69,11 +68,11 @@ require (
 	github.com/nwaples/rardecode v1.1.3 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	github.com/tetratelabs/wazero v1.9.0 // indirect
+	github.com/tetratelabs/wazero v1.11.0 // indirect
 	github.com/twmb/murmur3 v1.1.8 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/wasilibs/go-re2 v1.10.0 // indirect
-	github.com/wasilibs/wazero-helpers v0.0.0-20240620070341-3dff1577cd52 // indirect
+	github.com/wasilibs/wazero-helpers v0.0.0-20250123031827-cd30c44769bb // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
@@ -100,3 +99,5 @@ replace (
 	golang.org/x/crypto => github.com/golang/crypto v0.23.0
 	golang.org/x/text => golang.org/x/text v0.12.0
 )
+
+replace github.com/wasilibs/go-re2 => github.com/chainreactors/go-re2 v1.11.1-0.20260716142648-7b4fcc466374

@@ -25,10 +25,8 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Install libre2-dev
-        run: sudo apt-get update -qq && sudo apt-get install -y libre2-dev g++
 
-      - run: go vet -tags re2_cgo ./...
+      - run: go vet -tags "re2_cgo re2_static" ./...
 
   test-linux:
     name: test (ubuntu)
@@ -43,13 +41,11 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Install libre2-dev
-        run: sudo apt-get update -qq && sudo apt-get install -y libre2-dev g++
 
       - run: go mod download
 
       - name: Unit & E2E tests
-        run: go test -tags re2_cgo -count=1 -timeout 300s ./...
+        run: go test -tags "re2_cgo re2_static" -count=1 -timeout 300s ./...
 
   test-windows:
     name: test (windows)
@@ -67,12 +63,12 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          pacboy: gcc:p re2:p pkg-config:p go:p
+          pacboy: gcc:p go:p
 
       - run: go mod download
 
       - name: Unit & E2E tests
-        run: go test -tags re2_cgo -count=1 -timeout 300s ./...
+        run: go test -tags "re2_cgo re2_static" -count=1 -timeout 300s ./...
 
   build-linux:
     name: build (ubuntu)
@@ -87,13 +83,11 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Install libre2-dev
-        run: sudo apt-get update -qq && sudo apt-get install -y libre2-dev g++
 
-      - run: go build -tags re2_cgo ./...
+      - run: go build -tags "re2_cgo re2_static" ./...
 
       - name: Build with emptytemplates tag
-        run: go build -tags "emptytemplates re2_cgo" ./...
+        run: go build -tags "emptytemplates re2_cgo re2_static" ./...
 
   build-windows:
     name: build (windows)
@@ -111,12 +105,12 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          pacboy: gcc:p re2:p pkg-config:p go:p
+          pacboy: gcc:p go:p
 
-      - run: go build -tags re2_cgo ./...
+      - run: go build -tags "re2_cgo re2_static" ./...
 
       - name: Build with emptytemplates tag
-        run: go build -tags "emptytemplates re2_cgo" ./...
+        run: go build -tags "emptytemplates re2_cgo re2_static" ./...
 
   templates:
     name: template validation
@@ -131,18 +125,16 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Install libre2-dev
-        run: sudo apt-get update -qq && sudo apt-get install -y libre2-dev g++
 
       - name: Validate service templates
-        run: go test -tags re2_cgo -count=1 -run TestLoadAllTemplates ./service/...
+        run: go test -tags "re2_cgo re2_static" -count=1 -run TestLoadAllTemplates ./service/...
 
       - name: Validate loot templates
-        run: go test -tags re2_cgo -count=1 -run TestLoadLootTemplates ./service/...
+        run: go test -tags "re2_cgo re2_static" -count=1 -run TestLoadLootTemplates ./service/...
 
       - name: Verify embedded data is current
         run: |
-          go run -tags re2_cgo templates/templates_gen.go -t templates -o /tmp/templates_check.go -need zombie -embed
+          go run -tags "re2_cgo re2_static" templates/templates_gen.go -t templates -o /tmp/templates_check.go -need zombie -embed
           diff -q pkg/templates.go /tmp/templates_check.go || {
             echo "::error::pkg/templates.go is out of date — run 'go generate' and commit"
             exit 1
