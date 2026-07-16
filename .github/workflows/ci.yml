@@ -63,12 +63,12 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          pacboy: gcc:p go:p git:p
+          pacboy: gcc:p re2:p pkg-config:p go:p git:p
 
       - run: go mod download
 
       - name: Unit & E2E tests
-        run: go test -tags "re2_cgo re2_static" -count=1 -timeout 300s ./...
+        run: go test -tags "re2_cgo" -count=1 -timeout 300s ./...
 
   build-linux:
     name: build (ubuntu)
@@ -105,12 +105,12 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          pacboy: gcc:p go:p git:p
+          pacboy: gcc:p re2:p pkg-config:p go:p git:p
 
-      - run: go build -tags "re2_cgo re2_static" ./...
+      - run: go build -tags "re2_cgo" ./...
 
       - name: Build with emptytemplates tag
-        run: go build -tags "emptytemplates re2_cgo re2_static" ./...
+        run: go build -tags "emptytemplates re2_cgo" ./...
 
   templates:
     name: template validation
