@@ -100,4 +100,4 @@ replace (
 	golang.org/x/text => golang.org/x/text v0.12.0
 )
 
-replace github.com/wasilibs/go-re2 => github.com/chainreactors/go-re2 v1.11.1-0.20260716142648-7b4fcc466374
+replace github.com/wasilibs/go-re2 => github.com/chainreactors/go-re2 v1.11.1-0.20260716082604-8121b6cd261e
