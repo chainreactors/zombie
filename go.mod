@@ -25,7 +25,7 @@ require (
 	github.com/knadh/go-pop3 v0.3.0
 	github.com/lib/pq v1.9.0
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
-	github.com/panjf2000/ants/v2 v2.4.3
+	github.com/panjf2000/ants/v2 v2.12.1
 	github.com/samuel/go-zookeeper v0.0.0-20201211165307-7117e9ea2414
 	github.com/sijms/go-ora/v2 v2.2.15
 	github.com/streadway/amqp v1.1.0
@@ -77,7 +77,7 @@ require (
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
-	golang.org/x/sync v0.6.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 )
