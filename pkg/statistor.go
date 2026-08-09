@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 )
 
 type ErrCategory int
@@ -16,6 +17,8 @@ const (
 )
 
 type Statistor struct {
+	mu sync.RWMutex
+
 	Total   int
 	Success int
 	Cur     string
@@ -30,17 +33,45 @@ type Statistor struct {
 	Loot       int
 }
 
+func (stat *Statistor) RecordTask(service, current string) {
+	stat.mu.Lock()
+	defer stat.mu.Unlock()
+	stat.Cur = current
+	stat.Tasks[service]++
+	stat.Total++
+}
+
+func (stat *Statistor) Current() string {
+	stat.mu.RLock()
+	defer stat.mu.RUnlock()
+	return stat.Cur
+}
+
+func (stat *Statistor) TotalCount() int {
+	stat.mu.RLock()
+	defer stat.mu.RUnlock()
+	return stat.Total
+}
+
 func (stat *Statistor) RecordResult(result *Result) {
+	stat.mu.Lock()
+	defer stat.mu.Unlock()
 	if result.OK {
 		stat.Success++
 		stat.Extracteds += len(result.Extracteds)
 		stat.Loot += len(result.Loot)
 	} else {
-		stat.RecordError(result.Err)
+		stat.recordError(result.Err)
 	}
 }
 
 func (stat *Statistor) RecordError(err error) {
+	stat.mu.Lock()
+	defer stat.mu.Unlock()
+	stat.recordError(err)
+}
+
+func (stat *Statistor) recordError(err error) {
 	if err == nil {
 		return
 	}
@@ -57,6 +88,12 @@ func (stat *Statistor) RecordError(err error) {
 }
 
 func (stat *Statistor) ErrorString() string {
+	stat.mu.RLock()
+	defer stat.mu.RUnlock()
+	return stat.errorString()
+}
+
+func (stat *Statistor) errorString() string {
 	total := stat.ErrTimeout + stat.ErrRefused + stat.ErrAuth + stat.ErrOther
 	if total == 0 {
 		return ""
@@ -66,18 +103,22 @@ func (stat *Statistor) ErrorString() string {
 }
 
 func (stat *Statistor) SummaryString() string {
+	stat.mu.RLock()
+	defer stat.mu.RUnlock()
 	var parts []string
 	parts = append(parts, fmt.Sprintf("total: %d, success: %d", stat.Total, stat.Success))
 	if stat.Extracteds > 0 || stat.Loot > 0 {
 		parts = append(parts, fmt.Sprintf("extracteds: %d, loot: %d", stat.Extracteds, stat.Loot))
 	}
-	if errStr := stat.ErrorString(); errStr != "" {
+	if errStr := stat.errorString(); errStr != "" {
 		parts = append(parts, errStr)
 	}
 	return strings.Join(parts, ", ")
 }
 
 func (stat *Statistor) TaskString() string {
+	stat.mu.RLock()
+	defer stat.mu.RUnlock()
 	var s strings.Builder
 	for k, v := range stat.Tasks {
 		s.WriteString(fmt.Sprintf("%s:%d ", k, v))

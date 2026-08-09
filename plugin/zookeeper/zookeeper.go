@@ -9,18 +9,12 @@ import (
 	"github.com/samuel/go-zookeeper/zk"
 )
 
-func init() {
-	pkg.RegisterPlugin("zookeeper", &ZookeeperPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "zookeeper", DefaultPort: "2181", Source: pkg.PluginSource})
-}
-
 type zkSession struct {
 	service string
 	conn    *zk.Conn
 }
 
-func (s *zkSession) Service() string  { return s.service }
-func (s *zkSession) Raw() interface{} { return s.conn }
+func (s *zkSession) Service() string { return s.service }
 
 func (s *zkSession) Close() error {
 	if s.conn != nil {
@@ -68,8 +62,6 @@ func (s *zkSession) Command(name string, args ...string) (interface{}, error) {
 }
 
 type ZookeeperPlugin struct{}
-
-func (p *ZookeeperPlugin) Name() string { return "zookeeper" }
 
 func (p *ZookeeperPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	conn, _, err := zk.Connect([]string{fmt.Sprintf("%s:%s", task.IP, task.Port)}, time.Duration(task.Timeout)*time.Second)

@@ -17,9 +17,8 @@ type mockShellSession struct {
 	files map[string][]byte
 }
 
-func (m *mockShellSession) Service() string  { return "ssh" }
-func (m *mockShellSession) Close() error     { return nil }
-func (m *mockShellSession) Raw() interface{} { return nil }
+func (m *mockShellSession) Service() string { return "ssh" }
+func (m *mockShellSession) Close() error    { return nil }
 func (m *mockShellSession) Exec(cmd string) ([]byte, error) {
 	for path, data := range m.files {
 		if containsSubstr(cmd, path) {
@@ -34,9 +33,8 @@ type mockSQLSession struct {
 	rows    map[string][][]string
 }
 
-func (m *mockSQLSession) Service() string  { return m.service }
-func (m *mockSQLSession) Close() error     { return nil }
-func (m *mockSQLSession) Raw() interface{} { return nil }
+func (m *mockSQLSession) Service() string { return m.service }
+func (m *mockSQLSession) Close() error    { return nil }
 func (m *mockSQLSession) Query(query string, args ...any) ([][]string, error) {
 	for key, rows := range m.rows {
 		if containsSubstr(query, key) {
@@ -51,9 +49,8 @@ func (m *mockSQLSession) Databases() ([]string, error) {
 
 type mockKVSession struct{}
 
-func (m *mockKVSession) Service() string  { return "redis" }
-func (m *mockKVSession) Close() error     { return nil }
-func (m *mockKVSession) Raw() interface{} { return nil }
+func (m *mockKVSession) Service() string { return "redis" }
+func (m *mockKVSession) Close() error    { return nil }
 func (m *mockKVSession) Get(key string) ([]byte, error) {
 	if key == "user:token" {
 		return []byte("ghp_abcdefghij1234567890abcdefghij1234"), nil
@@ -69,9 +66,8 @@ func (m *mockKVSession) Keys(pattern string) ([]string, error) {
 
 type mockFileSession struct{}
 
-func (m *mockFileSession) Service() string  { return "ftp" }
-func (m *mockFileSession) Close() error     { return nil }
-func (m *mockFileSession) Raw() interface{} { return nil }
+func (m *mockFileSession) Service() string { return "ftp" }
+func (m *mockFileSession) Close() error    { return nil }
 func (m *mockFileSession) List(path string) ([]string, error) {
 	return []string{".env", "config.yaml", "data.csv"}, nil
 }
@@ -713,4 +709,123 @@ func TestPostAction_ScanLoot(t *testing.T) {
 	if len(results) == 0 {
 		t.Fatal("should find password in loot data")
 	}
+}
+
+// --- Audit E2E ---
+
+type mockAuditableSession struct {
+	svc  string
+	data map[string]string
+}
+
+func (m *mockAuditableSession) Service() string { return m.svc }
+func (m *mockAuditableSession) Close() error    { return nil }
+func (m *mockAuditableSession) Audit(patterns []string, limit int) (map[string]string, error) {
+	return m.data, nil
+}
+
+func TestAuditAction_E2E(t *testing.T) {
+	session := &mockAuditableSession{
+		svc: "mysql",
+		data: map[string]string{
+			"app.users.phone":    "13800138000\n13912345678",
+			"app.users.password": "admin123\nP@ssw0rd",
+			"app.config.api_key": "AKIA1234567890ABCDEF",
+		},
+	}
+
+	// Step 1: AuditAction produces loot
+	audit := NewAuditAction()
+	ar, err := audit.Run(session, &pkg.Task{ZombieResult: &parsers.ZombieResult{Service: "mysql"}})
+	if err != nil {
+		t.Fatalf("audit action: %v", err)
+	}
+	if ar == nil || len(ar.Loot) == 0 {
+		t.Fatal("audit should produce loot")
+	}
+	if len(ar.Loot) != 3 {
+		t.Fatalf("expected 3 loot entries, got %d", len(ar.Loot))
+	}
+
+	// Step 2: Merge into Result (simulates worker.go)
+	result := pkg.NewResult(&pkg.Task{ZombieResult: &parsers.ZombieResult{Service: "mysql"}}, nil)
+	result.Merge(ar)
+
+	// Step 3: PostAction scans loot for PII (simulates worker.go postAction loop)
+	lootDir := createLootTemplateDir(t)
+	postAction, err := NewPostAction([]string{lootDir})
+	if err != nil {
+		t.Fatalf("post action: %v", err)
+	}
+	for label, data := range result.Loot {
+		result.Extracteds = append(result.Extracteds, postAction.ScanData(data, label)...)
+	}
+
+	// Step 4: Verify findings include location labels
+	if len(result.Extracteds) == 0 {
+		t.Fatal("PostAction should find PII in audit loot")
+	}
+	var foundPhone, foundCloud bool
+	for _, e := range result.Extracteds {
+		if containsSubstr(e.Name, "phone") {
+			foundPhone = true
+		}
+		if containsSubstr(e.Name, "cloud") || containsSubstr(e.Name, "credential") {
+			foundCloud = true
+		}
+		t.Logf("finding: %s → %v", e.Name, e.ExtractResult)
+	}
+	if !foundPhone {
+		t.Error("should detect phone numbers in app.users.phone")
+	}
+	if !foundCloud {
+		t.Error("should detect cloud credential (AKIA) in app.config.api_key")
+	}
+}
+
+func TestAuditAction_NonAuditableSession(t *testing.T) {
+	session := &mockShellSession{files: map[string][]byte{}}
+	audit := NewAuditAction()
+	ar, err := audit.Run(session, &pkg.Task{ZombieResult: &parsers.ZombieResult{Service: "ssh"}})
+	if err != nil {
+		t.Fatalf("should not error: %v", err)
+	}
+	if ar != nil {
+		t.Fatal("non-auditable session should return nil")
+	}
+}
+
+func createLootTemplateDir(t *testing.T) string {
+	t.Helper()
+	dir := t.TempDir()
+
+	phone := `
+id: loot-phone-cn
+info:
+  name: Chinese Phone Number
+  severity: medium
+file:
+  - extensions:
+      - all
+    extractors:
+      - type: regex
+        regex:
+          - '(?:\+?86[-\s]?)?1[3-9]\d{9}'
+`
+	cloud := `
+id: loot-cloud-credential
+info:
+  name: Cloud Access Credential
+  severity: high
+file:
+  - extensions:
+      - all
+    extractors:
+      - type: regex
+        regex:
+          - '(?:AKIA|ASIA)[A-Z0-9]{16}'
+`
+	os.WriteFile(filepath.Join(dir, "phone.yaml"), []byte(phone), 0644)
+	os.WriteFile(filepath.Join(dir, "cloud.yaml"), []byte(cloud), 0644)
+	return dir
 }

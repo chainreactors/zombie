@@ -6,19 +6,13 @@ import (
 	"time"
 )
 
-func init() {
-	pkg.RegisterPlugin("vnc", &VNCPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "vnc", DefaultPort: "5900", Source: pkg.PluginSource})
-}
-
 // vncSession implements pkg.Session over an authenticated VNC connection.
 type vncSession struct {
 	service string
 	conn    *vnc.ClientConn
 }
 
-func (s *vncSession) Service() string  { return s.service }
-func (s *vncSession) Raw() interface{} { return s.conn }
+func (s *vncSession) Service() string { return s.service }
 
 func (s *vncSession) Close() error {
 	if s.conn != nil {
@@ -29,8 +23,6 @@ func (s *vncSession) Close() error {
 
 // VNCPlugin is stateless; all connection state lives in vncSession.
 type VNCPlugin struct{}
-
-func (p *VNCPlugin) Name() string { return "vnc" }
 
 func (p *VNCPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	return dial(task, task.Password)

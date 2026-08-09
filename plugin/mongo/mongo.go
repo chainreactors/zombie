@@ -18,8 +18,7 @@ type mongoSession struct {
 	ctx     context.Context
 }
 
-func (s *mongoSession) Service() string  { return s.service }
-func (s *mongoSession) Raw() interface{} { return s.client }
+func (s *mongoSession) Service() string { return s.service }
 
 func (s *mongoSession) Close() error {
 	if s.client != nil {
@@ -48,17 +47,22 @@ func (s *mongoSession) Query(query string, args ...any) ([][]string, error) {
 			return rows, nil
 		}
 		if len(parts) > 1 && strings.HasPrefix(strings.ToLower(parts[1]), "collection") {
-			dbAndRest := strings.TrimPrefix(strings.ToLower(parts[1]), "collections ")
-			colls, err := s.client.Database(dbAndRest).ListCollectionNames(s.ctx, bson.D{})
+			dbName := strings.TrimSpace(strings.TrimPrefix(strings.ToLower(parts[1]), "collections"))
+			if dbName == "" {
+				dbName = "test"
+			}
+			colls, err := s.client.Database(dbName).ListCollectionNames(s.ctx, bson.D{})
 			if err != nil {
 				return nil, err
 			}
-			rows := [][]string{{"collection"}}
+			rows := [][]string{{"database", "collection"}}
 			for _, c := range colls {
-				rows = append(rows, []string{c})
+				rows = append(rows, []string{dbName, c})
 			}
 			return rows, nil
 		}
+	case "find":
+		return s.execFind(parts)
 	}
 
 	cmdDoc := bson.D{{Key: cmd, Value: 1}}
@@ -76,14 +80,46 @@ func (s *mongoSession) Query(query string, args ...any) ([][]string, error) {
 	return [][]string{{"result"}, {raw.String()}}, nil
 }
 
-func init() {
-	pkg.RegisterPlugin("mongo", &MongoPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "mongo", DefaultPort: "27017", Alias: []string{"mongodb"}, Source: pkg.PluginSource})
+// execFind handles "FIND db.collection [limit]".
+// Returns one row per document, serialized as JSON.
+func (s *mongoSession) execFind(parts []string) ([][]string, error) {
+	if len(parts) < 2 {
+		return nil, fmt.Errorf("FIND requires db.collection [limit]")
+	}
+	args := strings.Fields(parts[1])
+	if len(args) == 0 {
+		return nil, fmt.Errorf("FIND requires db.collection [limit]")
+	}
+	target := args[0]
+	dotIdx := strings.IndexByte(target, '.')
+	if dotIdx < 0 {
+		return nil, fmt.Errorf("FIND target must be db.collection, got %q", target)
+	}
+	dbName := target[:dotIdx]
+	collName := target[dotIdx+1:]
+
+	limit := int64(100)
+	if len(args) > 1 {
+		if n, err := fmt.Sscanf(args[1], "%d", &limit); err != nil || n != 1 {
+			limit = 100
+		}
+	}
+
+	opts := options.Find().SetLimit(limit)
+	cursor, err := s.client.Database(dbName).Collection(collName).Find(s.ctx, bson.D{}, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(s.ctx)
+
+	rows := [][]string{{"document"}}
+	for cursor.Next(s.ctx) {
+		rows = append(rows, []string{cursor.Current.String()})
+	}
+	return rows, nil
 }
 
 type MongoPlugin struct{}
-
-func (p *MongoPlugin) Name() string { return "mongo" }
 
 func (p *MongoPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	var url string

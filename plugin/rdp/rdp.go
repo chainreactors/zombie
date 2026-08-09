@@ -5,25 +5,17 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 )
 
-func init() {
-	pkg.RegisterPlugin("rdp", &RdpPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "rdp", DefaultPort: "3389", Source: pkg.PluginSource})
-}
-
 // rdpSession implements pkg.Session. RDP has no persistent connection,
-// so Close is a no-op and Raw returns nil.
+// so Close is a no-op.
 type rdpSession struct {
 	service string
 }
 
-func (s *rdpSession) Service() string  { return s.service }
-func (s *rdpSession) Close() error     { return nil }
-func (s *rdpSession) Raw() interface{} { return nil }
+func (s *rdpSession) Service() string { return s.service }
+func (s *rdpSession) Close() error    { return nil }
 
 // RdpPlugin is stateless; all connection state lives in rdpSession.
 type RdpPlugin struct{}
-
-func (p *RdpPlugin) Name() string { return "rdp" }
 
 func (p *RdpPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	user, domain := pkg.SplitUserDomain(task.Username)

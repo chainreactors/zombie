@@ -12,8 +12,8 @@ import (
 var ErrNoUnauth = errors.New("cannot unauth login")
 var ErrNoPlugin = errors.New("no plugin for service")
 
-func Execute(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []pkg.Action, postAction *action.PostAction) *pkg.Result {
-	p := resolvePlugin(task.Service, plugins)
+func Execute(task *pkg.Task, plugins map[string]plugin.Plugin, fallback plugin.Plugin, pipeline []pkg.Action, postAction *action.PostAction) *pkg.Result {
+	p := resolvePlugin(task.Service, plugins, fallback)
 	if p == nil {
 		return pkg.NewResult(task, ErrNoPlugin)
 	}
@@ -27,7 +27,7 @@ func Execute(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []pkg.Ac
 	}
 	defer session.Close()
 
-	result := &pkg.Result{Task: task, OK: true}
+	result := pkg.NewResult(task, nil)
 	for _, a := range pipeline {
 		ar, err := a.Run(session, task)
 		if err != nil {
@@ -44,13 +44,17 @@ func Execute(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []pkg.Ac
 	return result
 }
 
-func ExecuteUnauth(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []pkg.Action, postAction *action.PostAction) *pkg.Result {
-	p := resolvePlugin(task.Service, plugins)
+func ExecuteUnauth(task *pkg.Task, plugins map[string]plugin.Plugin, fallback plugin.Plugin, pipeline []pkg.Action, postAction *action.PostAction) *pkg.Result {
+	p := resolvePlugin(task.Service, plugins, fallback)
 	if p == nil {
 		return pkg.NewResult(task, ErrNoPlugin)
 	}
 
-	session, err := p.Unauth(task)
+	unauth, ok := p.(plugin.UnauthPlugin)
+	if !ok {
+		return pkg.NewResult(task, pkg.NotImplUnauthorized)
+	}
+	session, err := unauth.Unauth(task)
 	if err != nil {
 		return pkg.NewResult(task, err)
 	}
@@ -59,7 +63,7 @@ func ExecuteUnauth(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []
 	}
 	defer session.Close()
 
-	result := &pkg.Result{Task: task, OK: true}
+	result := pkg.NewResult(task, nil)
 	for _, a := range pipeline {
 		ar, err := a.Run(session, task)
 		if err != nil {
@@ -75,7 +79,7 @@ func ExecuteUnauth(task *pkg.Task, plugins map[string]plugin.Plugin, pipeline []
 	return result
 }
 
-func resolvePlugin(service string, plugins map[string]plugin.Plugin) plugin.Plugin {
+func resolvePlugin(service string, plugins map[string]plugin.Plugin, fallback plugin.Plugin) plugin.Plugin {
 	if p, ok := plugins[service]; ok {
 		return p
 	}
@@ -84,8 +88,5 @@ func resolvePlugin(service string, plugins map[string]plugin.Plugin) plugin.Plug
 			return p
 		}
 	}
-	if p, ok := plugins["neutron"]; ok {
-		return p
-	}
-	return nil
+	return fallback
 }

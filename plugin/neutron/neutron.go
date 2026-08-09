@@ -12,8 +12,6 @@ import (
 )
 
 func init() {
-	pkg.RegisterPlugin("neutron", &NeutronPlugin{})
-
 	if neutroncommon.NeutronLog == nil {
 		neutroncommon.NeutronLog = logs.Log
 	}
@@ -26,13 +24,10 @@ type neutronSession struct {
 	service string
 }
 
-func (s *neutronSession) Service() string  { return s.service }
-func (s *neutronSession) Close() error     { return nil }
-func (s *neutronSession) Raw() interface{} { return nil }
+func (s *neutronSession) Service() string { return s.service }
+func (s *neutronSession) Close() error    { return nil }
 
 type NeutronPlugin struct{}
-
-func (p *NeutronPlugin) Name() string { return "neutron" }
 
 func (p *NeutronPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	template, ok := pkg.TemplateMap[task.Service]

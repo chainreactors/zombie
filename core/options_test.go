@@ -34,6 +34,8 @@ func TestOptionValidateRejectsUnsupportedMod(t *testing.T) {
 	opt.IP = []string{"127.0.0.1"}
 	opt.ServiceName = "redis"
 	opt.Mod = "not-a-mode"
+	opt.Threads = 1
+	opt.Timeout = 1
 
 	if err := opt.Validate(); err == nil {
 		t.Fatal("expected unsupported mode to be rejected")
@@ -45,6 +47,8 @@ func TestOptionValidateRequiresPitchforkAuth(t *testing.T) {
 	opt.IP = []string{"127.0.0.1"}
 	opt.ServiceName = "redis"
 	opt.Mod = ModPitchFork
+	opt.Threads = 1
+	opt.Timeout = 1
 
 	if err := opt.Validate(); err == nil {
 		t.Fatal("expected pitchfork without auth to be rejected")
@@ -53,6 +57,34 @@ func TestOptionValidateRequiresPitchforkAuth(t *testing.T) {
 	opt.Auth = []string{"user::pass"}
 	if err := opt.Validate(); err != nil {
 		t.Fatalf("expected pitchfork with auth to pass validation: %v", err)
+	}
+}
+
+func TestOptionValidateRejectsInvalidRuntimeLimits(t *testing.T) {
+	tests := []struct {
+		name string
+		edit func(*Option)
+	}{
+		{name: "zero threads", edit: func(opt *Option) { opt.Threads = 0 }},
+		{name: "negative concurrency", edit: func(opt *Option) { opt.Concurrency = -1 }},
+		{name: "zero timeout", edit: func(opt *Option) { opt.Timeout = 0 }},
+		{name: "negative top", edit: func(opt *Option) { opt.Top = -1 }},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			opt := &Option{}
+			opt.IP = []string{"127.0.0.1"}
+			opt.ServiceName = "redis"
+			opt.Mod = ModSniper
+			opt.Threads = 1
+			opt.Timeout = 1
+			tt.edit(opt)
+
+			if err := opt.Validate(); err == nil {
+				t.Fatal("expected invalid runtime limit to be rejected")
+			}
+		})
 	}
 }
 
@@ -105,18 +137,20 @@ func TestOptionPrepareCanonicalizesServiceAliases(t *testing.T) {
 	}
 }
 
-func TestOptionPrepareKeepsFileNilWithoutOutputFlag(t *testing.T) {
+func TestOptionPrepareDoesNotOwnOutputFiles(t *testing.T) {
+	output := filepath.Join(t.TempDir(), "results.txt")
 	opt := &Option{}
 	opt.IP = []string{"127.0.0.1"}
 	opt.ServiceName = "redis"
 	opt.Mod = ModSniper
+	opt.OutputFile = output
 
-	runner, err := opt.Prepare()
+	_, err := opt.Prepare()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if runner.File != nil {
-		t.Fatal("Prepare without -f should leave File nil")
+	if _, err := os.Stat(output); !os.IsNotExist(err) {
+		t.Fatalf("Prepare created output file: %v", err)
 	}
 }
 
@@ -141,37 +175,5 @@ func TestOptionPrepareCanonicalizesFilterServiceAliases(t *testing.T) {
 	}
 	if runner.Targets[0].Service != "postgresql" {
 		t.Fatalf("service = %q, want postgresql", runner.Targets[0].Service)
-	}
-}
-
-func TestOptionPrepareOutputFileWriter(t *testing.T) {
-	output := filepath.Join(t.TempDir(), "results.txt")
-	opt := &Option{}
-	opt.IP = []string{"127.0.0.1"}
-	opt.ServiceName = "redis"
-	opt.OutputFile = output
-	opt.Mod = ModSniper
-
-	runner, err := opt.Prepare()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if runner.File == nil {
-		t.Fatal("expected output file writer")
-	}
-
-	if err := runner.File.SyncWrite("ok\n"); err != nil {
-		t.Fatal(err)
-	}
-	if err := runner.File.Close(); err != nil {
-		t.Fatal(err)
-	}
-
-	got, err := os.ReadFile(output)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(got) != "ok\n" {
-		t.Fatalf("unexpected output file content: %q", string(got))
 	}
 }

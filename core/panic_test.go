@@ -15,16 +15,14 @@ import (
 // nilSessionPlugin returns (nil, nil) from Open — should not panic Execute
 type nilSessionPlugin struct{}
 
-func (p *nilSessionPlugin) Name() string                                 { return "nil-session" }
-func (p *nilSessionPlugin) Open(task *pkg.Task) (pkg.Session, error)     { return nil, nil }
-func (p *nilSessionPlugin) Unauth(task *pkg.Task) (pkg.Session, error)   { return nil, nil }
+func (p *nilSessionPlugin) Open(task *pkg.Task) (pkg.Session, error)   { return nil, nil }
+func (p *nilSessionPlugin) Unauth(task *pkg.Task) (pkg.Session, error) { return nil, nil }
 
 // panicPlugin panics inside Open — should be catchable
 type panicPlugin struct{}
 
-func (p *panicPlugin) Name() string                                 { return "panic" }
-func (p *panicPlugin) Open(task *pkg.Task) (pkg.Session, error)     { panic("test panic") }
-func (p *panicPlugin) Unauth(task *pkg.Task) (pkg.Session, error)   { panic("test panic") }
+func (p *panicPlugin) Open(task *pkg.Task) (pkg.Session, error)   { panic("test panic") }
+func (p *panicPlugin) Unauth(task *pkg.Task) (pkg.Session, error) { panic("test panic") }
 
 func baseTask(svc string) *pkg.Task {
 	return &pkg.Task{
@@ -42,7 +40,7 @@ func TestPanic_NilSession_Execute(t *testing.T) {
 	plugins := map[string]plugin.Plugin{"nil-session": &nilSessionPlugin{}}
 	task := baseTask("nil-session")
 
-	result := Execute(task, plugins, nil, nil)
+	result := Execute(task, plugins, nil, nil, nil)
 	if result.OK {
 		t.Error("should not be OK")
 	}
@@ -56,7 +54,7 @@ func TestPanic_NilSession_ExecuteUnauth(t *testing.T) {
 	plugins := map[string]plugin.Plugin{"nil-session": &nilSessionPlugin{}}
 	task := baseTask("nil-session")
 
-	result := ExecuteUnauth(task, plugins, nil, nil)
+	result := ExecuteUnauth(task, plugins, nil, nil, nil)
 	if result.OK {
 		t.Error("should not be OK")
 	}
@@ -72,7 +70,7 @@ func TestPanic_NoPlugin(t *testing.T) {
 	plugins := map[string]plugin.Plugin{}
 	task := baseTask("nonexistent")
 
-	result := Execute(task, plugins, nil, nil)
+	result := Execute(task, plugins, nil, nil, nil)
 	if result.OK {
 		t.Error("should not be OK")
 	}
@@ -145,10 +143,7 @@ func TestPanic_NilParam_HTTPPlugins(t *testing.T) {
 // --- Nil Extracteds in Merge ---
 
 func TestPanic_MergeNilActionResult(t *testing.T) {
-	result := &pkg.Result{
-		Task: baseTask("ssh"),
-		OK:   true,
-	}
+	result := pkg.NewResult(baseTask("ssh"), nil)
 	defer func() {
 		if r := recover(); r != nil {
 			t.Errorf("PANIC on Merge(nil): %v", r)
@@ -163,7 +158,6 @@ func TestPanic_MergeNilActionResult(t *testing.T) {
 		t.Error("should have 1 loot entry")
 	}
 }
-
 
 // --- PostAction with valid scanner on empty data ---
 
@@ -184,15 +178,12 @@ func TestPanic_PostAction_EmptyData(t *testing.T) {
 	t.Logf("empty data: extracteds=%d", len(results))
 }
 
-// --- OutputHandler nil Err ---
+// --- CLI result formatting with nil Err ---
 
-func TestPanic_OutputHandler_NilErr(t *testing.T) {
-	// Simulate what OutputHandler does with a failed result that has nil Err
-	result := &pkg.Result{
-		Task: baseTask("ssh"),
-		OK:   false,
-		Err:  nil, // this would panic on .Error() without our fix
-	}
+func TestPanic_CLIResultFormatting_NilErr(t *testing.T) {
+	// Simulate what the CLI handler does with a failed result that has nil Err.
+	result := pkg.NewResult(baseTask("ssh"), fmt.Errorf("login failed"))
+	result.Err = nil // this would panic on .Error() without our fix
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -213,9 +204,8 @@ type mockShell struct {
 	files map[string][]byte
 }
 
-func (m *mockShell) Service() string  { return "ssh" }
-func (m *mockShell) Close() error     { return nil }
-func (m *mockShell) Raw() interface{} { return nil }
+func (m *mockShell) Service() string { return "ssh" }
+func (m *mockShell) Close() error    { return nil }
 func (m *mockShell) Exec(cmd string) ([]byte, error) {
 	for path, data := range m.files {
 		if len(cmd) > 0 && len(path) > 0 {

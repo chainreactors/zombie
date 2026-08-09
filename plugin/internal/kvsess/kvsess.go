@@ -9,9 +9,8 @@ type RedisSession struct {
 	SvcName string
 }
 
-func (s *RedisSession) Service() string  { return s.SvcName }
-func (s *RedisSession) Close() error     { return s.Client.Close() }
-func (s *RedisSession) Raw() interface{} { return s.Client }
+func (s *RedisSession) Service() string { return s.SvcName }
+func (s *RedisSession) Close() error    { return s.Client.Close() }
 
 func (s *RedisSession) Get(key string) ([]byte, error) {
 	val, err := s.Client.Get(key).Bytes()

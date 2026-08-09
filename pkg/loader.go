@@ -121,6 +121,23 @@ func LoadLootTemplates() error {
 	return nil
 }
 
+func LoadAuditConfig() error {
+	data := LoadConfig("zombie_audit")
+	if len(data) == 0 {
+		return nil
+	}
+	var cfg struct {
+		FieldPatterns []string `yaml:"field_patterns"`
+	}
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return err
+	}
+	if len(cfg.FieldPatterns) > 0 {
+		DefaultAuditPatterns = cfg.FieldPatterns
+	}
+	return nil
+}
+
 func LoadPorts() error {
 	var ports []*utils.PortConfig
 	content := LoadConfig("port")

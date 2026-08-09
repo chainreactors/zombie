@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/chainreactors/logs"
-	"github.com/chainreactors/utils/parsers"
+	"github.com/chainreactors/utils/fileutils"
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/jessevdk/go-flags"
 )
@@ -19,7 +19,7 @@ type RunOptions struct {
 	Output    io.Writer
 	Version   string
 	ProxyDial pkg.DialFunc
-	OnResult  func(*parsers.ZombieResult)
+	OnResult  ResultHandler
 }
 
 func Help() string {
@@ -71,10 +71,11 @@ func RunWithArgs(ctx context.Context, args []string, opts RunOptions) error {
 	if err := pkg.Load(); err != nil {
 		return err
 	}
+	registerBuiltinServices()
 
 	if opt.ListService {
 		fmt.Fprintln(output, "support service list:\n    service\t\tsource\taliases\n\t---------------\t\t------")
-		for k, s := range pkg.Services.Plugins {
+		for k, s := range pkg.Services.All() {
 			fmt.Fprintf(output, "    %15s\t\t%s\t%v\n", k, s.Source, strings.Join(s.Alias, ","))
 		}
 		return nil
@@ -100,13 +101,42 @@ func RunWithArgs(ctx context.Context, args []string, opts RunOptions) error {
 	if err != nil {
 		return err
 	}
-	if opts.OnResult != nil {
-		runner.ResultCallback = opts.OnResult
+
+	var outputFile *fileutils.File
+	if opt.OutputFile != "" {
+		outputFile, err = fileutils.NewFile(opt.OutputFile, fileutils.ModeAppend, false, false)
+		if err != nil {
+			return err
+		}
+		defer outputFile.Close()
 	}
+	runner.OnResult = cliResultHandler(opt.OutputFormat, opt.FileFormat, outputFile, opts.OnResult)
 	if opts.ProxyDial != nil {
 		runner.ProxyDial = opts.ProxyDial
 	}
 	return runner.RunWithContext(ctx)
+}
+
+func cliResultHandler(outputFormat, fileFormat string, outputFile *fileutils.File, next ResultHandler) ResultHandler {
+	return func(result *pkg.Result) {
+		if result.OK {
+			if outputFile != nil {
+				if err := outputFile.SyncWrite(result.Format(fileFormat)); err != nil {
+					logs.Log.Warnf("write output file failed: %v", err)
+				}
+			}
+			logs.Log.Console(result.Format(outputFormat))
+		} else {
+			errMsg := "unknown error"
+			if result.Err != nil {
+				errMsg = result.Err.Error()
+			}
+			logs.Log.Debugf("[%s] %s %s %s ,%s login failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Service, errMsg)
+		}
+		if next != nil {
+			next(result)
+		}
+	}
 }
 
 func Usage() string {

@@ -10,19 +10,12 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func init() {
-	pkg.RegisterPlugin("mysql", &MysqlPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "mysql", DefaultPort: "3306", Source: pkg.PluginSource})
-}
-
 type nilLog struct{}
 
 func (nilLog) Print(v ...interface{}) {}
 
 // MysqlPlugin is a stateless factory that satisfies the Plugin interface.
 type MysqlPlugin struct{}
-
-func (MysqlPlugin) Name() string { return "mysql" }
 
 // Open authenticates with the credentials from task and returns a SQLSession.
 func (MysqlPlugin) Open(task *pkg.Task) (pkg.Session, error) {

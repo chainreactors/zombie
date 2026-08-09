@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/chainreactors/neutron/protocols"
-	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/proton/proton/file"
 	"github.com/chainreactors/proton/template"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/zombie/pkg"
 	"gopkg.in/yaml.v3"
 )
@@ -82,15 +82,10 @@ func (a *PostAction) ScanData(data []byte, label string) []*parsers.Extracted {
 	}
 	var results []*parsers.Extracted
 	for _, group := range a.scanner.Groups {
-		for _, f := range a.scanner.ScanData(data, label, group) {
+		for _, f := range a.scanner.FindAll(data, label, group) {
 			var extracts []string
-			for _, e := range f.Extracts {
+			for _, e := range f.Events {
 				extracts = append(extracts, e.Value)
-			}
-			for _, events := range f.Matches {
-				for _, e := range events {
-					extracts = append(extracts, e.Value)
-				}
 			}
 			if len(extracts) > 0 {
 				results = append(results, &parsers.Extracted{

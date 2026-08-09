@@ -9,21 +9,18 @@ import (
 )
 
 func TestResultFormatJSONIncludesExtracteds(t *testing.T) {
-	result := &Result{
-		Task: &Task{ZombieResult: &parsers.ZombieResult{
-			IP:       "127.0.0.1",
-			Port:     "6379",
-			Service:  "redis",
-			Scheme:   "redis",
-			Username: "default",
-			Password: "pass",
-			Mod:      parsers.ZombieModBrute,
-		}},
-		OK: true,
+	result := NewResult(&Task{ZombieResult: &parsers.ZombieResult{
+		IP:       "127.0.0.1",
+		Port:     "6379",
+		Service:  "redis",
+		Scheme:   "redis",
+		Username: "default",
+		Password: "pass",
+		Mod:      parsers.ZombieModBrute,
 		Extracteds: parsers.Extracteds{
 			{Name: "local-redis-smoke:redis_value", ExtractResult: []string{"zombie-template-ok"}},
 		},
-	}
+	}}, nil)
 
 	formatted := result.Format(parsers.ZombieFormatJSON)
 	if !strings.Contains(formatted, "extracteds") {

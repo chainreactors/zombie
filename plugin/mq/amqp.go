@@ -6,19 +6,13 @@ import (
 	"github.com/streadway/amqp"
 )
 
-func init() {
-	pkg.RegisterPlugin("amqp", &AMQPPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "amqp", DefaultPort: "5672", Source: pkg.PluginSource})
-}
-
 // amqpSession implements pkg.Session over an AMQP connection.
 type amqpSession struct {
 	service string
 	conn    *amqp.Connection
 }
 
-func (s *amqpSession) Service() string  { return s.service }
-func (s *amqpSession) Raw() interface{} { return s.conn }
+func (s *amqpSession) Service() string { return s.service }
 
 func (s *amqpSession) Close() error {
 	if s.conn != nil {
@@ -29,8 +23,6 @@ func (s *amqpSession) Close() error {
 
 // AMQPPlugin is stateless; all connection state lives in amqpSession.
 type AMQPPlugin struct{}
-
-func (p *AMQPPlugin) Name() string { return "amqp" }
 
 func (p *AMQPPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", task.Username, task.Password, task.IP, task.Port))

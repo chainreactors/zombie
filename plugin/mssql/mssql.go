@@ -9,15 +9,8 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 )
 
-func init() {
-	pkg.RegisterPlugin("mssql", &MssqlPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "mssql", DefaultPort: "1433", Source: pkg.PluginSource})
-}
-
 // MssqlPlugin is a stateless factory that satisfies the Plugin interface.
 type MssqlPlugin struct{}
-
-func (MssqlPlugin) Name() string { return "mssql" }
 
 // Open authenticates with the credentials from task and returns a SQLSession.
 func (MssqlPlugin) Open(task *pkg.Task) (pkg.Session, error) {

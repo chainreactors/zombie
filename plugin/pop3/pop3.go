@@ -6,19 +6,13 @@ import (
 	"strconv"
 )
 
-func init() {
-	pkg.RegisterPlugin("pop3", &Pop3Plugin{})
-	pkg.Services.Register(&pkg.Service{Name: "pop3", DefaultPort: "110", Alias: []string{"pop"}, Source: pkg.PluginSource})
-}
-
 // pop3Session implements pkg.Session over an authenticated POP3 connection.
 type pop3Session struct {
 	service string
 	conn    *pop3.Conn
 }
 
-func (s *pop3Session) Service() string  { return s.service }
-func (s *pop3Session) Raw() interface{} { return s.conn }
+func (s *pop3Session) Service() string { return s.service }
 
 func (s *pop3Session) Close() error {
 	if s.conn != nil {
@@ -29,8 +23,6 @@ func (s *pop3Session) Close() error {
 
 // Pop3Plugin is stateless; all connection state lives in pop3Session.
 type Pop3Plugin struct{}
-
-func (p *Pop3Plugin) Name() string { return "pop3" }
 
 func (p *Pop3Plugin) Open(task *pkg.Task) (pkg.Session, error) {
 	port, _ := strconv.Atoi(task.Port)

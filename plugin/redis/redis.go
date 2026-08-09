@@ -8,15 +8,8 @@ import (
 	"github.com/go-redis/redis"
 )
 
-func init() {
-	pkg.RegisterPlugin("redis", &RedisPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "redis", DefaultPort: "6379", Source: pkg.PluginSource})
-}
-
 // RedisPlugin is a stateless factory that satisfies the Plugin interface.
 type RedisPlugin struct{}
-
-func (RedisPlugin) Name() string { return "redis" }
 
 // Open authenticates with the password from task and returns a KVSession.
 func (RedisPlugin) Open(task *pkg.Task) (pkg.Session, error) {

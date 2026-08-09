@@ -104,9 +104,11 @@ func TestStatistor_RecordResult(t *testing.T) {
 	stat := &Statistor{Tasks: make(map[string]int)}
 	task := &Task{ZombieResult: &parsers.ZombieResult{IP: "1.1.1.1", Port: "22", Service: "ssh"}}
 
-	stat.RecordResult(&Result{Task: task, OK: true, Extracteds: make(parsers.Extracteds, 3), Loot: map[string][]byte{"a": {}, "b": {}}})
-	stat.RecordResult(&Result{Task: task, OK: true})
-	stat.RecordResult(&Result{Task: task, OK: false, Err: fmt.Errorf("connection refused")})
+	task.Extracteds = make(parsers.Extracteds, 3)
+	task.Loot = map[string][]byte{"a": {}, "b": {}}
+	stat.RecordResult(NewResult(task, nil))
+	stat.RecordResult(NewResult(&Task{ZombieResult: &parsers.ZombieResult{IP: "1.1.1.1", Port: "22", Service: "ssh"}}, nil))
+	stat.RecordResult(NewResult(&Task{ZombieResult: &parsers.ZombieResult{IP: "1.1.1.1", Port: "22", Service: "ssh"}}, fmt.Errorf("connection refused")))
 
 	if stat.Success != 2 {
 		t.Errorf("Success = %d, want 2", stat.Success)

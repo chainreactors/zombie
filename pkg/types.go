@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/chainreactors/fingers/common"
-	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/utils/httpx"
+	"github.com/chainreactors/utils/parsers"
 	"net"
 	"net/http"
 	"sort"
@@ -20,7 +19,6 @@ var (
 	InterruptError      = errors.New("interrupt")
 	ErrorWrongUserOrPwd = errors.New("wrong username or password")
 	NotImplUnauthorized = errors.New("not implemented unauthorized")
-	RunOpt              = &runOpt{}
 )
 
 type TimeoutError struct {
@@ -43,12 +41,15 @@ var Services = services{
 }
 
 type services struct {
+	mu      sync.RWMutex
 	Plugins map[string]*Service
 	Aliases map[string]*Service
 }
 
 func (ss *services) Get(name string) (*Service, bool) {
 	name = strings.ToLower(strings.TrimSpace(name))
+	ss.mu.RLock()
+	defer ss.mu.RUnlock()
 	if s, ok := ss.Plugins[name]; ok {
 		return s, true
 	}
@@ -59,6 +60,11 @@ func (ss *services) Get(name string) (*Service, bool) {
 }
 
 func (ss *services) Register(s *Service) bool {
+	if s == nil {
+		return false
+	}
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
 	if _, ok := ss.Plugins[s.Name]; !ok {
 		ss.Plugins[s.Name] = s
 	}
@@ -70,6 +76,17 @@ func (ss *services) Register(s *Service) bool {
 	return true
 }
 
+// All returns a snapshot of the registered services.
+func (ss *services) All() map[string]*Service {
+	ss.mu.RLock()
+	defer ss.mu.RUnlock()
+	services := make(map[string]*Service, len(ss.Plugins))
+	for name, service := range ss.Plugins {
+		services[name] = service
+	}
+	return services
+}
+
 func (ss *services) DefaultPort(service string) string {
 	if s, ok := ss.Get(service); ok {
 		return s.DefaultPort
@@ -79,8 +96,9 @@ func (ss *services) DefaultPort(service string) string {
 
 // SupportedServiceNames 返回所有已注册服务名(已排序),供未知服务的友好报错使用。
 func SupportedServiceNames() string {
-	names := make([]string, 0, len(Services.Plugins))
-	for name := range Services.Plugins {
+	services := Services.All()
+	names := make([]string, 0, len(services))
+	for name := range services {
 		names = append(names, name)
 	}
 	sort.Strings(names)
@@ -104,7 +122,7 @@ func (s Service) String() string {
 }
 
 func GetDefault(port string) string {
-	for _, s := range Services.Plugins {
+	for _, s := range Services.All() {
 		if s.DefaultPort == port {
 			return s.Name
 		}
@@ -124,10 +142,11 @@ type DialTimeoutFunc func(network, address string, timeout time.Duration) (net.C
 
 type Task struct {
 	*parsers.ZombieResult
-	Timeout  int                `json:"-"`
-	Context  context.Context    `json:"-"`
-	Canceler context.CancelFunc `json:"-"`
-	Locker   *sync.Mutex        `json:"-"`
+	Timeout   int                `json:"-"`
+	Context   context.Context    `json:"-"`
+	Cancel    context.CancelFunc `json:"-"`
+	Completed chan struct{}      `json:"-"`
+	Raw       bool               `json:"-"`
 	// ProxyDial 非 nil 时，插件应使用它建立连接而非直接 net.Dial。
 	ProxyDial DialFunc `json:"-"`
 }
@@ -167,28 +186,23 @@ func (t *Task) HTTPClient(followRedirects bool) *http.Client {
 }
 
 func NewResult(task *Task, err error) *Result {
-	if err != nil {
-		return &Result{
-			Task: task,
-			OK:   false,
-			Err:  err,
-		}
-	} else {
-		return &Result{
-			Task: task,
-			OK:   true,
-		}
+	result := &Result{Task: task, Err: err}
+	if task == nil || task.ZombieResult == nil {
+		return result
 	}
+	task.OK = err == nil
+	if err != nil {
+		task.ErrString = err.Error()
+	} else {
+		task.ErrString = ""
+	}
+	return result
 }
 
 type Result struct {
 	*Task         `json:",inline"`
-	Vulns         common.Vulns       `json:"vulns,omitempty"`
-	Extracteds    parsers.Extracteds `json:"extracteds,omitempty"`
-	OK            bool               `json:"ok,omitempty"`
-	Err           error              `json:"err,omitempty"`
-	ActionResults []*ActionResult    `json:"action_results,omitempty"`
-	Loot          map[string][]byte  `json:"loot,omitempty"`
+	Err           error           `json:"-"`
+	ActionResults []*ActionResult `json:"-"`
 }
 
 func (r *Result) Merge(ar *ActionResult) {
@@ -198,7 +212,7 @@ func (r *Result) Merge(ar *ActionResult) {
 	r.Extracteds = append(r.Extracteds, ar.Extracteds...)
 	for k, v := range ar.Vulns {
 		if r.Vulns == nil {
-			r.Vulns = make(common.Vulns)
+			r.Vulns = make(parsers.Vulns)
 		}
 		r.Vulns[k] = v
 	}
@@ -231,12 +245,8 @@ func (r *Result) Format(form string) string {
 	}
 }
 
-type runOpt struct {
-	Raw bool
-}
-
-func ParseMethod(input string) (string, string) {
-	if RunOpt.Raw {
+func ParseMethod(input string, raw bool) (string, string) {
+	if raw {
 		return "", input
 	}
 	if strings.HasPrefix(input, "pk:") {

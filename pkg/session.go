@@ -3,7 +3,6 @@ package pkg
 type Session interface {
 	Service() string
 	Close() error
-	Raw() interface{}
 }
 
 type ShellSession interface {
@@ -35,27 +34,14 @@ type DirectorySession interface {
 	Search(baseDN, filter string, attrs []string) ([]map[string][]string, error)
 }
 
-type Plugin interface {
-	Name() string
-	Open(task *Task) (Session, error)
-	Unauth(task *Task) (Session, error)
+// AuditableSession can discover and sample sensitive data automatically.
+// Each database plugin implements its own discovery and sampling logic.
+type AuditableSession interface {
+	Session
+	// Audit discovers locations matching field-name patterns and samples data.
+	// Returns map[location]sampledData where location identifies the source
+	// (e.g. "schema.table.column" for SQL, "key:name" for Redis).
+	Audit(patterns []string, limit int) (map[string]string, error)
 }
 
-var pluginRegistry = map[string]Plugin{}
-
-func RegisterPlugin(name string, p Plugin) {
-	pluginRegistry[name] = p
-}
-
-func GetPlugin(service string) (Plugin, bool) {
-	p, ok := pluginRegistry[service]
-	return p, ok
-}
-
-func DefaultPluginRegistry() map[string]Plugin {
-	m := make(map[string]Plugin, len(pluginRegistry))
-	for k, v := range pluginRegistry {
-		m[k] = v
-	}
-	return m
-}
+var DefaultAuditPatterns []string

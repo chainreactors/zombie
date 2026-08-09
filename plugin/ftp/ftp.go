@@ -8,19 +8,13 @@ import (
 	"github.com/jlaffaye/ftp"
 )
 
-func init() {
-	pkg.RegisterPlugin("ftp", &FtpPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "ftp", DefaultPort: "21", Source: pkg.PluginSource})
-}
-
 // ftpSession implements pkg.FileSession over an authenticated FTP connection.
 type ftpSession struct {
 	service string
 	conn    *ftp.ServerConn
 }
 
-func (s *ftpSession) Service() string  { return s.service }
-func (s *ftpSession) Raw() interface{} { return s.conn }
+func (s *ftpSession) Service() string { return s.service }
 
 func (s *ftpSession) Close() error {
 	if s.conn != nil {
@@ -56,8 +50,6 @@ func (s *ftpSession) Write(path string, data []byte) error {
 
 // FtpPlugin is stateless; all connection state lives in ftpSession.
 type FtpPlugin struct{}
-
-func (p *FtpPlugin) Name() string { return "ftp" }
 
 // dial establishes an FTP control connection using the task's proxy-aware dialer.
 func (p *FtpPlugin) dial(task *pkg.Task) (*ftp.ServerConn, error) {

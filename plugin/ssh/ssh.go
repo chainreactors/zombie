@@ -11,19 +11,13 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func init() {
-	pkg.RegisterPlugin("ssh", &SshPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "ssh", DefaultPort: "22", Source: pkg.PluginSource})
-}
-
 // sshSession implements pkg.ShellSession over an authenticated SSH connection.
 type sshSession struct {
 	service string
 	conn    *ssh.Client
 }
 
-func (s *sshSession) Service() string  { return s.service }
-func (s *sshSession) Raw() interface{} { return s.conn }
+func (s *sshSession) Service() string { return s.service }
 
 func (s *sshSession) Close() error {
 	if s.conn != nil {
@@ -44,11 +38,9 @@ func (s *sshSession) Exec(cmd string) ([]byte, error) {
 // SshPlugin is stateless; all connection state lives in sshSession.
 type SshPlugin struct{}
 
-func (p *SshPlugin) Name() string { return "ssh" }
-
 func (p *SshPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	var auth []ssh.AuthMethod
-	if method, pkdata := pkg.ParseMethod(task.Password); method == "pk" && pkdata != "" {
+	if method, pkdata := pkg.ParseMethod(task.Password, task.Raw); method == "pk" && pkdata != "" {
 		am, err := publicKeyAuth(pkdata)
 		if err != nil {
 			return nil, err

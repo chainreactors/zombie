@@ -35,12 +35,12 @@ func NewBar(u string, total int, stat *Statistor) *Bar {
 			decor.NewAverageSpeed(0, "% .0f/s ", time.Now()),
 			decor.Counters(0, "%d/%d"),
 			decor.Any(func(s decor.Statistics) string {
-				return fmt.Sprintf(" %s", stat.Cur)
+				return fmt.Sprintf(" %s", stat.Current())
 			}),
 		),
 		mpb.AppendDecorators(
 			decor.Any(func(s decor.Statistics) string {
-				return fmt.Sprintf("tasks: %d ", stat.Total)
+				return fmt.Sprintf("tasks: %d ", stat.TotalCount())
 			}),
 			decor.Percentage(),
 			decor.Elapsed(decor.ET_STYLE_GO, decor.WC{W: 4}),

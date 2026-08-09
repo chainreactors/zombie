@@ -275,11 +275,14 @@ func TestE2E_RunnerAPI_ProtonPipeline(t *testing.T) {
 
 func TestE2E_RunnerAPI_PluginRegistry(t *testing.T) {
 	runner := NewRunner(NewDefaultRunnerOption())
-	required := []string{"ssh", "mysql", "redis", "ftp", "smb", "ldap", "postgresql", "mssql", "oracle", "neutron"}
+	required := []string{"ssh", "mysql", "redis", "ftp", "smb", "ldap", "postgresql", "mssql", "oracle"}
 	for _, svc := range required {
 		if _, ok := runner.Plugins[svc]; !ok {
 			t.Errorf("registry missing %q", svc)
 		}
+	}
+	if runner.FallbackPlugin == nil {
+		t.Fatal("template fallback plugin is missing")
 	}
 }
 
@@ -297,7 +300,7 @@ func TestE2E_WorkerExecute_ClosedPort(t *testing.T) {
 		Timeout: 1,
 	}
 
-	result := Execute(task, runner.Plugins, runner.Pipeline, nil)
+	result := Execute(task, runner.Plugins, runner.FallbackPlugin, runner.Pipeline, nil)
 	if result.OK {
 		t.Error("should not succeed on closed port")
 	}
@@ -325,7 +328,7 @@ func TestE2E_WorkerExecute_WithProton_ClosedPort(t *testing.T) {
 		Timeout: 1,
 	}
 
-	result := Execute(task, runner.Plugins, runner.Pipeline, nil)
+	result := Execute(task, runner.Plugins, runner.FallbackPlugin, runner.Pipeline, nil)
 	if result.OK {
 		t.Error("should not succeed on closed port")
 	}
@@ -348,7 +351,7 @@ func TestE2E_WorkerExecute_MultipleServices_ClosedPort(t *testing.T) {
 				},
 				Timeout: 1,
 			}
-			result := Execute(task, runner.Plugins, runner.Pipeline, nil)
+			result := Execute(task, runner.Plugins, runner.FallbackPlugin, runner.Pipeline, nil)
 			if result.OK {
 				t.Errorf("%s should not succeed on closed port", svc)
 			}

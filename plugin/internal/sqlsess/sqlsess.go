@@ -7,9 +7,8 @@ type Session struct {
 	SvcName string
 }
 
-func (s *Session) Service() string      { return s.SvcName }
-func (s *Session) Close() error         { return s.DB.Close() }
-func (s *Session) Raw() interface{}     { return s.DB }
+func (s *Session) Service() string { return s.SvcName }
+func (s *Session) Close() error    { return s.DB.Close() }
 
 func (s *Session) Query(query string, args ...any) ([][]string, error) {
 	rows, err := s.DB.Query(query, args...)
@@ -47,4 +46,3 @@ func (s *Session) Query(query string, args ...any) ([][]string, error) {
 	}
 	return result, rows.Err()
 }
-
