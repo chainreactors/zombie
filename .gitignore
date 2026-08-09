@@ -20,6 +20,7 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 /bin
+/dist/
 /.idea
 /v1/Test
 
