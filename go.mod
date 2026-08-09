@@ -8,10 +8,10 @@ require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
 	github.com/chainreactors/fingers v1.2.1
 	github.com/chainreactors/logs v0.0.0-20260508055944-c678762ed15c
-	github.com/chainreactors/neutron v0.0.0-20260608084636-c81691731908
+	github.com/chainreactors/neutron v0.1.1-0.20260629055246-979be130dcaa
 	github.com/chainreactors/parsers v0.0.0-20260608085142-3d2c51baa8fe
-	github.com/chainreactors/proton v0.3.0
-	github.com/chainreactors/utils v0.0.0-20260529172343-6465cb8568b2
+	github.com/chainreactors/proton v0.3.2
+	github.com/chainreactors/utils v0.0.0-20260626175554-d3e25e531450
 	github.com/chainreactors/words v0.0.0-20260520145736-270600e60fb4
 	github.com/denisenkom/go-mssqldb v0.9.0
 	github.com/eclipse/paho.mqtt.golang v1.4.3
@@ -38,9 +38,10 @@ require (
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
-	github.com/Knetic/govaluate v3.0.0+incompatible // indirect
+	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
+	github.com/chainreactors/utils/parsers v0.0.0-20260630095004-c4fb7a13ed39 // indirect
 	github.com/charlievieth/fastwalk v1.0.14 // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/edsrzf/mmap-go v1.2.0 // indirect
@@ -86,7 +87,6 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/huin/asn1ber v0.0.0-20120622192748-af09f62e6358
 	github.com/icodeface/tls v0.0.0-20190904083142-17aec93c60e5
-	github.com/kr/pretty v0.3.1 // indirect
 	github.com/lunixbochs/struc v0.0.0-20200707160740-784aaebc1d40
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
