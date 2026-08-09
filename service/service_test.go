@@ -14,9 +14,8 @@ type mockShellSession struct {
 	outputs map[string]string
 }
 
-func (m *mockShellSession) Service() string  { return m.svc }
-func (m *mockShellSession) Close() error     { return nil }
-func (m *mockShellSession) Raw() interface{} { return nil }
+func (m *mockShellSession) Service() string { return m.svc }
+func (m *mockShellSession) Close() error    { return nil }
 func (m *mockShellSession) Exec(cmd string) ([]byte, error) {
 	if out, ok := m.outputs[cmd]; ok {
 		return []byte(out), nil
@@ -32,9 +31,8 @@ type mockKVSession struct {
 	calls []string
 }
 
-func (m *mockKVSession) Service() string  { return m.svc }
-func (m *mockKVSession) Close() error     { return nil }
-func (m *mockKVSession) Raw() interface{} { return nil }
+func (m *mockKVSession) Service() string { return m.svc }
+func (m *mockKVSession) Close() error    { return nil }
 func (m *mockKVSession) Get(key string) ([]byte, error) {
 	return []byte(m.data[key]), nil
 }
@@ -143,10 +141,10 @@ extractors:
 	if !result.Matched {
 		t.Error("expected match on 'root'")
 	}
-	if len(result.Extracts["user"]) == 0 {
+	if len(result.ExtractsByName()["user"]) == 0 {
 		t.Error("expected extraction of user")
-	} else if result.Extracts["user"][0] != "root" {
-		t.Errorf("expected extracted user='root', got %q", result.Extracts["user"][0])
+	} else if result.ExtractsByName()["user"][0] != "root" {
+		t.Errorf("expected extracted user='root', got %q", result.ExtractsByName()["user"][0])
 	}
 }
 
@@ -200,10 +198,10 @@ extractors:
 	if !result.Matched {
 		t.Error("expected match on '/var'")
 	}
-	if len(result.Extracts["redis_dir"]) == 0 {
+	if len(result.ExtractsByName()["redis_dir"]) == 0 {
 		t.Error("expected extraction of redis_dir")
-	} else if result.Extracts["redis_dir"][0] != "/var/lib/redis" {
-		t.Errorf("expected '/var/lib/redis', got %q", result.Extracts["redis_dir"][0])
+	} else if result.ExtractsByName()["redis_dir"][0] != "/var/lib/redis" {
+		t.Errorf("expected '/var/lib/redis', got %q", result.ExtractsByName()["redis_dir"][0])
 	}
 }
 
@@ -426,7 +424,7 @@ services:
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
-	if result == nil || len(result.Extracts["set_ok"]) != 4 {
+	if result == nil || len(result.ExtractsByName()["set_ok"]) != 4 {
 		t.Fatalf("expected 4 payload executions, got result %#v", result)
 	}
 	if len(session.calls) != 4 {
@@ -482,7 +480,7 @@ services:
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
-	if result == nil || len(result.Extracts["set_ok"]) != 1 {
+	if result == nil || len(result.ExtractsByName()["set_ok"]) != 1 {
 		t.Fatalf("expected one overridden payload execution, got %#v", result)
 	}
 	if len(session.calls) != 1 || session.calls[0] != "SET cli 1" {
@@ -529,7 +527,7 @@ services:
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
-	if result == nil || len(result.Extracts["set_ok"]) != 2 {
+	if result == nil || len(result.ExtractsByName()["set_ok"]) != 2 {
 		t.Fatalf("expected two overridden payload executions, got %#v", result)
 	}
 	expected := []string{"SET cli-a 1", "SET cli-b 1"}
@@ -618,7 +616,7 @@ services:
 	if err != nil {
 		t.Fatalf("execute: %v", err)
 	}
-	if result == nil || len(result.Extracts["set_ok"]) != 2 {
+	if result == nil || len(result.ExtractsByName()["set_ok"]) != 2 {
 		t.Fatalf("expected CLI-defined payload executions, got %#v", result)
 	}
 	expected := []string{"SET cli-a 1", "SET cli-b 1"}

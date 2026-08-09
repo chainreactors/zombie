@@ -36,7 +36,7 @@ var dialects = map[string]*dialect{
 				limit, col, schema, table, col, col)
 		},
 	},
-	"postgre": {
+	"postgresql": {
 		schemaCol:      "table_schema",
 		columnsTable:   "information_schema.columns",
 		excludeSchemas: []string{"pg_catalog", "information_schema"},
@@ -76,15 +76,19 @@ func (s *Session) Audit(patterns []string, limit int) (map[string]string, error)
 	}
 
 	results := make(map[string]string)
+	remaining := limit
 	// rows[0] is the header row from sqlsess.Query
 	for i, row := range rows {
+		if remaining == 0 {
+			break
+		}
 		if i == 0 || len(row) < 3 {
 			continue
 		}
 		schema, table, col := row[0], row[1], row[2]
 		location := fmt.Sprintf("%s.%s.%s", schema, table, col)
 
-		sampleRows, err := s.Query(d.sampleSQL(schema, table, col, limit))
+		sampleRows, err := s.Query(d.sampleSQL(schema, table, col, remaining))
 		if err != nil {
 			continue
 		}
@@ -95,6 +99,10 @@ func (s *Session) Audit(patterns []string, limit int) (map[string]string, error)
 			}
 			if len(sr) > 0 && sr[0] != "" {
 				values = append(values, sr[0])
+				remaining--
+				if remaining == 0 {
+					break
+				}
 			}
 		}
 		if len(values) > 0 {

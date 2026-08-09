@@ -10,15 +10,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func init() {
-	pkg.RegisterPlugin("postgresql", &PostgresPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "postgresql", DefaultPort: "5432", Alias: []string{"postgre"}, Source: pkg.PluginSource})
-}
-
 // PostgresPlugin is stateless; all connection state lives in sqlsess.Session.
 type PostgresPlugin struct{}
-
-func (PostgresPlugin) Name() string { return "postgresql" }
 
 // Open authenticates with the credentials from task and returns a SQLSession.
 func (PostgresPlugin) Open(task *pkg.Task) (pkg.Session, error) {

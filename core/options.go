@@ -88,6 +88,18 @@ func (opt *Option) Validate() error {
 	default:
 		return fmt.Errorf("unsupported mod %q, want clusterbomb, pitchfork, or sniper", opt.Mod)
 	}
+	if opt.Threads <= 0 {
+		return errors.New("threads must be greater than zero")
+	}
+	if opt.Concurrency < 0 {
+		return errors.New("concurrency must not be negative")
+	}
+	if opt.Timeout <= 0 {
+		return errors.New("timeout must be greater than zero")
+	}
+	if opt.Top < 0 {
+		return errors.New("top must not be negative")
+	}
 	if len(opt.IP) == 0 && opt.IPFile == "" && opt.JsonFile == "" && opt.GogoFile == "" && opt.CIDR == nil {
 		return errors.New("please input ip or or file or json file or gogo file")
 	}
@@ -109,14 +121,6 @@ func (opt *Option) Validate() error {
 func (opt *Option) Prepare() (*Runner, error) {
 	var err error
 	var targets []*Target
-
-	var file *fileutils.File
-	if opt.OutputFile != "" {
-		file, err = fileutils.NewFile(opt.OutputFile, fileutils.ModeAppend, false, false)
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	serviceVars, err := parseKeyValueArgs(opt.ServiceVars)
 	if err != nil {
@@ -152,9 +156,6 @@ func (opt *Option) Prepare() (*Runner, error) {
 	if err := runner.BuildPipeline(); err != nil {
 		return nil, err
 	}
-	runner.File = file
-	runner.FileFormat = opt.FileFormat
-	runner.OutputFormat = opt.OutputFormat
 
 	if opt.Bar {
 		pkg.InitBar()
@@ -273,7 +274,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		var s strings.Builder
 		dicts = make([][]string, len(opt.Dictionaries))
 		for i, f := range opt.Dictionaries {
-			dicts[i], err = loadFileToSlice(f)
+			dicts[i], err = fileutils.LoadFileToSlice(f)
 			if err != nil {
 				return nil, err
 			}

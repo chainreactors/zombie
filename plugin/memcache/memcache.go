@@ -8,18 +8,12 @@ import (
 	"github.com/chainreactors/zombie/pkg"
 )
 
-func init() {
-	pkg.RegisterPlugin("memcached", &MemcachePlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "memcached", DefaultPort: "11211", Source: pkg.PluginSource})
-}
-
 type memcacheSession struct {
 	service string
 	client  *memcache.Client
 }
 
-func (s *memcacheSession) Service() string  { return s.service }
-func (s *memcacheSession) Raw() interface{} { return s.client }
+func (s *memcacheSession) Service() string { return s.service }
 
 func (s *memcacheSession) Close() error { return nil }
 
@@ -55,8 +49,6 @@ func (s *memcacheSession) Command(name string, args ...string) (interface{}, err
 }
 
 type MemcachePlugin struct{}
-
-func (p *MemcachePlugin) Name() string { return "memcached" }
 
 func (p *MemcachePlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	client := memcache.New(fmt.Sprintf("%s:%s", task.IP, task.Port))

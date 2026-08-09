@@ -18,8 +18,7 @@ type mongoSession struct {
 	ctx     context.Context
 }
 
-func (s *mongoSession) Service() string  { return s.service }
-func (s *mongoSession) Raw() interface{} { return s.client }
+func (s *mongoSession) Service() string { return s.service }
 
 func (s *mongoSession) Close() error {
 	if s.client != nil {
@@ -120,14 +119,7 @@ func (s *mongoSession) execFind(parts []string) ([][]string, error) {
 	return rows, nil
 }
 
-func init() {
-	pkg.RegisterPlugin("mongo", &MongoPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "mongo", DefaultPort: "27017", Alias: []string{"mongodb"}, Source: pkg.PluginSource})
-}
-
 type MongoPlugin struct{}
-
-func (p *MongoPlugin) Name() string { return "mongo" }
 
 func (p *MongoPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	var url string

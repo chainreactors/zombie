@@ -8,10 +8,10 @@ require (
 	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
 	github.com/chainreactors/fingers v1.2.2-0.20260629103336-467eef72e53e
 	github.com/chainreactors/logs v0.0.0-20260508055944-c678762ed15c
-	github.com/chainreactors/neutron v0.1.1-0.20260703124839-c4091ad1e02d
-	github.com/chainreactors/proton v0.3.3-0.20260703125000-97bdff4bcf27
-	github.com/chainreactors/utils v0.0.0-20260629103303-9318b2958679
-	github.com/chainreactors/utils/parsers v0.0.0-20260703124640-175b2abe30c2
+	github.com/chainreactors/neutron v0.1.1-0.20260704022034-e0488801d4bf
+	github.com/chainreactors/proton v0.3.3-0.20260707162538-471f99ea6131
+	github.com/chainreactors/utils v0.0.0-20260704034630-ef809fae5725
+	github.com/chainreactors/utils/parsers v0.0.4-0.20260809074718-349a49164b5b
 	github.com/chainreactors/words v0.0.0-20260520145736-270600e60fb4
 	github.com/denisenkom/go-mssqldb v0.9.0
 	github.com/eclipse/paho.mqtt.golang v1.4.3
@@ -100,4 +100,4 @@ replace (
 	golang.org/x/text => golang.org/x/text v0.12.0
 )
 
-replace github.com/wasilibs/go-re2 => github.com/chainreactors/go-re2 v1.11.1-0.20260716082604-8121b6cd261e
+replace github.com/wasilibs/go-re2 => github.com/chainreactors/go-re2 v1.11.1-0.20260803043001-2e8338def4c6

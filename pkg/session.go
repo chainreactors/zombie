@@ -3,7 +3,6 @@ package pkg
 type Session interface {
 	Service() string
 	Close() error
-	Raw() interface{}
 }
 
 type ShellSession interface {
@@ -46,28 +45,3 @@ type AuditableSession interface {
 }
 
 var DefaultAuditPatterns []string
-
-type Plugin interface {
-	Name() string
-	Open(task *Task) (Session, error)
-	Unauth(task *Task) (Session, error)
-}
-
-var pluginRegistry = map[string]Plugin{}
-
-func RegisterPlugin(name string, p Plugin) {
-	pluginRegistry[name] = p
-}
-
-func GetPlugin(service string) (Plugin, bool) {
-	p, ok := pluginRegistry[service]
-	return p, ok
-}
-
-func DefaultPluginRegistry() map[string]Plugin {
-	m := make(map[string]Plugin, len(pluginRegistry))
-	for k, v := range pluginRegistry {
-		m[k] = v
-	}
-	return m
-}

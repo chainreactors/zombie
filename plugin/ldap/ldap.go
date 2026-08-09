@@ -7,19 +7,13 @@ import (
 	ldap "github.com/go-ldap/ldap/v3"
 )
 
-func init() {
-	pkg.RegisterPlugin("ldap", &LdapPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "ldap", DefaultPort: "389", Source: pkg.PluginSource})
-}
-
 // ldapSession implements pkg.DirectorySession over a bound LDAP connection.
 type ldapSession struct {
 	service string
 	conn    *ldap.Conn
 }
 
-func (s *ldapSession) Service() string  { return s.service }
-func (s *ldapSession) Raw() interface{} { return s.conn }
+func (s *ldapSession) Service() string { return s.service }
 
 func (s *ldapSession) Close() error {
 	if s.conn != nil {
@@ -54,8 +48,6 @@ func (s *ldapSession) Search(baseDN, filter string, attrs []string) ([]map[strin
 
 // LdapPlugin is stateless; all connection state lives in ldapSession.
 type LdapPlugin struct{}
-
-func (p *LdapPlugin) Name() string { return "ldap" }
 
 func (p *LdapPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	ldap.DefaultTimeout = task.Duration()

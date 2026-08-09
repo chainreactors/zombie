@@ -8,25 +8,17 @@ import (
 	"net/url"
 )
 
-func init() {
-	pkg.RegisterPlugin("socks5", &Socks5Plugin{})
-	pkg.Services.Register(&pkg.Service{Name: "socks5", DefaultPort: "1080", Source: pkg.PluginSource})
-}
-
 // socks5Session implements pkg.Session over a SOCKS5 proxy dialer.
 type socks5Session struct {
 	service string
 	dialer  proxy.Dialer
 }
 
-func (s *socks5Session) Service() string  { return s.service }
-func (s *socks5Session) Raw() interface{} { return s.dialer }
-func (s *socks5Session) Close() error     { return nil }
+func (s *socks5Session) Service() string { return s.service }
+func (s *socks5Session) Close() error    { return nil }
 
 // Socks5Plugin is stateless; all connection state lives in socks5Session.
 type Socks5Plugin struct{}
-
-func (p *Socks5Plugin) Name() string { return "socks5" }
 
 func (p *Socks5Plugin) Open(task *pkg.Task) (pkg.Session, error) {
 	proxyURL, err := url.Parse(fmt.Sprintf("socks5://%s:%s@%s:%s", task.Username, task.Password, task.IP, task.Port))

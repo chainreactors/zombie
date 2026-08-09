@@ -14,14 +14,11 @@ type httpProxySession struct {
 	client  *http.Client
 }
 
-func (s *httpProxySession) Service() string  { return s.service }
-func (s *httpProxySession) Raw() interface{} { return s.client }
-func (s *httpProxySession) Close() error     { return nil }
+func (s *httpProxySession) Service() string { return s.service }
+func (s *httpProxySession) Close() error    { return nil }
 
 // HTTPProxyPlugin is stateless; all connection state lives in httpProxySession.
 type HTTPProxyPlugin struct{}
-
-func (p *HTTPProxyPlugin) Name() string { return "http_proxy" }
 
 func (p *HTTPProxyPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	proxyURL, err := url.Parse(fmt.Sprintf("%s://%s:%s", task.Scheme, task.IP, task.Port))

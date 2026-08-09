@@ -9,6 +9,8 @@ import (
 	"github.com/chainreactors/utils/encode"
 )
 
+var RandomDir = "/g8kZMwp4oeKsL2in"
+
 //go:embed data/zombie_default.bin
 var zombieDefaultData []byte
 
@@ -26,6 +28,9 @@ var zombieServiceData []byte
 
 //go:embed data/zombie_loot.bin
 var zombieLootData []byte
+
+//go:embed data/zombie_audit.bin
+var zombieAuditData []byte
 
 //go:embed data/port.bin
 var portData []byte
@@ -50,6 +55,8 @@ func loadEmbeddedConfig(typ string) []byte {
 		return encode.MustDeflateDeCompress(zombieServiceData)
 	}else if typ == "zombie_loot" {
 		return encode.MustDeflateDeCompress(zombieLootData)
+	}else if typ == "zombie_audit" {
+		return encode.MustDeflateDeCompress(zombieAuditData)
 	}else if typ == "port" {
 		return encode.MustDeflateDeCompress(portData)
 	}else if typ == "socket" {

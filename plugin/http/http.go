@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/chainreactors/utils/httputils"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/zombie/pkg"
 	"io/ioutil"
@@ -13,31 +14,15 @@ import (
 	"strings"
 )
 
-func init() {
-	pkg.RegisterPlugin("http", &HttpAuthPlugin{})
-	pkg.RegisterPlugin("https", &HttpAuthPlugin{})
-	pkg.RegisterPlugin("get", NewHTTPPlugin("GET"))
-	pkg.RegisterPlugin("post", NewHTTPPlugin("POST"))
-	pkg.RegisterPlugin("http_proxy", &HTTPProxyPlugin{})
-	pkg.RegisterPlugin("digest", &HTTPDigestPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "http", DefaultPort: "80", Source: pkg.PluginSource})
-	pkg.Services.Register(&pkg.Service{Name: "https", DefaultPort: "443", Source: pkg.PluginSource})
-	pkg.Services.Register(&pkg.Service{Name: "get", DefaultPort: "80", Source: pkg.PluginSource})
-	pkg.Services.Register(&pkg.Service{Name: "post", DefaultPort: "80", Source: pkg.PluginSource})
-	pkg.Services.Register(&pkg.Service{Name: "http_proxy", DefaultPort: "8080", Source: pkg.PluginSource})
-	pkg.Services.Register(&pkg.Service{Name: "digest", DefaultPort: "80", Source: pkg.PluginSource})
-}
-
 // httpSession implements pkg.Session for HTTP GET/POST login.
-// HTTP is stateless, so Close is a no-op and Raw returns the http.Client.
+// HTTP is stateless, so Close is a no-op.
 type httpSession struct {
 	service string
 	client  *http.Client
 }
 
-func (s *httpSession) Service() string  { return s.service }
-func (s *httpSession) Raw() interface{} { return s.client }
-func (s *httpSession) Close() error     { return nil }
+func (s *httpSession) Service() string { return s.service }
+func (s *httpSession) Close() error    { return nil }
 
 // HTTPPlugin is stateless; all per-request state is derived from the task.
 type HTTPPlugin struct {
@@ -47,8 +32,6 @@ type HTTPPlugin struct {
 func NewHTTPPlugin(method string) *HTTPPlugin {
 	return &HTTPPlugin{Method: method}
 }
-
-func (p *HTTPPlugin) Name() string { return strings.ToLower(p.Method) }
 
 func (p *HTTPPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	path := task.Param["path"]
@@ -192,7 +175,7 @@ func setupRequestHeaders(req *http.Request, host string, headers map[string]stri
 	if host != "" {
 		req.Host = host
 	}
-	req.Header.Set("User-Agent", pkg.RandomUA())
+	req.Header.Set("User-Agent", httputils.GetRandomUA())
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}

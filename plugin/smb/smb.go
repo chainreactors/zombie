@@ -11,19 +11,13 @@ import (
 	"github.com/hirochachacha/go-smb2"
 )
 
-func init() {
-	pkg.RegisterPlugin("smb", &SmbPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "smb", DefaultPort: "445", Source: pkg.PluginSource})
-}
-
 // smbSession implements pkg.FileSession over an authenticated SMB2 session.
 type smbSession struct {
 	service string
 	conn    *smb2.Session
 }
 
-func (s *smbSession) Service() string  { return s.service }
-func (s *smbSession) Raw() interface{} { return s.conn }
+func (s *smbSession) Service() string { return s.service }
 
 func (s *smbSession) Close() error {
 	if s.conn != nil {
@@ -110,8 +104,6 @@ func (s *smbSession) Write(path string, data []byte) error {
 // SmbPlugin is stateless; all connection state lives in smbSession.
 type SmbPlugin struct{}
 
-func (p *SmbPlugin) Name() string { return "smb" }
-
 // dial establishes a raw TCP connection and performs the SMB2 handshake.
 func (p *SmbPlugin) dial(task *pkg.Task, dialer *smb2.Dialer) (*smb2.Session, error) {
 	c, err := task.DialTimeout("tcp", task.Address(), time.Duration(task.Timeout)*time.Second)
@@ -134,7 +126,7 @@ func (p *SmbPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	user, domain := pkg.SplitUserDomain(task.Username)
 
 	dialer := &smb2.Dialer{}
-	method, pwd := pkg.ParseMethod(task.Password)
+	method, pwd := pkg.ParseMethod(task.Password, task.Raw)
 	if method == "hash" {
 		dialer.Initiator = &smb2.NTLMInitiator{
 			User:   user,

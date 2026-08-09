@@ -6,19 +6,13 @@ import (
 	"time"
 )
 
-func init() {
-	pkg.RegisterPlugin("snmp", &SnmpPlugin{})
-	pkg.Services.Register(&pkg.Service{Name: "snmp", DefaultPort: "161", Source: pkg.PluginSource})
-}
-
 // snmpSession implements pkg.Session over an SNMP connection.
 type snmpSession struct {
 	service string
 	conn    *gosnmp.GoSNMP
 }
 
-func (s *snmpSession) Service() string  { return s.service }
-func (s *snmpSession) Raw() interface{} { return s.conn }
+func (s *snmpSession) Service() string { return s.service }
 
 func (s *snmpSession) Close() error {
 	if s.conn != nil {
@@ -29,8 +23,6 @@ func (s *snmpSession) Close() error {
 
 // SnmpPlugin is stateless; all connection state lives in snmpSession.
 type SnmpPlugin struct{}
-
-func (p *SnmpPlugin) Name() string { return "snmp" }
 
 func (p *SnmpPlugin) Open(task *pkg.Task) (pkg.Session, error) {
 	return dial(task, task.Password)

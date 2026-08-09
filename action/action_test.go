@@ -17,9 +17,8 @@ type mockShellSession struct {
 	files map[string][]byte
 }
 
-func (m *mockShellSession) Service() string  { return "ssh" }
-func (m *mockShellSession) Close() error     { return nil }
-func (m *mockShellSession) Raw() interface{} { return nil }
+func (m *mockShellSession) Service() string { return "ssh" }
+func (m *mockShellSession) Close() error    { return nil }
 func (m *mockShellSession) Exec(cmd string) ([]byte, error) {
 	for path, data := range m.files {
 		if containsSubstr(cmd, path) {
@@ -34,9 +33,8 @@ type mockSQLSession struct {
 	rows    map[string][][]string
 }
 
-func (m *mockSQLSession) Service() string  { return m.service }
-func (m *mockSQLSession) Close() error     { return nil }
-func (m *mockSQLSession) Raw() interface{} { return nil }
+func (m *mockSQLSession) Service() string { return m.service }
+func (m *mockSQLSession) Close() error    { return nil }
 func (m *mockSQLSession) Query(query string, args ...any) ([][]string, error) {
 	for key, rows := range m.rows {
 		if containsSubstr(query, key) {
@@ -51,9 +49,8 @@ func (m *mockSQLSession) Databases() ([]string, error) {
 
 type mockKVSession struct{}
 
-func (m *mockKVSession) Service() string  { return "redis" }
-func (m *mockKVSession) Close() error     { return nil }
-func (m *mockKVSession) Raw() interface{} { return nil }
+func (m *mockKVSession) Service() string { return "redis" }
+func (m *mockKVSession) Close() error    { return nil }
 func (m *mockKVSession) Get(key string) ([]byte, error) {
 	if key == "user:token" {
 		return []byte("ghp_abcdefghij1234567890abcdefghij1234"), nil
@@ -69,9 +66,8 @@ func (m *mockKVSession) Keys(pattern string) ([]string, error) {
 
 type mockFileSession struct{}
 
-func (m *mockFileSession) Service() string  { return "ftp" }
-func (m *mockFileSession) Close() error     { return nil }
-func (m *mockFileSession) Raw() interface{} { return nil }
+func (m *mockFileSession) Service() string { return "ftp" }
+func (m *mockFileSession) Close() error    { return nil }
 func (m *mockFileSession) List(path string) ([]string, error) {
 	return []string{".env", "config.yaml", "data.csv"}, nil
 }
@@ -722,9 +718,8 @@ type mockAuditableSession struct {
 	data map[string]string
 }
 
-func (m *mockAuditableSession) Service() string  { return m.svc }
-func (m *mockAuditableSession) Close() error     { return nil }
-func (m *mockAuditableSession) Raw() interface{} { return nil }
+func (m *mockAuditableSession) Service() string { return m.svc }
+func (m *mockAuditableSession) Close() error    { return nil }
 func (m *mockAuditableSession) Audit(patterns []string, limit int) (map[string]string, error) {
 	return m.data, nil
 }
@@ -753,7 +748,7 @@ func TestAuditAction_E2E(t *testing.T) {
 	}
 
 	// Step 2: Merge into Result (simulates worker.go)
-	result := &pkg.Result{Task: &pkg.Task{ZombieResult: &parsers.ZombieResult{Service: "mysql"}}, OK: true}
+	result := pkg.NewResult(&pkg.Task{ZombieResult: &parsers.ZombieResult{Service: "mysql"}}, nil)
 	result.Merge(ar)
 
 	// Step 3: PostAction scans loot for PII (simulates worker.go postAction loop)
