@@ -59,11 +59,13 @@ func (h *hostLimiter) acquire(ctx context.Context, key string) (func(), bool) {
 type Runner struct {
 	*RunnerOption
 
-	bar     *pkg.Bar
-	stat    *pkg.Statistor
-	wg      *sync.WaitGroup
-	outlock *sync.WaitGroup
-	addlock *sync.Mutex
+	bar      *pkg.Bar
+	stat     *pkg.Statistor
+	wg       *sync.WaitGroup
+	outlock  *sync.WaitGroup
+	addlock  *sync.Mutex
+	outMu    sync.Mutex
+	outClose bool
 
 	Users        *Generator
 	Pwds         *Generator
@@ -234,7 +236,10 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	if r.OutFunc != nil {
 		r.outlock.Wait()
 	}
+	r.outMu.Lock()
+	r.outClose = true
 	close(r.OutputCh)
+	r.outMu.Unlock()
 
 	if !r.Quiet {
 		logs.Log.Importantf("%s", r.stat.TaskString())
@@ -518,7 +523,11 @@ func (r *Runner) Output(res *pkg.Result) {
 	if res.OK {
 		r.stat.Success++
 	}
-	r.OutputCh <- res
+	r.outMu.Lock()
+	if !r.outClose {
+		r.OutputCh <- res
+	}
+	r.outMu.Unlock()
 }
 
 func (r *Runner) OutputHandler() {
