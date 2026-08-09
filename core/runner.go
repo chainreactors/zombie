@@ -4,15 +4,17 @@ import (
 	"context"
 	"fmt"
 	"runtime/debug"
+	"strings"
 	"sync"
-	"time"
 
 	"github.com/chainreactors/logs"
-	"github.com/chainreactors/parsers"
 	"github.com/chainreactors/utils"
-	"github.com/chainreactors/utils/fileutils"
 	"github.com/chainreactors/utils/iutils"
+	"github.com/chainreactors/utils/parsers"
+	"github.com/chainreactors/zombie/action"
 	"github.com/chainreactors/zombie/pkg"
+	"github.com/chainreactors/zombie/plugin"
+	"github.com/chainreactors/zombie/service"
 	"github.com/panjf2000/ants/v2"
 )
 
@@ -59,41 +61,145 @@ func (h *hostLimiter) acquire(ctx context.Context, key string) (func(), bool) {
 type Runner struct {
 	*RunnerOption
 
-	bar     *pkg.Bar
-	stat    *pkg.Statistor
-	wg      *sync.WaitGroup
-	outlock *sync.WaitGroup
-	addlock *sync.Mutex
+	bar  *pkg.Bar
+	stat *pkg.Statistor
+	wg   *sync.WaitGroup
 
-	Users        *Generator
-	Pwds         *Generator
-	Auths        *Generator
-	Addrs        utils.Addrs
-	Targets      []*Target
-	Services     []string
-	OutputCh     chan *pkg.Result
-	File         *fileutils.File
-	OutFunc      func(string)
-	FileFormat   string
-	OutputFormat string
-	Pool         *ants.PoolWithFunc
-	hostSem      *hostLimiter
+	Plugins        map[string]plugin.Plugin
+	FallbackPlugin plugin.Plugin
+	Pipeline       []pkg.Action
+	PostAction     *action.PostAction
+
+	Users    *Generator
+	Pwds     *Generator
+	Auths    *Generator
+	Addrs    utils.Addrs
+	Targets  []*Target
+	Services []string
+	OnResult ResultHandler
+	Pool     *ants.PoolWithFunc
+	hostSem  *hostLimiter
 }
+
+// ResultHandler receives each executed attempt synchronously in its worker.
+// Different workers may call the handler concurrently.
+type ResultHandler func(*pkg.Result)
 
 func NewRunner(opt *RunnerOption) *Runner {
 	if opt == nil {
 		opt = NewDefaultRunnerOption()
 	}
 	return &Runner{
-		RunnerOption: opt,
-		OutputCh:     make(chan *pkg.Result),
-		wg:           &sync.WaitGroup{},
-		outlock:      &sync.WaitGroup{},
-		addlock:      &sync.Mutex{},
+		RunnerOption:   opt,
+		Plugins:        defaultPlugins(),
+		FallbackPlugin: defaultFallbackPlugin(),
+		wg:             &sync.WaitGroup{},
 		stat: &pkg.Statistor{
 			Tasks: make(map[string]int),
 		},
 	}
+}
+
+// RegisterService adds a plugin to this Runner only.
+func (r *Runner) RegisterService(service plugin.Service, p plugin.Plugin) error {
+	service.Name = strings.ToLower(strings.TrimSpace(service.Name))
+	if service.Name == "" {
+		return fmt.Errorf("plugin service name is required")
+	}
+	if p == nil {
+		return fmt.Errorf("plugin for service %q is nil", service.Name)
+	}
+	if _, exists := r.Plugins[service.Name]; exists {
+		return fmt.Errorf("plugin service %q is already registered", service.Name)
+	}
+	if service.Source == "" {
+		service.Source = pkg.PluginSource
+	}
+
+	aliases := make([]string, 0, len(service.Alias))
+	seen := map[string]struct{}{service.Name: {}}
+	for _, alias := range service.Alias {
+		alias = strings.ToLower(strings.TrimSpace(alias))
+		if alias == "" {
+			continue
+		}
+		if _, duplicate := seen[alias]; duplicate {
+			continue
+		}
+		if _, exists := r.Plugins[alias]; exists {
+			return fmt.Errorf("plugin service alias %q is already registered", alias)
+		}
+		seen[alias] = struct{}{}
+		aliases = append(aliases, alias)
+	}
+	service.Alias = aliases
+	r.Plugins[service.Name] = p
+	for _, alias := range aliases {
+		r.Plugins[alias] = p
+	}
+	pkg.Services.Register(&service)
+	return nil
+}
+
+func (r *Runner) BuildPipeline() error {
+	if r.Proton {
+		if len(r.ScanTemplates) == 0 {
+			return fmt.Errorf("--proton requires --scan-template to specify proton template path")
+		}
+		pa, err := action.NewPostAction(r.ScanTemplates)
+		if err != nil {
+			return fmt.Errorf("failed to init post action: %w", err)
+		}
+		r.PostAction = pa
+	}
+
+	var serviceTemplates []*service.Template
+	if r.Gather {
+		embedded, err := action.LoadServiceTemplatesFromData(pkg.ServiceTemplateData)
+		if err != nil {
+			return fmt.Errorf("failed to load embedded service templates: %w", err)
+		}
+		serviceTemplates = append(serviceTemplates, embedded...)
+	}
+	if len(r.ServiceTemplates) > 0 {
+		fromPaths, err := action.LoadServiceTemplatesFromPaths(r.ServiceTemplates)
+		if err != nil {
+			return fmt.Errorf("failed to load service templates: %w", err)
+		}
+		serviceTemplates = append(serviceTemplates, fromPaths...)
+	}
+	if len(serviceTemplates) > 0 {
+		serviceAction, err := action.NewServiceAction(serviceTemplates, r.ServiceVars, r.ServicePayloads)
+		if err != nil {
+			return fmt.Errorf("failed to init service action: %w", err)
+		}
+		if r.Risk != "" {
+			serviceAction.SetRisk(r.Risk)
+		}
+		if r.Gather && len(r.Tags) == 0 {
+			serviceAction.SetTags([]string{"gather"})
+		} else if len(r.Tags) > 0 {
+			serviceAction.SetTags(r.Tags)
+		}
+		r.Pipeline = append(r.Pipeline, serviceAction)
+	}
+
+	if r.Gather {
+		r.Pipeline = append(r.Pipeline, action.NewAuditAction())
+	}
+
+	if r.Gather && r.PostAction == nil {
+		if data := pkg.LootTemplateData; len(data) > 0 {
+			pa, err := action.NewPostActionFromData(data)
+			if err != nil {
+				logs.Log.Debugf("loot scanner disabled: %v", err)
+			} else {
+				r.PostAction = pa
+			}
+		}
+	}
+
+	return nil
 }
 
 func (r *Runner) SetTargets(targets []*Target) {
@@ -127,9 +233,6 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-
-	pkg.RunOpt.Raw = r.Raw
-
 	if r.Mod == "" {
 		r.Mod = ModBomb
 	}
@@ -141,18 +244,26 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	if r.Mod == ModPitchFork && r.Auths == nil {
 		return fmt.Errorf("pitchfork mode requires auth, please set -a/-A")
 	}
-
-	if r.OutFunc != nil {
-		go r.OutputHandler()
+	if r.Threads <= 0 {
+		return fmt.Errorf("threads must be greater than zero")
+	}
+	if r.Timeout <= 0 {
+		return fmt.Errorf("timeout must be greater than zero")
+	}
+	if r.Concurrency < 0 {
+		return fmt.Errorf("concurrency must not be negative")
+	}
+	if r.Top < 0 {
+		return fmt.Errorf("top must not be negative")
 	}
 
 	r.hostSem = newHostLimiter(r.Concurrency)
-	r.Pool, _ = ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
+	pool, err := ants.NewPoolWithFunc(r.Threads, func(i interface{}) {
 		task := i.(*pkg.Task)
 		defer func() {
 			r.wg.Done()
-			if task.Locker != nil {
-				task.Locker.Unlock()
+			if task.Completed != nil {
+				close(task.Completed)
 			}
 		}()
 		// 该目标已命中/被取消,无需再发起连接,直接跳过。避免 first-success 之后
@@ -171,56 +282,31 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 			return // 等额度期间目标已命中/取消,不再建连
 		}
 		defer releaseHost()
-		ctx, tcancel := context.WithCancel(task.Context)
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					logs.Log.Debugf("%s panic: %v", task.String(), r)
-					tcancel()
-				}
-			}()
-			var res *pkg.Result
-			if task.Mod == parsers.ZombieModUnauth {
-				res = Unauth(task)
-			} else if task.Mod == parsers.ZombieModCheck {
-				res = Brute(task)
-			} else {
-				res = Brute(task)
-			}
+		taskCtx, cancel := context.WithTimeout(task.Context, task.Duration())
+		defer cancel()
+		task.Context = taskCtx
 
-			select {
-			case <-ctx.Done():
-				return
-			case <-task.Context.Done():
-				return
-			default:
-				r.Output(res)
-			}
+		var res *pkg.Result
+		if task.Mod == parsers.ZombieModUnauth {
+			res = ExecuteUnauth(task, r.Plugins, r.FallbackPlugin, r.Pipeline, r.PostAction)
+		} else {
+			res = Execute(task, r.Plugins, r.FallbackPlugin, r.Pipeline, r.PostAction)
+		}
+		r.Output(res)
 
-			if res.OK && r.FirstOnly && task.Mod != parsers.ZombieModSniper {
-				tcancel()
-				task.Canceler()
-			}
-			tcancel()
-		}()
-
-		select {
-		case <-ctx.Done():
-		case <-task.Context.Done():
-			logs.Log.Debugf("all task %s cancel", task.URI())
-		case <-time.After(time.Duration(task.Timeout*2) * time.Second):
-			tcancel()
-			r.Output(&pkg.Result{
-				Task: task,
-				Err:  fmt.Errorf("goroutine timeout, force cancel"),
-			})
+		if res.OK && r.FirstOnly && task.Mod != parsers.ZombieModSniper {
+			task.Cancel()
 		}
 	}, ants.WithPanicHandler(func(err interface{}) {
 		debug.PrintStack()
-		r.wg.Done()
 	}))
+	if err != nil {
+		return fmt.Errorf("create worker pool: %w", err)
+	}
+	r.Pool = pool
+	defer pool.Release()
 
-	ch := r.targetGenerate()
+	ch := r.targetGenerate(ctx)
 	switch r.Mod {
 	case ModSniper:
 		r.RunWithSniper(ctx, ch)
@@ -231,14 +317,17 @@ func (r *Runner) RunWithContext(ctx context.Context) error {
 	default:
 		return nil
 	}
-	if r.OutFunc != nil {
-		r.outlock.Wait()
+	select {
+	case <-ctx.Done():
+		if !r.Quiet {
+			logs.Log.Warnf("interrupted, printing partial results")
+		}
+	default:
 	}
-	close(r.OutputCh)
 
 	if !r.Quiet {
 		logs.Log.Importantf("%s", r.stat.TaskString())
-		logs.Log.Importantf("total: %d, success: %d", r.stat.Total, r.stat.Success)
+		logs.Log.Importantf("%s", r.stat.SummaryString())
 	}
 
 	select {
@@ -273,9 +362,9 @@ func (r *Runner) RunWithSniper(ctx context.Context, targets chan *Target) {
 				Param:    target.Param,
 				Mod:      parsers.ZombieModSniper,
 			},
-			Context:  targetCtx,
-			Canceler: cancel,
-			Timeout:  r.Timeout,
+			Context: targetCtx,
+			Cancel:  cancel,
+			Timeout: r.Timeout,
 		})
 	}
 	r.wg.Wait()
@@ -318,9 +407,9 @@ func (r *Runner) RunWithPitchfork(ctx context.Context, target chan *Target) {
 					Param:    target.Param,
 					Mod:      parsers.ZombieModPitchfork,
 				},
-				Context:  targetCtx,
-				Canceler: cancel,
-				Timeout:  r.Timeout,
+				Context: targetCtx,
+				Cancel:  cancel,
+				Timeout: r.Timeout,
 			})
 		}
 	}
@@ -355,8 +444,7 @@ func (r *Runner) RunWithClusterBomb(ctx context.Context, targets chan *Target) {
 			}
 
 			if !r.NoCheckHoneyPot {
-				locker := &sync.Mutex{}
-				locker.Lock()
+				completed := make(chan struct{})
 				r.add(&pkg.Task{
 					ZombieResult: &parsers.ZombieResult{
 						IP:       cur.IP,
@@ -368,28 +456,16 @@ func (r *Runner) RunWithClusterBomb(ctx context.Context, targets chan *Target) {
 						Password: randomString(10),
 						Mod:      parsers.ZombieModCheck,
 					},
-					Context:  targetCtx,
-					Canceler: cancel,
-					Timeout:  r.Timeout,
-					Locker:   locker,
+					Context:   targetCtx,
+					Cancel:    cancel,
+					Timeout:   r.Timeout,
+					Completed: completed,
 				})
-				locker.Lock()
-				locker.Unlock()
+				<-completed
 			}
 
-			ch := r.clusterBombGenerate(targetCtx, cancel, cur)
-		loop:
-			for {
-				select {
-				case task, ok := <-ch:
-					if ok {
-						r.add(task)
-					} else {
-						break loop
-					}
-				case <-targetCtx.Done():
-					break loop
-				}
+			for task := range r.clusterBombGenerate(targetCtx, cancel, cur) {
+				r.add(task)
 			}
 		}()
 	}
@@ -419,10 +495,11 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 
 	go func() {
 		defer close(ch)
+	genLoop:
 		for _, user := range users {
 			select {
 			case <-ctx.Done():
-				return
+				break genLoop
 			default:
 			}
 			wg.Add(1)
@@ -430,9 +507,9 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 			go func() {
 				defer wg.Done()
 				if !r.NoUnAuth {
-					userLocker := &sync.Mutex{}
-					userLocker.Lock()
-					ch <- &pkg.Task{
+					userCompleted := make(chan struct{})
+					select {
+					case ch <- &pkg.Task{
 						ZombieResult: &parsers.ZombieResult{
 							IP:       target.IP,
 							Port:     target.Port,
@@ -442,13 +519,15 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 							Param:    target.Param,
 							Mod:      parsers.ZombieModUnauth,
 						},
-						Timeout:  r.Timeout,
-						Context:  ctx,
-						Canceler: canceler,
-						Locker:   userLocker,
+						Timeout:   r.Timeout,
+						Context:   ctx,
+						Cancel:    canceler,
+						Completed: userCompleted,
+					}:
+					case <-ctx.Done():
+						return
 					}
-					userLocker.Lock()
-					userLocker.Unlock()
+					<-userCompleted
 				}
 
 				for _, pwd := range pwds {
@@ -468,9 +547,9 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 							Param:    target.Param,
 							Mod:      parsers.ZombieModBrute,
 						},
-						Timeout:  r.Timeout,
-						Context:  ctx,
-						Canceler: canceler,
+						Timeout: r.Timeout,
+						Context: ctx,
+						Cancel:  canceler,
 					}:
 					case <-ctx.Done():
 						return
@@ -486,15 +565,19 @@ func (r *Runner) clusterBombGenerate(ctx context.Context, canceler context.Cance
 	return ch
 }
 
-func (r *Runner) targetGenerate() chan *Target {
+func (r *Runner) targetGenerate(ctx context.Context) chan *Target {
 	ch := make(chan *Target)
 	go func() {
+		defer close(ch)
 		for _, target := range r.Targets {
 			if r.Services == nil || (r.Services != nil && iutils.StringsContains(r.Services, target.Service)) {
-				ch <- target
+				select {
+				case ch <- target:
+				case <-ctx.Done():
+					return
+				}
 			}
 		}
-		close(ch)
 	}()
 
 	return ch
@@ -502,42 +585,15 @@ func (r *Runner) targetGenerate() chan *Target {
 
 func (r *Runner) add(task *pkg.Task) {
 	task.ProxyDial = r.ProxyDial
-	r.stat.Cur = task.String()
-	r.addlock.Lock()
-	r.stat.Tasks[task.Service]++
+	task.Raw = r.Raw
 	r.wg.Add(1)
-	r.stat.Total++
-	r.addlock.Unlock()
+	r.stat.RecordTask(task.Service, task.String())
 	_ = r.Pool.Invoke(task)
 }
 
 func (r *Runner) Output(res *pkg.Result) {
-	if r.OutFunc != nil {
-		r.outlock.Add(1)
-	}
-	if res.OK {
-		r.stat.Success++
-	}
-	r.OutputCh <- res
-}
-
-func (r *Runner) OutputHandler() {
-loop:
-	for {
-		select {
-		case result, ok := <-r.OutputCh:
-			if !ok {
-				break loop
-			}
-			if result.OK {
-				if r.File != nil {
-					r.OutFunc(result.Format(r.FileFormat))
-				}
-				logs.Log.Console(result.Format(r.OutputFormat))
-			} else {
-				logs.Log.Debugf("[%s] %s %s %s ,%s login failed, %s", result.Mod.String(), result.URI(), result.Username, result.Password, result.Service, result.Err.Error())
-			}
-			r.outlock.Done()
-		}
+	r.stat.RecordResult(res)
+	if r.OnResult != nil {
+		r.OnResult(res)
 	}
 }

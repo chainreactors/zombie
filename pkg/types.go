@@ -2,14 +2,14 @@ package pkg
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/chainreactors/fingers/common"
-	"github.com/chainreactors/parsers"
-	"github.com/chainreactors/utils"
 	"github.com/chainreactors/utils/httpx"
+	"github.com/chainreactors/utils/parsers"
 	"net"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -19,7 +19,6 @@ var (
 	InterruptError      = errors.New("interrupt")
 	ErrorWrongUserOrPwd = errors.New("wrong username or password")
 	NotImplUnauthorized = errors.New("not implemented unauthorized")
-	RunOpt              = &runOpt{}
 )
 
 type TimeoutError struct {
@@ -34,40 +33,7 @@ func (e TimeoutError) Error() string {
 
 func (e TimeoutError) Unwrap() error { return e.err }
 
-func init() {
-	RegisterServices()
-}
-
-var (
-	UnknownService    = &Service{Name: "unknown", DefaultPort: "", Source: "unknown"}
-	FTPService        = &Service{Name: "ftp", DefaultPort: "21", Source: PluginSource}
-	SSHService        = &Service{Name: "ssh", DefaultPort: "22", Source: PluginSource}
-	SMBService        = &Service{Name: "smb", DefaultPort: "445", Source: PluginSource}
-	MSSQLService      = &Service{Name: "mssql", DefaultPort: "1433", Source: PluginSource}
-	MYSQLService      = &Service{Name: "mysql", DefaultPort: "3306", Source: PluginSource}
-	POSTGRESQLService = &Service{Name: "postgresql", DefaultPort: "5432", Alias: []string{"postgre"}, Source: PluginSource}
-	REDISService      = &Service{Name: "redis", DefaultPort: "6379", Source: PluginSource}
-	MONGOService      = &Service{Name: "mongo", DefaultPort: "27017", Alias: []string{"mongodb"}, Source: PluginSource}
-	VNCService        = &Service{Name: "vnc", DefaultPort: "5900", Source: PluginSource}
-	RDPService        = &Service{Name: "rdp", DefaultPort: "3389", Source: PluginSource}
-	SNMPService       = &Service{Name: "snmp", DefaultPort: "161", Source: PluginSource}
-	ORACLEService     = &Service{Name: "oracle", DefaultPort: "1521", Source: PluginSource}
-	HTTPService       = &Service{Name: "http", DefaultPort: "80", Source: PluginSource}
-	HTTPSService      = &Service{Name: "https", DefaultPort: "443", Source: PluginSource}
-	GETService        = &Service{Name: "get", DefaultPort: "80", Source: PluginSource}
-	PostService       = &Service{Name: "post", DefaultPort: "80", Source: PluginSource}
-	LDAPService       = &Service{Name: "ldap", DefaultPort: "389", Source: PluginSource}
-	SOCKS5Service     = &Service{Name: "socks5", DefaultPort: "1080", Source: PluginSource}
-	TELNETService     = &Service{Name: "telnet", DefaultPort: "23", Source: PluginSource}
-	POP3Service       = &Service{Name: "pop3", DefaultPort: "110", Alias: []string{"pop"}, Source: PluginSource}
-	RSYNCService      = &Service{Name: "rsync", DefaultPort: "873", Source: PluginSource}
-	ZookeeperService  = &Service{Name: "zookeeper", DefaultPort: "2181", Source: PluginSource}
-	AmqpService       = &Service{Name: "amqp", DefaultPort: "5672", Source: PluginSource}
-	MqttService       = &Service{Name: "mqtt", DefaultPort: "1883", Source: PluginSource}
-	MemcachedService  = &Service{Name: "memcached", DefaultPort: "11211", Source: PluginSource}
-	HTTPProxyService  = &Service{Name: "http_proxy", DefaultPort: "8080", Source: PluginSource}
-	HTTPDigestService = &Service{Name: "digest", DefaultPort: "80", Source: PluginSource}
-)
+var UnknownService = &Service{Name: "unknown", DefaultPort: "", Source: "unknown"}
 
 var Services = services{
 	Plugins: map[string]*Service{},
@@ -75,11 +41,15 @@ var Services = services{
 }
 
 type services struct {
+	mu      sync.RWMutex
 	Plugins map[string]*Service
 	Aliases map[string]*Service
 }
 
 func (ss *services) Get(name string) (*Service, bool) {
+	name = strings.ToLower(strings.TrimSpace(name))
+	ss.mu.RLock()
+	defer ss.mu.RUnlock()
 	if s, ok := ss.Plugins[name]; ok {
 		return s, true
 	}
@@ -90,6 +60,11 @@ func (ss *services) Get(name string) (*Service, bool) {
 }
 
 func (ss *services) Register(s *Service) bool {
+	if s == nil {
+		return false
+	}
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
 	if _, ok := ss.Plugins[s.Name]; !ok {
 		ss.Plugins[s.Name] = s
 	}
@@ -101,45 +76,33 @@ func (ss *services) Register(s *Service) bool {
 	return true
 }
 
+// All returns a snapshot of the registered services.
+func (ss *services) All() map[string]*Service {
+	ss.mu.RLock()
+	defer ss.mu.RUnlock()
+	services := make(map[string]*Service, len(ss.Plugins))
+	for name, service := range ss.Plugins {
+		services[name] = service
+	}
+	return services
+}
+
 func (ss *services) DefaultPort(service string) string {
 	if s, ok := ss.Get(service); ok {
 		return s.DefaultPort
-	} else if s := utils.ParsePortsString(service); len(s) > 0 {
-		return s[0]
 	}
 	return ""
 }
 
-func RegisterServices() {
-	Services.Register(FTPService)
-	Services.Register(SSHService)
-	Services.Register(SMBService)
-	Services.Register(MSSQLService)
-	Services.Register(MYSQLService)
-	Services.Register(POSTGRESQLService)
-	Services.Register(REDISService)
-	Services.Register(MONGOService)
-	Services.Register(VNCService)
-	Services.Register(RDPService)
-	Services.Register(SNMPService)
-	Services.Register(ORACLEService)
-	Services.Register(HTTPService)
-	Services.Register(HTTPSService)
-	Services.Register(GETService)
-	Services.Register(PostService)
-	Services.Register(LDAPService)
-	Services.Register(SOCKS5Service)
-	Services.Register(TELNETService)
-	Services.Register(POP3Service)
-	Services.Register(RSYNCService)
-	Services.Register(ZookeeperService)
-	Services.Register(AmqpService)
-	Services.Register(MqttService)
-	Services.Register(MemcachedService)
-	Services.Register(HTTPProxyService)
-	Services.Register(HTTPDigestService)
-	// alias service
-	//Services.Register(&Service{Name: "tomcat", DefaultPort: "8080", Source: PluginSource})
+// SupportedServiceNames 返回所有已注册服务名(已排序),供未知服务的友好报错使用。
+func SupportedServiceNames() string {
+	services := Services.All()
+	names := make([]string, 0, len(services))
+	for name := range services {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return strings.Join(names, ", ")
 }
 
 const (
@@ -159,7 +122,7 @@ func (s Service) String() string {
 }
 
 func GetDefault(port string) string {
-	for _, s := range Services.Plugins {
+	for _, s := range Services.All() {
 		if s.DefaultPort == port {
 			return s.Name
 		}
@@ -179,10 +142,11 @@ type DialTimeoutFunc func(network, address string, timeout time.Duration) (net.C
 
 type Task struct {
 	*parsers.ZombieResult
-	Timeout  int                `json:"-"`
-	Context  context.Context    `json:"-"`
-	Canceler context.CancelFunc `json:"-"`
-	Locker   *sync.Mutex        `json:"-"`
+	Timeout   int                `json:"-"`
+	Context   context.Context    `json:"-"`
+	Cancel    context.CancelFunc `json:"-"`
+	Completed chan struct{}      `json:"-"`
+	Raw       bool               `json:"-"`
 	// ProxyDial 非 nil 时，插件应使用它建立连接而非直接 net.Dial。
 	ProxyDial DialFunc `json:"-"`
 }
@@ -222,34 +186,67 @@ func (t *Task) HTTPClient(followRedirects bool) *http.Client {
 }
 
 func NewResult(task *Task, err error) *Result {
-	if err != nil {
-		return &Result{
-			Task: task,
-			OK:   false,
-			Err:  err,
-		}
-	} else {
-		return &Result{
-			Task: task,
-			OK:   true,
-		}
+	result := &Result{Task: task, Err: err}
+	if task == nil || task.ZombieResult == nil {
+		return result
 	}
+	task.OK = err == nil
+	if err != nil {
+		task.ErrString = err.Error()
+	} else {
+		task.ErrString = ""
+	}
+	return result
 }
 
 type Result struct {
-	*Task      `json:",inline"`
-	Vulns      common.Vulns       `json:"vulns,omitempty"`
-	Extracteds parsers.Extracteds `json:"extracteds,omitempty"`
-	OK         bool               `json:"ok,omitempty"`
-	Err        error              `json:"err,omitempty"`
+	*Task         `json:",inline"`
+	Err           error           `json:"-"`
+	ActionResults []*ActionResult `json:"-"`
 }
 
-type runOpt struct {
-	Raw bool
+func (r *Result) Merge(ar *ActionResult) {
+	if ar == nil {
+		return
+	}
+	r.Extracteds = append(r.Extracteds, ar.Extracteds...)
+	for k, v := range ar.Vulns {
+		if r.Vulns == nil {
+			r.Vulns = make(parsers.Vulns)
+		}
+		r.Vulns[k] = v
+	}
+	for k, v := range ar.Loot {
+		if r.Loot == nil {
+			r.Loot = map[string][]byte{}
+		}
+		r.Loot[k] = v
+	}
+	r.ActionResults = append(r.ActionResults, ar)
 }
 
-func ParseMethod(input string) (string, string) {
-	if RunOpt.Raw {
+func (r *Result) Format(form string) string {
+	if r == nil || r.Task == nil || r.ZombieResult == nil {
+		return ""
+	}
+	switch form {
+	case parsers.ZombieFormatJSON, parsers.ZombieFormatJSONLine:
+		bs, err := json.Marshal(r)
+		if err != nil {
+			return ""
+		}
+		return string(bs) + "\n"
+	default:
+		out := r.ZombieResult.Format(form)
+		if len(r.Extracteds) == 0 {
+			return out
+		}
+		return strings.TrimRight(out, "\n") + " " + r.Extracteds.String()
+	}
+}
+
+func ParseMethod(input string, raw bool) (string, string) {
+	if raw {
 		return "", input
 	}
 	if strings.HasPrefix(input, "pk:") {

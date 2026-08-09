@@ -2,9 +2,8 @@ package pkg
 
 import (
 	"github.com/chainreactors/fingers/fingers"
-	"github.com/chainreactors/fingers/resources"
 	templates "github.com/chainreactors/neutron/templates"
-	"github.com/chainreactors/parsers"
+	"github.com/chainreactors/utils/parsers"
 	"github.com/chainreactors/utils"
 	"github.com/chainreactors/utils/iutils"
 	"github.com/chainreactors/words/mask"
@@ -13,39 +12,18 @@ import (
 )
 
 var (
-	Rules         map[string]string              = make(map[string]string)
-	Keywords      map[string][]string            = make(map[string][]string)
-	TemplateMap   map[string]*templates.Template = make(map[string]*templates.Template)
-	FingersEngine *fingers.FingersEngine
+	Rules               map[string]string              = make(map[string]string)
+	Keywords            map[string][]string            = make(map[string][]string)
+	TemplateMap         map[string]*templates.Template = make(map[string]*templates.Template)
+	ServiceTemplateData []byte
+	LootTemplateData    []byte
+	FingersEngine       *fingers.FingersEngine
+	PortPreset          *utils.PortPreset
+	portConfigData      []byte
 )
 
 func Load() error {
-	var err error
-	err = LoadPorts()
-	if err != nil {
-		return err
-	}
-
-	err = LoadKeyword()
-	if err != nil {
-		return err
-	}
-
-	err = LoadRules()
-	if err != nil {
-		return err
-	}
-
-	err = LoadTemplates()
-	if err != nil {
-		return err
-	}
-
-	err = LoadFingers()
-	if err != nil {
-		return err
-	}
-	return err
+	return LoadResources()
 }
 
 func LoadKeyword() error {
@@ -113,11 +91,10 @@ func LoadTemplates() error {
 		if template.Info.Zombie == "" {
 			continue
 		}
-		Services.Register(&Service{Name: template.Info.Zombie, Source: NeutronSource})
-		err := template.Compile(nil)
-		if err != nil {
-			return err
+		if err := template.Compile(nil); err != nil {
+			continue
 		}
+		Services.Register(&Service{Name: template.Info.Zombie, Source: NeutronSource})
 		TemplateMap[template.Info.Zombie] = template
 
 		// load gogo_finger-zombie-service map
@@ -134,23 +111,50 @@ func LoadTemplates() error {
 	return nil
 }
 
+func LoadServiceTemplates() error {
+	ServiceTemplateData = LoadConfig("zombie_service")
+	return nil
+}
+
+func LoadLootTemplates() error {
+	LootTemplateData = LoadConfig("zombie_loot")
+	return nil
+}
+
+func LoadAuditConfig() error {
+	data := LoadConfig("zombie_audit")
+	if len(data) == 0 {
+		return nil
+	}
+	var cfg struct {
+		FieldPatterns []string `yaml:"field_patterns"`
+	}
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return err
+	}
+	if len(cfg.FieldPatterns) > 0 {
+		DefaultAuditPatterns = cfg.FieldPatterns
+	}
+	return nil
+}
+
 func LoadPorts() error {
 	var ports []*utils.PortConfig
 	content := LoadConfig("port")
-	resources.PortData = content
+	portConfigData = content
 	err := yaml.Unmarshal(content, &ports)
 	if err != nil {
 		return err
 	}
 
-	resources.PrePort = utils.NewPortPreset(ports)
+	PortPreset = utils.NewPortPreset(ports)
 	return nil
 }
 
 func LoadFingers() error {
-	resources.FingersHTTPData = LoadConfig("http")
-	resources.FingersSocketData = LoadConfig("socket")
-	engine, err := fingers.NewFingersEngine(resources.FingersHTTPData, resources.FingersSocketData, resources.PortData)
+	httpData := LoadConfig("http")
+	socketData := LoadConfig("socket")
+	engine, err := fingers.NewFingersEngine(httpData, socketData, portConfigData)
 	if err != nil {
 		return err
 	}

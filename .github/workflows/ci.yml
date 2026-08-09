@@ -12,36 +12,130 @@ permissions:
   contents: read
 
 jobs:
-  basic:
-    name: basic checks (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - windows-latest
-
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: true
 
-      - name: Download dependencies
-        run: go mod download
 
-      - name: Test
-        run: go test -count=1 ./...
+      - run: go vet -tags "re2_cgo re2_static" ./...
 
-      - name: Vet
-        run: go vet ./...
+  test-linux:
+    name: test (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Build packages
-        run: go build ./...
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+
+      - run: go mod download
+
+      - name: Unit & E2E tests
+        run: go test -tags "re2_cgo re2_static" -count=1 -timeout 300s ./...
+
+  test-windows:
+    name: test (windows)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          pacboy: gcc:p re2:p pkg-config:p go:p git:p
+
+      - run: go mod download
+
+      - name: Unit & E2E tests
+        run: go test -tags "re2_cgo" -count=1 -timeout 300s ./...
+
+  build-linux:
+    name: build (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+
+      - run: go build -tags "re2_cgo re2_static" ./...
+
+      - name: Build with emptytemplates tag
+        run: go build -tags "emptytemplates re2_cgo re2_static" ./...
+
+  build-windows:
+    name: build (windows)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          pacboy: gcc:p re2:p pkg-config:p go:p git:p
+
+      - run: go build -tags "re2_cgo" ./...
+
+      - name: Build with emptytemplates tag
+        run: go build -tags "emptytemplates re2_cgo" ./...
+
+  templates:
+    name: template validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+
+      - name: Validate service templates
+        run: go test -tags "re2_cgo re2_static" -count=1 -run TestLoadAllTemplates ./service/...
+
+      - name: Validate loot templates
+        run: go test -tags "re2_cgo re2_static" -count=1 -run TestLoadLootTemplates ./service/...
+
+      - name: Verify embedded data is current
+        run: |
+          go run -tags "re2_cgo re2_static" templates/templates_gen.go -t templates -o /tmp/templates_check.go -need zombie -embed
+          diff -q pkg/templates.go /tmp/templates_check.go || {
+            echo "::error::pkg/templates.go is out of date — run 'go generate' and commit"
+            exit 1
+          }

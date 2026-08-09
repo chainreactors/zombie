@@ -2,49 +2,84 @@ package zookeeper
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/chainreactors/zombie/pkg"
 	"github.com/samuel/go-zookeeper/zk"
-	"time"
 )
 
-type ZookeeperPlugin struct {
-	*pkg.Task
-	conn *zk.Conn
+type zkSession struct {
+	service string
+	conn    *zk.Conn
 }
 
-func (s *ZookeeperPlugin) Name() string {
-	return s.Service
-}
+func (s *zkSession) Service() string { return s.service }
 
-func (s *ZookeeperPlugin) Unauth() (bool, error) {
-	conn, _, err := zk.Connect([]string{fmt.Sprintf("%s:%s", s.IP, s.Port)}, time.Duration(s.Timeout)*time.Second)
-	if err != nil {
-		return false, err
-	}
-	s.conn = conn
-	return true, nil
-}
-
-func (s *ZookeeperPlugin) Login() error {
-	conn, _, err := zk.Connect([]string{fmt.Sprintf("%s:%s", s.IP, s.Port)}, time.Duration(s.Timeout)*time.Second)
-	if err != nil {
-		return err
-	}
-	err = conn.AddAuth("digest", []byte(fmt.Sprintf("%s:%s", s.Username, s.Password)))
-	if err != nil {
-		return err
-	}
-	s.conn = conn
-	return nil
-}
-
-func (s *ZookeeperPlugin) GetResult() *pkg.Result {
-	return &pkg.Result{Task: s.Task, OK: true}
-}
-
-func (s *ZookeeperPlugin) Close() error {
+func (s *zkSession) Close() error {
 	if s.conn != nil {
 		s.conn.Close()
 	}
 	return nil
+}
+
+func (s *zkSession) Get(key string) ([]byte, error) {
+	data, _, err := s.conn.Get(key)
+	return data, err
+}
+
+func (s *zkSession) Keys(pattern string) ([]string, error) {
+	path := pattern
+	if path == "*" || path == "" {
+		path = "/"
+	}
+	children, _, err := s.conn.Children(path)
+	return children, err
+}
+
+func (s *zkSession) Command(name string, args ...string) (interface{}, error) {
+	switch strings.ToUpper(name) {
+	case "SET":
+		if len(args) < 2 {
+			return nil, fmt.Errorf("SET requires path and data")
+		}
+		_, err := s.conn.Set(args[0], []byte(args[1]), -1)
+		return "OK", err
+	case "CREATE":
+		if len(args) < 2 {
+			return nil, fmt.Errorf("CREATE requires path and data")
+		}
+		path, err := s.conn.Create(args[0], []byte(args[1]), 0, zk.WorldACL(zk.PermAll))
+		return path, err
+	case "DELETE":
+		if len(args) < 1 {
+			return nil, fmt.Errorf("DELETE requires path")
+		}
+		return "OK", s.conn.Delete(args[0], -1)
+	default:
+		return nil, fmt.Errorf("unsupported zookeeper command: %s", name)
+	}
+}
+
+type ZookeeperPlugin struct{}
+
+func (p *ZookeeperPlugin) Open(task *pkg.Task) (pkg.Session, error) {
+	conn, _, err := zk.Connect([]string{fmt.Sprintf("%s:%s", task.IP, task.Port)}, time.Duration(task.Timeout)*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	err = conn.AddAuth("digest", []byte(fmt.Sprintf("%s:%s", task.Username, task.Password)))
+	if err != nil {
+		conn.Close()
+		return nil, err
+	}
+	return &zkSession{service: task.Service, conn: conn}, nil
+}
+
+func (p *ZookeeperPlugin) Unauth(task *pkg.Task) (pkg.Session, error) {
+	conn, _, err := zk.Connect([]string{fmt.Sprintf("%s:%s", task.IP, task.Port)}, time.Duration(task.Timeout)*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	return &zkSession{service: task.Service, conn: conn}, nil
 }

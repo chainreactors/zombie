@@ -16,6 +16,7 @@ type Option struct {
 	InputOptions  `group:"Input Options"`
 	OutputOptions `group:"Output Options"`
 	WordOptions   `group:"Word Options"`
+	ActionOptions `group:"Post-Auth Actions"`
 	MiscOptions   `group:"Misc Options"`
 }
 
@@ -67,6 +68,17 @@ type MiscOptions struct {
 	Version     bool   `long:"version" description:"Bool, show version"`
 }
 
+type ActionOptions struct {
+	Proton           bool     `long:"proton" description:"post-auth: collect info + run proton credential scan"`
+	ScanTemplates    []string `long:"scan-template" description:"proton template file or directory for --proton"`
+	ServiceTemplates []string `long:"service-template" description:"service protocol template file or directory for post-auth exploitation"`
+	ServiceVars      []string `short:"V" long:"var" description:"custom service-template variables in key=value format"`
+	ServicePayloads  []string `long:"payload" description:"custom service-template payloads in key=value format; repeat key for multiple values"`
+	Gather           bool     `long:"gather" description:"post-auth: run built-in service templates for info gathering (tag=gather)"`
+	Risk             string   `long:"risk" description:"filter service templates by max risk level (safe/dangerous/critical)"`
+	Tags             []string `long:"tags" description:"filter service templates by tags"`
+}
+
 func (opt *Option) Validate() error {
 	if opt.Mod == "" {
 		opt.Mod = ModBomb
@@ -75,6 +87,18 @@ func (opt *Option) Validate() error {
 	case ModBomb, ModPitchFork, ModSniper:
 	default:
 		return fmt.Errorf("unsupported mod %q, want clusterbomb, pitchfork, or sniper", opt.Mod)
+	}
+	if opt.Threads <= 0 {
+		return errors.New("threads must be greater than zero")
+	}
+	if opt.Concurrency < 0 {
+		return errors.New("concurrency must not be negative")
+	}
+	if opt.Timeout <= 0 {
+		return errors.New("timeout must be greater than zero")
+	}
+	if opt.Top < 0 {
+		return errors.New("top must not be negative")
 	}
 	if len(opt.IP) == 0 && opt.IPFile == "" && opt.JsonFile == "" && opt.GogoFile == "" && opt.CIDR == nil {
 		return errors.New("please input ip or or file or json file or gogo file")
@@ -98,38 +122,40 @@ func (opt *Option) Prepare() (*Runner, error) {
 	var err error
 	var targets []*Target
 
-	var file *fileutils.File
-	var outfunc func(string)
-	if opt.OutputFile != "" {
-		file, err = fileutils.NewFile(opt.OutputFile, fileutils.ModeAppend, false, false)
-		if err != nil {
-			return nil, err
-		}
-		outfunc = func(s string) {
-			if err := file.SyncWrite(s); err != nil {
-				logs.Log.Warn(fmt.Sprintf("write output file failed: %v", err))
-			}
-		}
+	serviceVars, err := parseKeyValueArgs(opt.ServiceVars)
+	if err != nil {
+		return nil, err
+	}
+	servicePayloads, err := parsePayloadArgs(opt.ServicePayloads)
+	if err != nil {
+		return nil, err
 	}
 
 	runnerOpt := &RunnerOption{
-		Threads:         opt.Threads,
-		Concurrency:     opt.Concurrency,
-		Timeout:         opt.Timeout,
-		Top:             opt.Top,
-		Mod:             opt.Mod,
-		FirstOnly:       !opt.ForceContinue,
-		NoUnAuth:        opt.NoUnAuth,
-		NoCheckHoneyPot: opt.NoCheckHoneyPot,
-		Strict:          opt.Strict,
-		Raw:             opt.Raw,
+		Threads:          opt.Threads,
+		Concurrency:      opt.Concurrency,
+		Timeout:          opt.Timeout,
+		Top:              opt.Top,
+		Mod:              opt.Mod,
+		FirstOnly:        !opt.ForceContinue,
+		NoUnAuth:         opt.NoUnAuth,
+		NoCheckHoneyPot:  opt.NoCheckHoneyPot,
+		Strict:           opt.Strict,
+		Raw:              opt.Raw,
+		Proton:           opt.Proton,
+		ScanTemplates:    opt.ScanTemplates,
+		ServiceTemplates: opt.ServiceTemplates,
+		ServiceVars:      serviceVars,
+		ServicePayloads:  servicePayloads,
+		Gather:           opt.Gather,
+		Risk:             opt.Risk,
+		Tags:             opt.Tags,
 	}
 
 	runner := NewRunner(runnerOpt)
-	runner.File = file
-	runner.OutFunc = outfunc
-	runner.FileFormat = opt.FileFormat
-	runner.OutputFormat = opt.OutputFormat
+	if err := runner.BuildPipeline(); err != nil {
+		return nil, err
+	}
 
 	if opt.Bar {
 		pkg.InitBar()
@@ -138,7 +164,17 @@ func (opt *Option) Prepare() (*Runner, error) {
 	logs.Log.Importantf("mod: %s, check-unauth: %t, check-honeypot: %t", runner.Mod, !runner.NoUnAuth, !runner.NoCheckHoneyPot)
 
 	if opt.ServiceName != "" {
-		runner.Services = strings.Split(strings.ToLower(opt.ServiceName), ",")
+		for _, name := range strings.Split(opt.ServiceName, ",") {
+			name = strings.TrimSpace(name)
+			if name == "" {
+				continue
+			}
+			s, ok := pkg.Services.Get(name)
+			if !ok {
+				return nil, fmt.Errorf("unknown service %q, supported: %s", name, pkg.SupportedServiceNames())
+			}
+			runner.Services = append(runner.Services, s.Name)
+		}
 	}
 
 	if opt.JsonFile != "" {
@@ -192,10 +228,27 @@ func (opt *Option) Prepare() (*Runner, error) {
 		}
 	}
 
+	filterServices := map[string]struct{}{}
+	if opt.FilterService != "" {
+		for _, name := range strings.Split(opt.FilterService, ",") {
+			name = strings.TrimSpace(name)
+			if name == "" {
+				continue
+			}
+			if s, ok := pkg.Services.Get(name); ok {
+				filterServices[s.Name] = struct{}{}
+			} else {
+				filterServices[strings.ToLower(name)] = struct{}{}
+			}
+		}
+	}
+
 	for _, t := range targets {
 		// 如果指定了service, 将会覆盖json或gogo中的字段
 		if opt.ServiceName != "" {
 			t.UpdateService(opt.ServiceName)
+		} else if t.Service != "" {
+			t.UpdateService(t.Service)
 		}
 
 		if t.Service == "" {
@@ -203,15 +256,8 @@ func (opt *Option) Prepare() (*Runner, error) {
 			continue
 		}
 
-		if opt.FilterService != "" {
-			var ok bool
-			for _, s := range strings.Split(opt.FilterService, ",") {
-				if s == t.Service {
-					ok = true
-					break
-				}
-			}
-			if !ok {
+		if len(filterServices) > 0 {
+			if _, ok := filterServices[t.Service]; !ok {
 				continue
 			}
 		}
@@ -228,7 +274,7 @@ func (opt *Option) Prepare() (*Runner, error) {
 		var s strings.Builder
 		dicts = make([][]string, len(opt.Dictionaries))
 		for i, f := range opt.Dictionaries {
-			dicts[i], err = loadFileToSlice(f)
+			dicts[i], err = fileutils.LoadFileToSlice(f)
 			if err != nil {
 				return nil, err
 			}

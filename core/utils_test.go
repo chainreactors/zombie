@@ -48,6 +48,17 @@ func TestParseUrl(t *testing.T) {
 			},
 		},
 		{
+			name:  "service alias url with default port",
+			input: "mongodb://127.0.0.1",
+			ok:    true,
+			want: &Target{
+				IP:      "127.0.0.1",
+				Port:    "27017",
+				Service: "mongo",
+				Scheme:  "mongodb",
+			},
+		},
+		{
 			name:  "plain ip",
 			input: "127.0.0.1",
 			ok:    true,
